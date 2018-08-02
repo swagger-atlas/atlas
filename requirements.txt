@@ -1,5 +1,7 @@
 # If needed, we can split this in multiple files
 
+# Locust Requirements
+locustio==0.8.1
 
 # Developer Tools
 pylint==2.1.0

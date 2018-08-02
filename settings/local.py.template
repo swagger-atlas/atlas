@@ -1,0 +1,7 @@
+from . import base
+
+
+class Settings(base.Settings):
+
+    # Locust Settings
+    HOST_URL = ""
