@@ -1,0 +1,6 @@
+# If needed, we can split this in multiple files
+
+
+# Developer Tools
+pylint==2.1.0
+git-pylint-commit-hook==2.5.0
