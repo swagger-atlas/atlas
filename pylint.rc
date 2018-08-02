@@ -23,11 +23,9 @@ include-ids=yes
 
 [BASIC]
 no-docstring-rgx=__.*__|_.*
-class-rgx=[A-Z_][a-zA-Z0-9_]+$
-function-rgx=[a-zA_][a-zA-Z0-9_]{2,70}$
-method-rgx=[a-z_][a-zA-Z0-9_]{2,70}$
-const-rgx=(([A-Z_][A-Z0-9_]+)|([a-z_][a-z0-9_]+)|(__.*__)|register|logger)$
-good-names=_,i,j,k,e,qs,pk,setUp,tearDown, db
+class-rgx=[A-Z][a-zA-Z0-9]+$
+const-rgx=(([A-Z_][A-Z0-9_]+)|([a-z_][a-z0-9_]+)|(__.*__)|logger)$
+good-names=_,setUp,tearDown
 
 
 [TYPECHECK]

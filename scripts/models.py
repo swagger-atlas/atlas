@@ -116,7 +116,7 @@ class Operation:
 
     def validate_method(self):
         if self.method not in swagger_constants.VALID_METHODS:
-            raise exceptions.ImproperSwaggerException("Invalid Method -%s for %s", self.method, self.url)
+            raise exceptions.ImproperSwaggerException("Invalid Method {} for {}".format(self.method, self.url))
 
     def add_parameters(self, parameters):
 
@@ -127,7 +127,9 @@ class Operation:
             name = parameter.pop(swagger_constants.PARAMETER_NAME, None)
 
             if not name:
-                raise exceptions.ImproperSwaggerException("Parameter configuration does not have name - %s", parameter)
+                raise exceptions.ImproperSwaggerException(
+                    "Parameter configuration does not have name - {}".format(parameter)
+                )
 
             self.parameters[name] = parameter
 
@@ -158,9 +160,9 @@ class OpenAPISpec:
             for method, method_config in config.items():
 
                 if method in swagger_constants.VALID_METHODS:
-                    op = Operation(url=path, method=method, config=method_config)
-                    op.add_parameters(common_parameters)
-                    self.tasks.append(op.get_task())
+                    operation = Operation(url=path, method=method, config=method_config)
+                    operation.add_parameters(common_parameters)
+                    self.tasks.append(operation.get_task())
                 else:
                     logger.warning("Incorrect method - %s %s", method, method_config)
 
