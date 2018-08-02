@@ -1,9 +1,9 @@
 import subprocess
 
-from settings.base import Settings
+from settings.conf import settings
 
 COMMAND = "locust -f {locust_path} --host={host}".format(
-    locust_path=Settings.LOCUST_FILE, host=Settings.HOST_URL
+    locust_path=settings.LOCUST_FILE, host=settings.HOST_URL
 )
 
 if __name__ == "__main__":

@@ -15,6 +15,7 @@ Please see contribution guidelines below for more details
 Coding Guidelines
 ======
 
+- Indentation Styles: Prefer Spaces (4) over Tab
 
 
 Git Process
