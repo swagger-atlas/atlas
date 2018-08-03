@@ -36,6 +36,10 @@ Project Setup
 How to Use
 ===========
 
+Converting Specs to Locust
+------
+1. You can convert OpenAPI Specifications using `scripts/spec_converter.py`
+
 Running Locust
 ------
 1. You can run locust from executing `scripts/locust_runner.py` file
