@@ -5,3 +5,12 @@ class Settings(base.Settings):
 
     # Locust Settings
     HOST_URL = ""
+
+    DATABASE = {
+        "engine": "postgres",    # Allowed values are "postgres", "mysql", "sqlite"
+        "name": "",
+        "user": "",
+        "password": "",
+        "host": "",
+        "port": ""
+    }
