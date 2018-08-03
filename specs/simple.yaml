@@ -4,6 +4,7 @@ paths:
       - in: path
         name: id
         type: integer
+        resource: user
         required: True
     get:
       summary: This is sample API Summary,

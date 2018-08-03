@@ -23,6 +23,13 @@ class LocustFileConfig:
         self.imports = ["from locust import HttpLocust, TaskSet, task"]
         self.global_vars = []
 
+        self.resource_task_set()
+
+    def resource_task_set(self):
+        if self.task_set.have_resource:
+            self.imports.append("from scripts.resources.decorators import ResourceDecorator")
+            self.global_vars.append("resource = ResourceDecorator()")
+
     def get_imports(self):
         return "\n".join(self.imports)
 

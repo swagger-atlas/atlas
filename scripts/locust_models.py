@@ -3,6 +3,8 @@ import random
 import string
 
 from scripts import (
+    constants,
+    exceptions,
     utils
 )
 
@@ -22,6 +24,9 @@ class Task:
         self.parameters = parameters or {}
 
         self.decorators = ["@task(1)"]
+        self.have_resource = False
+
+        self.parse_parameters()
 
     @staticmethod
     def get_function_parameters():
@@ -29,10 +34,31 @@ class Task:
         return ", ".join(parameter_list)
 
     def get_function_declaration(self, width):
-        return "{decorators}\n{w}def {name}({parameters}):".format(**utils.StringDict(
-            decorators=self.get_decorators(width), name=self.func_name, parameters=self.get_function_parameters(),
-            w='\t' * width)
-                                                                   )
+        return "{decorators}\n{w}def {name}({parameters}):".format(
+            **utils.StringDict(
+                decorators=self.get_decorators(width), name=self.func_name, parameters=self.get_function_parameters(),
+                w='\t' * width)
+        )
+
+    def parse_parameters(self):
+        for config in self.parameters.values():
+            in_ = config.get(constants.IN_)
+
+            if not in_:
+                raise exceptions.ImproperSwaggerException("In is required field for Parameter")
+
+            if in_ == constants.PATH_PARAM:
+                resource = config.get(constants.RESOURCE)
+
+                if resource:
+                    self.decorators.append(self.create_resource_decorator(resource))
+                    self.have_resource = True
+
+    def create_resource_decorator(self, resource):
+        return "@resource.{res_method}(resource={resource}, url={url})".format(**utils.StringDict(
+            res_method=constants.RESOURCE_MAPPING.get(self.method),
+            resource=resource, url=self.url
+        ))
 
     @staticmethod
     def get_client_parameters():
@@ -64,6 +90,10 @@ class TaskSet:
     def __init__(self, tasks, tag=None):
         self.tag = tag or ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
         self.tasks = tasks
+
+    @property
+    def have_resource(self):
+        return any([task.have_resource for task in self.tasks])
 
     def generate_tasks(self, width):
         return "\n\n{w}".join([_task.convert(width) for _task in self.tasks]).format_map(
