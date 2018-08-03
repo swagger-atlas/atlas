@@ -3,6 +3,8 @@
 # Locust Requirements
 locustio==0.8.1
 
+PyYAML==3.13
+
 # Developer Tools
 pylint==2.1.0
 git-pylint-commit-hook==2.5.0

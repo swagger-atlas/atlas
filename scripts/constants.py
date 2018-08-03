@@ -15,3 +15,8 @@ DELETE = "delete"
 PATCH = "patch"
 PUT = "put"
 VALID_METHODS = [GET, POST, DELETE, PATCH, PUT]
+
+
+# Valid Swagger/OpenAPI extensions
+JSON = "json"
+YAML = "yaml"
