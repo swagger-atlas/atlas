@@ -6,6 +6,9 @@ class Settings(base.Settings):
     # Locust Settings
     HOST_URL = ""
 
+    # This is the database from where we should pick test values.
+    # You can use your local project database when testing the integration
+    # And once you are confident in integration, you can switch to Staging Database.
     DATABASE = {
         "engine": "postgres",    # Allowed values are "postgres", "mysql", "sqlite"
         "name": "",
