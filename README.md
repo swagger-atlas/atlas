@@ -40,6 +40,15 @@ Converting Specs to Locust
 ------
 1. You can convert OpenAPI Specifications using `scripts/spec_converter.py`
 
+
+Creating a Resource Pool from Resource Mapping
+-----
+You can try and create a temporary resource map for testing
+1. Define resource map in `resources/sample_mapping.py`
+2. Use `parse` method of ``ResourceMap` class defined in `resources/generators`.
+3. You can then print `RESOURCES` from `resources/generators` to check updated resource pool.
+
+
 Running Locust
 ------
 1. You can run locust from executing `scripts/locust_runner.py` file

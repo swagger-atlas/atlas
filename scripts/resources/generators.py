@@ -3,10 +3,12 @@ from collections import defaultdict
 import random
 
 from scripts import exceptions
+from scripts.resources import constants as resource_constants
+from scripts.database import client as db_client
 
 
 RESOURCES = defaultdict(set, {
-    "user": {53859, 54001, 53775},
+    # "user": {53859, 54001, 53775},
     "session": {1, 2, 3, 4}
 })
 
@@ -70,3 +72,36 @@ class Resource:
             resources = resources[0]
 
         return resources
+
+
+class ResourceMap:
+    """
+    Parse over Resource Map and create a cache of Resources
+    """
+
+    def __init__(self, resource_map):
+        self.map = resource_map
+        self.limit = 50
+
+        self.client = db_client.Client()
+
+    def parse(self):
+        for resource, config in self.map.items():
+            table = config.get(resource_constants.TABLE)
+
+            if not table:
+                raise exceptions.ResourcesException("Table not defined for {}".format(resource))
+
+            column = config.get(resource_constants.COLUMN, resource_constants.DEFAULT_COLUMN)
+
+            if resource not in RESOURCES:
+                sql = self.construct_fetch_query(table, column)
+                result = self.client.fetch_ids(sql)
+                RESOURCES[resource] = result
+
+    def construct_fetch_query(self, table, column):
+        """
+        Construct a simple SQL Fetch Query
+        """
+
+        return "select {column} from {table} limit {limit}".format(column=column, table=table, limit=self.limit)
