@@ -27,3 +27,21 @@ RESOURCE_MAPPING = {
 # Valid Swagger/OpenAPI extensions
 JSON = "json"
 YAML = "yaml"
+
+# Data Type Maps
+TYPE = "type"
+INTEGER = "integer"
+NUMBER = "number"
+STRING = "string"
+
+# Integer Options
+MINIMUM = "minimum"
+MAXIMUM = "maximum"
+MIN_EXCLUDE = "exclusiveMinimum"
+MAX_EXCLUDE = "exclusiveMaximum"
+MULTIPLE_OF = "multipleOf"
+
+# String Options
+MIN_LENGTH = "minLength"
+MAX_LENGTH = "maxLength"
+PATTERN = "pattern"
