@@ -9,6 +9,9 @@ IN_ = "in"
 PATH_PARAM = "path"
 RESOURCE = "resource"
 BODY_PARAM = "body"
+QUERY_PARAM = "query"
+
+# Defining an Object/Schema
 SCHEMA = "schema"
 REF = "$ref"
 PROPERTIES = "properties"
@@ -41,6 +44,7 @@ INTEGER = "integer"
 NUMBER = "number"
 STRING = "string"
 BOOLEAN = "boolean"
+QUERY_TYPES = [INTEGER, NUMBER, STRING, BOOLEAN]    # Valid types for query Parameters
 
 # Integer Options
 MINIMUM = "minimum"

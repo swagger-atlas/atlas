@@ -119,3 +119,10 @@ def body(config, *args, **kwargs):
     fake_obj.update_data(config)
     return fake_obj.func_kwargs["body"]
     # return fake_obj.body(config, *args, **kwargs)
+
+
+def formatted_url(config, *args, **kwargs):
+    fake_obj = FakeDataDecorator()
+    fake_obj.generator_class = fake_obj.get_generator_class()
+    fake_obj.update_data(config)
+    return fake_obj.func_kwargs["body"]

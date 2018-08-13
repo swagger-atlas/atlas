@@ -34,14 +34,18 @@ class Task:
 
         self.decorators = ["@task(1)"]
         self.have_resource = False
+        self.custom_url = False
 
         self.data_body = dict()
+        self.query_params = dict()
 
         self.parse_parameters()
 
-    @staticmethod
-    def get_function_parameters():
-        parameter_list = ["self", "format_url", "**kwargs"]
+    def get_function_parameters(self):
+        parameter_list = ["self"]
+        if self.custom_url:
+            parameter_list.append("format_url")
+        parameter_list.append("**kwargs")
         return ", ".join(parameter_list)
 
     def get_function_declaration(self, width):
@@ -68,14 +72,36 @@ class Task:
                 if resource:
                     self.decorators.append(self.create_resource_decorator(resource))
                     self.have_resource = True
+                    self.custom_url = True
+                else:
+                    # if we do not have resource, we still need to make a valid URL
+                    self.construct_query_parameter(config)
 
-            if in_ == constants.BODY_PARAM:
+            elif in_ == constants.BODY_PARAM:
                 schema = config.get(constants.SCHEMA)
 
                 if not schema:
                     raise exceptions.ImproperSwaggerException("Body Parameter must specify schema")
 
                 self.parse_schema(schema)
+
+            elif in_ == constants.QUERY_PARAM:
+                self.construct_query_parameter(config)
+
+            else:
+                raise exceptions.ImproperSwaggerException("Config does not have valid parameter type")
+
+    def construct_query_parameter(self, query_config):
+        name = query_config[constants.PARAMETER_NAME]
+        _type = query_config.get(constants.TYPE)
+
+        if not _type:
+            raise exceptions.ImproperSwaggerException("Type not defined for parameter - {}".format(name))
+
+        if _type not in constants.QUERY_TYPES:
+            raise exceptions.ImproperSwaggerException("Unsupported type for parameter - {}".format(name))
+
+        self.query_params[name] = _type
 
     def parse_schema(self, schema_config):
         """
@@ -113,15 +139,29 @@ class Task:
         """
         Parameters for calling Request method
         """
-        parameter_list = ["format_url"]
+        url = "format_url" if self.custom_url else self.url
+
+        if self.query_params:
+            url = "formatted_url({})".format(url)
+
+        parameter_list = [url]
         if self.data_body:
-            parameter_list.append("data=body({})".format(self.func_name + "_CONFIG"))
+            parameter_list.append("data=body(body_config)")
         return ", ".join(parameter_list)
 
     def get_function_definition(self, width):
-        return "self.client.{method}({params})".format(**utils.StringDict(
-            method=self.method, params=self.get_client_parameters()
+
+        body_definition = []
+
+        for key, value in self.data_body.items():
+            body_definition.append("{key} = {config}".format(key="body_config", config=value))
+
+        body_definition.append("self.client.{method}({params})".format(
+            **utils.StringDict(method=self.method, params=self.get_client_parameters())
         ))
+
+        join_str = "\n{w}".format(w='\t'*width)
+        return join_str.join(body_definition)
 
     def get_decorators(self, width):
         return "\n{w}".join(self.decorators).format_map(utils.StringDict(w='\t' * width))
@@ -148,17 +188,9 @@ class TaskSet:
     def have_resource(self):
         return any([task.have_resource for task in self.tasks])
 
-    @property
-    def body_declarations(self):
-        return [
-            "{key} = {config}".format(key=key+"_CONFIG", config=value)
-            for task in self.tasks
-            for key, value in task.data_body.items()
-        ]
-
     def generate_tasks(self, width):
-        return "\n\n{w}".join([_task.convert(width) for _task in self.tasks]).format_map(
-            utils.StringDict(w='\t' * width))
+        join_string = "\n\n{w}".format(w='\t'*width)
+        return join_string.join([_task.convert(width) for _task in self.tasks])
 
     @staticmethod
     def generate_on_start():

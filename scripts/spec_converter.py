@@ -21,29 +21,23 @@ class LocustFileConfig:
         self.task_set = task_set
 
         self.imports = ["from locust import HttpLocust, TaskSet, task"]
-        self.global_vars = []
 
         self.resource_task_set()
 
     def resource_task_set(self):
         if self.task_set.have_resource:
-            self.imports.append("from scripts.resources.decorators import ResourceDecorator")
-            self.global_vars.extend(self.task_set.body_declarations)
+            self.imports.append("from scripts.resources.decorators import fetch, body")
 
     def get_imports(self):
         return "\n".join(self.imports)
-
-    def get_global_vars(self):
-        return "\n".join(self.global_vars) if self.global_vars else ""
 
     def get_task_set(self):
         return self.task_set.convert()
 
     def convert(self):
-        file_components = ["{imports}", "{declarations}", "{task_set}"]
+        file_components = ["{imports}", "{task_set}"]
         return "\n\n".join(file_components).format(**utils.StringDict(
             imports=self.get_imports(),
-            declarations=self.get_global_vars(),
             task_set=self.task_set.convert(width=1)
         ))
 
