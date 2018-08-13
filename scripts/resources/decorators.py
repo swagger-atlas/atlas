@@ -4,7 +4,8 @@ from string import Formatter
 
 from scripts import (
     constants as swagger_constants,
-    exceptions
+    exceptions,
+    utils
 )
 from scripts.resources.generators import Resource
 from scripts.resources.data_mapper import FakeData
@@ -113,16 +114,17 @@ def fetch(resource, url, *args, **kwargs):
     return res_obj.fetch(resource, url, *args, **kwargs)
 
 
-def body(config, *args, **kwargs):
+def body(config):
     fake_obj = FakeDataDecorator()
     fake_obj.generator_class = fake_obj.get_generator_class()
     fake_obj.update_data(config)
     return fake_obj.func_kwargs["body"]
-    # return fake_obj.body(config, *args, **kwargs)
 
 
-def formatted_url(config, *args, **kwargs):
+def formatted_url(url, query_config, path_config):
     fake_obj = FakeDataDecorator()
     fake_obj.generator_class = fake_obj.get_generator_class()
-    fake_obj.update_data(config)
+    fake_obj.update_data(path_config)
+    url.format_map(utils.StringDict(**fake_obj.func_kwargs["body"]))
+    fake_obj.update_data(query_config)
     return fake_obj.func_kwargs["body"]

@@ -105,7 +105,7 @@ class Task:
         if _type not in constants.QUERY_TYPES:
             raise exceptions.ImproperSwaggerException("Unsupported type for parameter - {}".format(name))
 
-        self.query_params[name] = (param_type, _type)
+        self.query_params[name] = (param_type, query_config)
 
     def parse_schema(self, schema_config):
         """
@@ -143,14 +143,11 @@ class Task:
         """
         Parameters for calling Request method
         """
-        url = "format_url" if self.custom_url else self.url
-
-        if self.query_params:
-            url = "formatted_url({}, query_config, path_config)".format(url)
-
-        parameter_list = [url]
+        parameter_list = ["url"]
         if self.data_body:
             parameter_list.append("data=body(body_config)")
+        if self.query_params:
+            parameter_list.append("params=path_params")
         return ", ".join(parameter_list)
 
     def construct_body_variables(self):
@@ -167,11 +164,14 @@ class Task:
             "path": path_params
         }
         for key, value in self.query_params.items():
-            param_str = "'{name}': '{data_type}'".format(name=key, data_type=value[1])
+            param_str = "'{name}': {config}".format(name=key, config=value[1])
             param_map[value[0]].append(param_str)
 
         query_str = "{}"
         path_str = "{}"
+        url_str = "url = {}".format("format_url" if self.custom_url else "'{}'".format(self.url))
+
+        body_definition.append(url_str)
 
         if query_params:
             query_str = "{" + ", ".join(query_params) + "}"
@@ -183,6 +183,9 @@ class Task:
             # If one if present, we need to append both
             body_definition.append("query_config = {q}".format_map(utils.StringDict(q=query_str)))
             body_definition.append("path_config = {p}".format_map(utils.StringDict(p=path_str)))
+
+            # Also get Path Parameters
+            body_definition.append("path_params = formatted_url({url, query_config, path_config})")
 
         return body_definition
 
