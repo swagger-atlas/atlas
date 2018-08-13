@@ -1,3 +1,6 @@
+from scripts import exceptions
+
+
 class StringDict(dict):
     """
     Make sure that strings could be formatted in stages
@@ -23,3 +26,29 @@ class StringDict(dict):
 
     def __missing__(self, key):
         return "{" + key + "}"
+
+
+def resolve_reference(spec, ref_definition):
+    """
+    Resolve Reference for Swagger and return the referred part
+    :param spec: Swagger specification
+    :param ref_definition: Path to reference
+    :return: Reference object
+    """
+
+    # Find out which reference it is:
+    if ref_definition.startswith("#/"):
+        ref = ref_definition[2:].split("/")     # Ignore #/ and split the rest of string by /
+
+    else:
+        raise exceptions.ImproperSwaggerException("We only support Local references")
+
+    for ref_element in ref:
+        spec = spec.get(ref_element)
+
+        if not spec:
+            raise exceptions.ImproperSwaggerException("Cannot find reference {ref} in {spec}".format(
+                ref=ref_element, spec=spec
+            ))
+
+    return spec

@@ -8,6 +8,10 @@ PARAMETER_NAME = "name"
 IN_ = "in"
 PATH_PARAM = "path"
 RESOURCE = "resource"
+BODY_PARAM = "body"
+SCHEMA = "schema"
+REF = "$ref"
+PROPERTIES = "properties"
 
 # Open API Supported Methods
 GET = "get"
@@ -21,7 +25,8 @@ VALID_METHODS = [GET, POST, DELETE, PATCH, PUT]
 FETCH = "fetch"
 
 RESOURCE_MAPPING = {
-    GET: FETCH
+    GET: FETCH,
+    PUT: FETCH
 }
 
 # Valid Swagger/OpenAPI extensions
@@ -31,6 +36,7 @@ YAML = "yaml"
 # Data Type Maps
 TYPE = "type"
 FORMAT = "format"
+OBJECT = "object"
 INTEGER = "integer"
 NUMBER = "number"
 STRING = "string"

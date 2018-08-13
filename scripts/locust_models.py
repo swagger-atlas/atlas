@@ -16,15 +16,26 @@ class Task:
     Define a single Task of Locust File
     """
 
-    def __init__(self, func_name, method, url, parameters=None):
+    def __init__(self, func_name, method, url, parameters=None, spec=None):
+        """
+        :param func_name: Function name to be defined in Locust Config File
+        :param method: Request Method
+        :param url: URL to which this method corresponds
+        :param parameters: OpenAPI Parameters
+        :param spec: Complete spec definition
+        """
 
         self.func_name = func_name
         self.method = method
         self.url = url
         self.parameters = parameters or {}
 
+        self.spec = spec or {}
+
         self.decorators = ["@task(1)"]
         self.have_resource = False
+
+        self.data_body = dict()
 
         self.parse_parameters()
 
@@ -41,11 +52,15 @@ class Task:
         )
 
     def parse_parameters(self):
+        """
+        For the Path parameters, add required resources
+        For the body parameter, add the definition
+        """
         for config in self.parameters.values():
             in_ = config.get(constants.IN_)
 
             if not in_:
-                raise exceptions.ImproperSwaggerException("In is required field for Parameter")
+                raise exceptions.ImproperSwaggerException("In is required field for OpenAPI Parameter")
 
             if in_ == constants.PATH_PARAM:
                 resource = config.get(constants.RESOURCE)
@@ -54,15 +69,53 @@ class Task:
                     self.decorators.append(self.create_resource_decorator(resource))
                     self.have_resource = True
 
+            if in_ == constants.BODY_PARAM:
+                schema = config.get(constants.SCHEMA)
+
+                if not schema:
+                    raise exceptions.ImproperSwaggerException("Body Parameter must specify schema")
+
+                self.parse_schema(schema)
+
+    def parse_schema(self, schema_config):
+        """
+        Parse the schema for request bodies
+        """
+
+        ref = schema_config.get(constants.REF)
+
+        if ref:
+            schema_config = utils.resolve_reference(self.spec, ref)
+
+        schema_type = schema_config.get(constants.TYPE)
+
+        if not schema_type:
+            raise exceptions.ImproperSwaggerException("Request body must either define reference or Data Type")
+
+        if schema_type != constants.OBJECT:
+            schema_config[constants.PROPERTIES] = {"dummy": schema_type}
+
+        properties = schema_config.get(constants.PROPERTIES)
+
+        if not properties:
+            raise exceptions.ImproperSwaggerException("An Object must define properties")
+
+        self.data_body[self.func_name] = properties
+        self.have_resource = True
+
     def create_resource_decorator(self, resource):
-        return "@resource.{res_method}(resource={resource}, url={url})".format(**utils.StringDict(
+        return "@{res_method}(resource={resource}, url={url})".format(**utils.StringDict(
             res_method=constants.RESOURCE_MAPPING.get(self.method),
             resource=resource, url=self.url
         ))
 
-    @staticmethod
-    def get_client_parameters():
+    def get_client_parameters(self):
+        """
+        Parameters for calling Request method
+        """
         parameter_list = ["format_url"]
+        if self.data_body:
+            parameter_list.append("data=body({})".format(self.func_name + "_CONFIG"))
         return ", ".join(parameter_list)
 
     def get_function_definition(self, width):
@@ -94,6 +147,14 @@ class TaskSet:
     @property
     def have_resource(self):
         return any([task.have_resource for task in self.tasks])
+
+    @property
+    def body_declarations(self):
+        return [
+            "{key} = {config}".format(key=key+"_CONFIG", config=value)
+            for task in self.tasks
+            for key, value in task.data_body.items()
+        ]
 
     def generate_tasks(self, width):
         return "\n\n{w}".join([_task.convert(width) for _task in self.tasks]).format_map(

@@ -1,0 +1,36 @@
+paths:
+  /api/user/{id}:
+    parameters:
+      - in: path
+        name: id
+        type: integer
+        resource: user
+        required: True
+    get:
+      summary: This is sample API Summary,
+      operationID: retrieveUser
+      responses:
+        200:
+          description: User Object
+          schema:
+            $ref: "#/definitions/user"
+    put:
+      summary: Modify User Resource
+      operationID: updateUser
+      parameters:
+        - in: body
+          name: user
+          description: User to update
+          schema:
+            $ref: "#/definitions/user"
+      response:
+        200:
+          description: OK
+definitions:
+  user:
+    type: object
+    properties:
+      userName:
+        type: string
+      name:
+        type: string

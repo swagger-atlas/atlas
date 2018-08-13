@@ -28,7 +28,7 @@ class LocustFileConfig:
     def resource_task_set(self):
         if self.task_set.have_resource:
             self.imports.append("from scripts.resources.decorators import ResourceDecorator")
-            self.global_vars.append("resource = ResourceDecorator()")
+            self.global_vars.extend(self.task_set.body_declarations)
 
     def get_imports(self):
         return "\n".join(self.imports)
@@ -92,7 +92,7 @@ class SpecsFile:
 
 
 if __name__ == "__main__":
-    specs_file = SpecsFile("simple.json")
+    specs_file = SpecsFile("req_resp.yaml")
     spec = spec_models.OpenAPISpec(specs_file.file_load())
     spec.get_tasks()
     tasks = locust_models.TaskSet(tasks=spec.tasks, tag="User")
