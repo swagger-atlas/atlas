@@ -8,8 +8,10 @@ from scripts.database import client as db_client
 
 
 RESOURCES = defaultdict(set, {
-    # "user": {53859, 54001, 53775},
-    "session": {1, 2, 3, 4}
+    "user": {53859, 54001, 53775},
+    "session": {1, 2, 3, 4},
+    "activity": {1},
+    "session-type": {1, 3}
 })
 
 

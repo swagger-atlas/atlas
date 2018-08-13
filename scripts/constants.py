@@ -30,9 +30,11 @@ YAML = "yaml"
 
 # Data Type Maps
 TYPE = "type"
+FORMAT = "format"
 INTEGER = "integer"
 NUMBER = "number"
 STRING = "string"
+BOOLEAN = "boolean"
 
 # Integer Options
 MINIMUM = "minimum"
@@ -45,3 +47,10 @@ MULTIPLE_OF = "multipleOf"
 MIN_LENGTH = "minLength"
 MAX_LENGTH = "maxLength"
 PATTERN = "pattern"
+DATE = "date"
+DATE_TIME = "date-time"
+PASSWORD = "password"
+BYTE = "byte"
+BINARY = "binary"
+EMAIL = "email"
+UUID = "uuid"

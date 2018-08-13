@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 import base64
 from datetime import timezone
 import random
@@ -15,24 +14,10 @@ from scripts import (
 LIMIT = 10 ** 6
 
 
-class FakeData(ABC):
-    """
-    Abstract class for fake data generation
-    """
+class FakeData:
 
     def __init__(self):
         self.fake = Faker()
-
-    @abstractmethod
-    def generate_fake_data(self, config):
-        raise NotImplementedError
-
-
-class NumberData(FakeData, ABC):
-
-    @abstractmethod
-    def generate_fake_data(self, config):
-        raise NotImplementedError
 
     @staticmethod
     def get_range(config):
@@ -50,16 +35,10 @@ class NumberData(FakeData, ABC):
 
         return minimum, maximum
 
+    def get_integer(self, config):
+        return random.randint(*self.get_range(config)) * config.get(swagger_constants.MULTIPLE_OF, 1)
 
-class IntegerData(NumberData):
-
-    def generate_fake_data(self, config):
-        return random.randint(*self.get_range(config))*config.get(swagger_constants.MULTIPLE_OF, 1)
-
-
-class FloatData(NumberData):
-
-    def generate_fake_data(self, config):
+    def get_float(self, config):
         minimum, maximum = self.get_range(config)
         left_side = random.randint(minimum, maximum)
         right_side = round(random.random(), 2)
@@ -73,13 +52,6 @@ class FloatData(NumberData):
             final_number = float(minimum)
 
         return final_number
-
-
-class BaseStringData(FakeData, ABC):
-
-    @abstractmethod
-    def generate_fake_data(self, config):
-        raise NotImplementedError
 
     @staticmethod
     def get_options(config):
@@ -96,59 +68,52 @@ class BaseStringData(FakeData, ABC):
             "maximum": config.get(swagger_constants.MAX_LENGTH, 100)    # Arbitrarily set max length
         }
 
-
-class StringData(BaseStringData):
-
-    def generate_fake_data(self, config):
+    def get_string(self, config):
         options = self.get_options(config)
         return self.fake.text(max_nb_chars=options["maximum"])
 
+    def random_date_time(self, config):
+        # Date time between 30 years in past to 30 years in future
+        return self.fake.date_time_between(end_date='+30y', tzinfo=timezone.utc)
 
-class DateData(BaseStringData):
+    def get_date(self, config):
+        return self.random_date_time(config).strftime("%Y-%m-%d")
 
-    def generate_fake_data(self, config):
-        return self.fake.date()
+    def get_datetime(self, config):
+        return self.random_date_time(config).isoformat()
 
-
-class DateTimeDate(BaseStringData):
-
-    def generate_fake_data(self, config):
-        return self.fake.iso8601(tzinfo=timezone.utc)
-
-
-class PasswordData(BaseStringData):
-
-    def generate_fake_data(self, config):
+    def get_password(self, config):
         options = self.get_options(config)
         return self.fake.password(length=options["maximum"])
 
+    def get_base64(self, config):
+        return base64.b64encode(self.get_string(config))
 
-class Base64Data(StringData):
-
-    def generate_fake_data(self, config):
-        return base64.b64encode(super().generate_fake_data(config))
-
-
-class BinaryData(BaseStringData):
-
-    def generate_fake_data(self, config):
+    def get_binary(self, config):
         options = self.get_options(config)
         return self.fake.binary(length=options["maximum"])
 
-
-class EmailData(BaseStringData):
-
-    def generate_fake_data(self, config):
+    def get_email(self, config):
         return self.fake.free_email()
 
-
-class UUIDData(BaseStringData):
-
-    def generate_fake_data(self, config):
+    def get_uuid(self, config):
         return self.fake.uuid4()
 
-
-class BooleanData(FakeData):
-
-    def generate_fake_data(self, config):
+    def get_boolean(self, config):
         return self.fake.boolean()
+
+    FAKE_MAP = {
+        # (Type, format) --> function. None should match to no format. any accepts any format at all
+        (swagger_constants.INTEGER, None): get_integer,
+        (swagger_constants.INTEGER, "$any"): get_integer,
+        (swagger_constants.NUMBER, None): get_float,
+        (swagger_constants.NUMBER, "$any"): get_float,
+        (swagger_constants.STRING, None): get_string,
+        (swagger_constants.STRING, swagger_constants.DATE): get_date,
+        (swagger_constants.STRING, swagger_constants.DATE_TIME): get_datetime,
+        (swagger_constants.STRING, swagger_constants.PASSWORD): get_password,
+        (swagger_constants.STRING, swagger_constants.BYTE): get_base64,
+        (swagger_constants.STRING, swagger_constants.EMAIL): get_email,
+        (swagger_constants.STRING, swagger_constants.UUID): get_uuid,
+        (swagger_constants.BOOLEAN, None): get_boolean,
+    }
