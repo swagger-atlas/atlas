@@ -86,7 +86,7 @@ class SpecsFile:
 
 
 if __name__ == "__main__":
-    specs_file = SpecsFile("req_resp.yaml")
+    specs_file = SpecsFile("query_params.yaml")
     spec = spec_models.OpenAPISpec(specs_file.file_load())
     spec.get_tasks()
     tasks = locust_models.TaskSet(tasks=spec.tasks, tag="User")

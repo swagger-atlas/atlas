@@ -75,7 +75,7 @@ class Task:
                     self.custom_url = True
                 else:
                     # if we do not have resource, we still need to make a valid URL
-                    self.construct_query_parameter(config)
+                    self.construct_query_parameter(config, param_type="path")
 
             elif in_ == constants.BODY_PARAM:
                 schema = config.get(constants.SCHEMA)
@@ -91,7 +91,11 @@ class Task:
             else:
                 raise exceptions.ImproperSwaggerException("Config does not have valid parameter type")
 
-    def construct_query_parameter(self, query_config):
+    def construct_query_parameter(self, query_config, param_type="query"):
+        """
+        :param query_config: Parameter Configuration
+        :param param_type: Type of parameter. Query/Path
+        """
         name = query_config[constants.PARAMETER_NAME]
         _type = query_config.get(constants.TYPE)
 
@@ -101,7 +105,7 @@ class Task:
         if _type not in constants.QUERY_TYPES:
             raise exceptions.ImproperSwaggerException("Unsupported type for parameter - {}".format(name))
 
-        self.query_params[name] = _type
+        self.query_params[name] = (param_type, _type)
 
     def parse_schema(self, schema_config):
         """
@@ -142,22 +146,52 @@ class Task:
         url = "format_url" if self.custom_url else self.url
 
         if self.query_params:
-            url = "formatted_url({})".format(url)
+            url = "formatted_url({}, query_config, path_config)".format(url)
 
         parameter_list = [url]
         if self.data_body:
             parameter_list.append("data=body(body_config)")
         return ", ".join(parameter_list)
 
-    def get_function_definition(self, width):
-
+    def construct_body_variables(self):
         body_definition = []
 
         for key, value in self.data_body.items():
             body_definition.append("{key} = {config}".format(key="body_config", config=value))
 
-        body_definition.append("self.client.{method}({params})".format(
-            **utils.StringDict(method=self.method, params=self.get_client_parameters())
+        query_params = []
+        path_params = []
+
+        param_map = {
+            "query": query_params,
+            "path": path_params
+        }
+        for key, value in self.query_params.items():
+            param_str = "'{name}': '{data_type}'".format(name=key, data_type=value[1])
+            param_map[value[0]].append(param_str)
+
+        query_str = "{}"
+        path_str = "{}"
+
+        if query_params:
+            query_str = "{" + ", ".join(query_params) + "}"
+
+        if path_params:
+            path_str = "{" + ", ".join(path_params) + "}"
+
+        if query_str or path_str:
+            # If one if present, we need to append both
+            body_definition.append("query_config = {q}".format_map(utils.StringDict(q=query_str)))
+            body_definition.append("path_config = {p}".format_map(utils.StringDict(p=path_str)))
+
+        return body_definition
+
+    def get_function_definition(self, width):
+
+        body_definition = self.construct_body_variables()
+
+        body_definition.append("self.client.{method}({params})".format_map(
+            utils.StringDict(method=self.method, params=self.get_client_parameters())
         ))
 
         join_str = "\n{w}".format(w='\t'*width)
