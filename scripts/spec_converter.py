@@ -41,6 +41,14 @@ class LocustFileConfig:
             task_set=self.task_set.convert(width=1)
         ))
 
+    def write_to_file(self, file_name, file_path=None):
+        file_path = file_path or "locust_config"
+        _path = os.path.join(settings.BASE_DIR, file_path)
+        _file = os.path.join(_path, file_name)
+
+        with open(_file, 'w') as write_file:
+            write_file.write(self.convert())
+
 
 class SpecsFile:
 
@@ -86,11 +94,11 @@ class SpecsFile:
 
 
 if __name__ == "__main__":
-    specs_file = SpecsFile("yasg_sample.yaml")
+    specs_file = SpecsFile("calyx.yaml")
     spec = spec_models.OpenAPISpec(specs_file.file_load())
     spec.get_tasks()
     tasks = locust_models.TaskSet(tasks=spec.tasks, tag="User")
 
     locust_file = LocustFileConfig(tasks)
 
-    print(locust_file.convert())
+    locust_file.write_to_file("calyx.py")

@@ -1,5 +1,6 @@
 import logging
 import random
+import re
 import string
 
 from scripts import (
@@ -25,7 +26,7 @@ class Task:
         :param spec: Complete spec definition
         """
 
-        self.func_name = func_name
+        self.func_name = self.normalize_function_name(func_name)
         self.method = method
         self.url = url
         self.parameters = parameters or {}
@@ -41,6 +42,14 @@ class Task:
 
         self.parse_parameters()
 
+    @staticmethod
+    def normalize_function_name(fun_name):
+        """
+        Convert - into _
+        """
+
+        return re.sub("-", "_", fun_name)
+
     def get_function_parameters(self):
         parameter_list = ["self"]
         if self.custom_url:
@@ -52,7 +61,7 @@ class Task:
         return "{decorators}\n{w}def {name}({parameters}):".format(
             **utils.StringDict(
                 decorators=self.get_decorators(width), name=self.func_name, parameters=self.get_function_parameters(),
-                w='\t' * width)
+                w=' ' * width * 4)
         )
 
     def parse_parameters(self):
@@ -189,7 +198,7 @@ class Task:
         if path_params:
             path_str = "{" + ", ".join(path_params) + "}"
 
-        if query_str or path_str:
+        if query_str != "{}" or path_str != "{}":
             # If one if present, we need to append both
             body_definition.append("query_config = {q}".format_map(utils.StringDict(q=query_str)))
             body_definition.append("path_config = {p}".format_map(utils.StringDict(p=path_str)))
@@ -207,11 +216,11 @@ class Task:
             utils.StringDict(method=self.method, params=self.get_client_parameters())
         ))
 
-        join_str = "\n{w}".format(w='\t'*width)
+        join_str = "\n{w}".format(w=' ' * width * 4)
         return join_str.join(body_definition)
 
     def get_decorators(self, width):
-        return "\n{w}".join(self.decorators).format_map(utils.StringDict(w='\t' * width))
+        return "\n{w}".join(self.decorators).format_map(utils.StringDict(w=' ' * width * 4))
 
     def convert(self, width):
         """
@@ -221,7 +230,7 @@ class Task:
         components = ["{declaration}", "{definition}"]
         return "\n{w}".join(components).format(**utils.StringDict(
             declaration=self.get_function_declaration(width - 1), definition=self.get_function_definition(width),
-            w='\t' * width
+            w=' ' * width * 4
         ))
 
 
@@ -236,7 +245,7 @@ class TaskSet:
         return any([task.have_resource for task in self.tasks])
 
     def generate_tasks(self, width):
-        join_string = "\n\n{w}".format(w='\t'*width)
+        join_string = "\n\n{w}".format(w=' '*(width-1) * 4)
         return join_string.join([_task.convert(width) for _task in self.tasks])
 
     @staticmethod
@@ -248,10 +257,11 @@ class TaskSet:
         return self.tag + "Behaviour"
 
     def get_behaviour(self, width):
-        return "class {klass}(TaskSet):\n\t{on_start}\n\t{tasks}".format(**utils.StringDict(
+        return "class {klass}(TaskSet):\n{w}{on_start}\n{w}{tasks}".format(**utils.StringDict(
             klass=self.task_set_name,
             on_start=self.generate_on_start(),
-            tasks=self.generate_tasks(width + 1)
+            tasks=self.generate_tasks(width + 1),
+            w = ' ' * 4
         ))
 
     def locust_properties(self, width):
@@ -262,12 +272,13 @@ class TaskSet:
         }
         return "\n{w}".join(
             ["{key} = {value}".format(key=key, value=value) for key, value in properties.items()]
-        ).format(**utils.StringDict(w='\t' * width))
+        ).format(**utils.StringDict(w=' ' * width * 4))
 
     def get_locust(self, width):
-        return "class {klass}(HttpLocust):\n\t{properties}".format(**utils.StringDict(
+        return "class {klass}(HttpLocust):\n{w}{properties}".format(**utils.StringDict(
             klass=self.tag + "Locust",
-            properties=self.locust_properties(width)
+            properties=self.locust_properties(width),
+            w=' ' * 4
         ))
 
     def convert(self, width):

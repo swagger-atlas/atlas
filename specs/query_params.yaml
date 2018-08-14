@@ -7,7 +7,7 @@ paths:
         required: True
     get:
       summary: This is sample API Summary,
-      operationID: retrieveUser
+      operationId: retrieveUser
       parameters:
         - in: query
           name: page_no

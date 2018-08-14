@@ -8,7 +8,7 @@ paths:
         required: True
     get:
       summary: This is sample API Summary,
-      operationID: retrieveUser
+      operationId: retrieveUser
       responses:
         200:
           description: User Object
@@ -16,7 +16,7 @@ paths:
             $ref: "#/definitions/user"
     put:
       summary: Modify User Resource
-      operationID: updateUser
+      operationId: updateUser
       parameters:
         - in: body
           name: user

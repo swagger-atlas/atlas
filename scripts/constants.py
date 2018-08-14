@@ -1,6 +1,6 @@
 PATHS = "paths"
 
-OPERATION = "operationID"
+OPERATION = "operationId"
 
 # Parameter Constants
 PARAMETERS = "parameters"

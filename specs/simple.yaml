@@ -8,7 +8,7 @@ paths:
         required: True
     get:
       summary: This is sample API Summary
-      operationID: retrieveUser
+      operationId: retrieveUser
       responses:
         200:
           description: User Object
