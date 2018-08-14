@@ -185,7 +185,7 @@ class Task:
             body_definition.append("path_config = {p}".format_map(utils.StringDict(p=path_str)))
 
             # Also get Path Parameters
-            body_definition.append("path_params = formatted_url({url, query_config, path_config})")
+            body_definition.append("url, path_params = formatted_url(url, query_config, path_config)")
 
         return body_definition
 

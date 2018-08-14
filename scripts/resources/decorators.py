@@ -125,6 +125,6 @@ def formatted_url(url, query_config, path_config):
     fake_obj = FakeDataDecorator()
     fake_obj.generator_class = fake_obj.get_generator_class()
     fake_obj.update_data(path_config)
-    url.format_map(utils.StringDict(**fake_obj.func_kwargs["body"]))
+    url = url.format_map(utils.StringDict(**fake_obj.func_kwargs["body"]))
     fake_obj.update_data(query_config)
-    return fake_obj.func_kwargs["body"]
+    return url, fake_obj.func_kwargs["body"]

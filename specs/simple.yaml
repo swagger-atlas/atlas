@@ -7,7 +7,7 @@ paths:
         resource: user
         required: True
     get:
-      summary: This is sample API Summary,
+      summary: This is sample API Summary
       operationID: retrieveUser
       responses:
         200:

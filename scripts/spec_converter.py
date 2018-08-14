@@ -26,7 +26,7 @@ class LocustFileConfig:
 
     def resource_task_set(self):
         if self.task_set.have_resource:
-            self.imports.append("from scripts.resources.decorators import fetch, body")
+            self.imports.append("from scripts.resources.decorators import fetch, body, formatted_url")
 
     def get_imports(self):
         return "\n".join(self.imports)
