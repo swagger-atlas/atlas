@@ -19,6 +19,23 @@ class FakeData:
     def __init__(self):
         self.fake = Faker()
 
+    def get_fake_mapper(self, config):
+        item_type = config.get(swagger_constants.TYPE)
+
+        # TODO: Reference handling
+        if not item_type:
+            raise exceptions.ImproperSwaggerException("Item type must be defined")
+
+        item_format = config.get(swagger_constants.FORMAT)
+
+        fake_func = self.FAKE_MAP.get((item_type, item_format), None)
+
+        # If it did not match, try to match any format
+        if not fake_func:
+            fake_func = self.FAKE_MAP.get((item_type, "$any"), None)
+
+        return fake_func
+
     @staticmethod
     def get_range(config):
         minimum = config.get(swagger_constants.MINIMUM, -LIMIT)
@@ -102,6 +119,49 @@ class FakeData:
     def get_boolean(self, config):
         return self.fake.boolean()
 
+    def get_array(self, config):
+
+        item_config = config.get(swagger_constants.ITEMS)
+
+        if not item_config:
+            raise exceptions.ImproperSwaggerException("Items should be defined for Array type - {}".format(config))
+
+        fake_func = self.get_fake_mapper(item_config)
+
+        min_items = config.get(swagger_constants.MIN_ITEMS, 0)
+        max_items = config.get(swagger_constants.MAX_ITEMS, max(10, min_items+1))
+
+        item_length = random.randint(min_items, max_items)
+
+        fake_items = [fake_func(item_config) for _ in range(item_length)]
+
+        is_unique = config.get(swagger_constants.UNIQUE_ITEMS, False)
+
+        if is_unique:
+            fake_items = set(fake_items)
+
+            # If due to de-duplication, our array count decreases and is less than what is required
+            while len(fake_items) < min_items:
+                fake_items.add(fake_func(item_config))
+
+            fake_items = list(fake_items)
+
+        return fake_items
+
+    def get_object(self, config):
+
+        properties = config.get(swagger_constants.PROPERTIES)
+
+        if not properties:
+            raise exceptions.ImproperSwaggerException("Properties should be defined for Object - {}".format(config))
+
+        fake_object = {}
+
+        for name, config in properties.items():
+            fake_object[name] = self.get_fake_mapper(config)(config)
+
+        return fake_object
+
     FAKE_MAP = {
         # (Type, format) --> function. None should match to no format. any accepts any format at all
         (swagger_constants.INTEGER, None): get_integer,
@@ -116,4 +176,6 @@ class FakeData:
         (swagger_constants.STRING, swagger_constants.EMAIL): get_email,
         (swagger_constants.STRING, swagger_constants.UUID): get_uuid,
         (swagger_constants.BOOLEAN, None): get_boolean,
+        (swagger_constants.ARRAY, None): get_array,
+        (swagger_constants.OBJECT, None): get_object
     }

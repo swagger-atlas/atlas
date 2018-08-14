@@ -30,21 +30,7 @@ class FakeDataDecorator:
         return wrapper
 
     def get_gen_function(self, config):
-        item_type = config.get(swagger_constants.TYPE)
-
-        # TODO: Reference handling
-        if not item_type:
-            raise exceptions.ImproperSwaggerException("Item type must be defined")
-
-        item_format = config.get(swagger_constants.FORMAT)
-
-        fake_func = self.generator_class.FAKE_MAP.get((item_type, item_format), None)
-
-        # If it did not match, try to match any format
-        if not fake_func:
-            fake_func = self.generator_class.FAKE_MAP.get((item_type, "$any"), None)
-
-        return fake_func
+        return self.generator_class.get_fake_mapper(config)
 
     def update_data(self, config):
 

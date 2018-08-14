@@ -44,6 +44,7 @@ INTEGER = "integer"
 NUMBER = "number"
 STRING = "string"
 BOOLEAN = "boolean"
+ARRAY = "array"
 QUERY_TYPES = [INTEGER, NUMBER, STRING, BOOLEAN]    # Valid types for query Parameters
 
 # Integer Options
@@ -64,3 +65,9 @@ BYTE = "byte"
 BINARY = "binary"
 EMAIL = "email"
 UUID = "uuid"
+
+# Array Options
+MIN_ITEMS = "minItems"
+MAX_ITEMS = "maxItems"
+ITEMS = "items"
+UNIQUE_ITEMS = "uniqueItems"
