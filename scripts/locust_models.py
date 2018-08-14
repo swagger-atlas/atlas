@@ -60,6 +60,9 @@ class Task:
         For the Path parameters, add required resources
         For the body parameter, add the definition
         """
+
+        form_data = []
+
         for config in self.parameters.values():
             in_ = config.get(constants.IN_)
 
@@ -88,8 +91,15 @@ class Task:
             elif in_ == constants.QUERY_PARAM:
                 self.construct_query_parameter(config)
 
+            elif in_ == constants.FORM_PARAM:
+                form_data.append(config)
+
             else:
-                raise exceptions.ImproperSwaggerException("Config does not have valid parameter type")
+                raise exceptions.ImproperSwaggerException("Config {} does not have valid parameter type".format(config))
+
+        if form_data:
+            self.data_body[self.func_name] = form_data
+            self.have_resource = True
 
     def construct_query_parameter(self, query_config, param_type="query"):
         """

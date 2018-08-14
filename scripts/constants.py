@@ -10,6 +10,7 @@ PATH_PARAM = "path"
 RESOURCE = "resource"
 BODY_PARAM = "body"
 QUERY_PARAM = "query"
+FORM_PARAM = "formData"
 
 # Defining an Object/Schema
 SCHEMA = "schema"
