@@ -40,6 +40,8 @@ class Task:
         self.data_body = dict()
         self.query_params = dict()
 
+        self.headers = ['"Authorization": "Token {}".format(self.token)']
+
         self.parse_parameters()
 
     @staticmethod
@@ -158,6 +160,9 @@ class Task:
             resource=resource, url=self.url
         ))
 
+    def get_headers(self):
+        return ", ".join(self.headers)
+
     def get_client_parameters(self):
         """
         Parameters for calling Request method
@@ -167,6 +172,7 @@ class Task:
             parameter_list.append("data=body(body_config)")
         if self.query_params:
             parameter_list.append("params=path_params")
+        parameter_list.append("headers={{{headers}}}".format(headers=self.get_headers()))
         return ", ".join(parameter_list)
 
     def construct_body_variables(self):
@@ -250,19 +256,21 @@ class TaskSet:
 
     @staticmethod
     def generate_on_start():
-        return ""
+        return "def on_start(self):\n{w}self.login()".format(w=' ' * 8)
 
     @property
     def task_set_name(self):
         return self.tag + "Behaviour"
 
     def get_behaviour(self, width):
-        return "class {klass}(TaskSet):\n{w}{on_start}\n{w}{tasks}".format(**utils.StringDict(
-            klass=self.task_set_name,
-            on_start=self.generate_on_start(),
-            tasks=self.generate_tasks(width + 1),
-            w = ' ' * 4
-        ))
+        behaviour_components = [
+            "class {klass}(TaskSet):".format(klass=self.task_set_name),
+            "token = None",
+            self.generate_on_start(),
+            self.generate_tasks(width + 1)
+        ]
+        join_str = "\n\n{w}".format(w=' ' * 4)
+        return join_str.join(behaviour_components)
 
     def locust_properties(self, width):
         properties = {
