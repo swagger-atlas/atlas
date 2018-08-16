@@ -84,14 +84,7 @@ class Task:
                 raise exceptions.ImproperSwaggerException("In is required field for OpenAPI Parameter")
 
             if in_ == constants.PATH_PARAM:
-                resource = config.get(constants.RESOURCE)
-
-                if resource:
-                    self.decorators.append(self.create_resource_decorator(resource))
-                    self.custom_url = True
-                else:
-                    # if we do not have resource, we still need to make a valid URL
-                    self.construct_query_parameter(config, param_type="path")
+                self.parse_path_params(config)
 
             elif in_ == constants.BODY_PARAM:
                 schema = config.get(constants.SCHEMA)
@@ -108,16 +101,29 @@ class Task:
                 form_data.append(config)
 
             elif in_ == constants.HEADER_PARAM:
-                name = config.get(constants.PARAMETER_NAME)
-                if not name:
-                    raise exceptions.ImproperSwaggerException("Config {} does not have name".format(config))
-                self.headers.append("'{name}': {config}".format(name=name, config=config))
+                self.parse_header_params(config)
 
             else:
                 raise exceptions.ImproperSwaggerException("Config {} does not have valid parameter type".format(config))
 
         if form_data:
             self.data_body[self.func_name] = form_data
+
+    def parse_path_params(self, config):
+        resource = config.get(constants.RESOURCE)
+
+        if resource:
+            self.decorators.append(self.create_resource_decorator(resource))
+            self.custom_url = True
+        else:
+            # if we do not have resource, we still need to make a valid URL
+            self.construct_query_parameter(config, param_type="path")
+
+    def parse_header_params(self, config):
+        name = config.get(constants.PARAMETER_NAME)
+        if not name:
+            raise exceptions.ImproperSwaggerException("Config {} does not have name".format(config))
+        self.headers.append("'{name}': {config}".format(name=name, config=config))
 
     def construct_query_parameter(self, query_config, param_type="query"):
         """
