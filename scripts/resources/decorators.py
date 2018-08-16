@@ -114,3 +114,10 @@ def formatted_url(url, query_config, path_config):
     # Note that since we use params argument in Requests library, we only ever support "multi" argument for Query Params
     # This also means that we on surface do no support parameters without value
     return url, fake_obj.func_kwargs["body"]
+
+
+def header(config):
+    fake_obj = FakeDataDecorator()
+    fake_obj.generator_class = fake_obj.get_generator_class()
+    fake_obj.update_data(config)
+    return fake_obj.func_kwargs["body"]

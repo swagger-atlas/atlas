@@ -39,7 +39,8 @@ class Task:
         self.data_body = dict()
         self.query_params = dict()
 
-        self.headers = ['"Authorization": "Token {}".format(self.token)']
+        # self.headers = ['"Authorization": "Token {}".format(self.token)']
+        self.headers = []
 
         self.parse_parameters()
 
@@ -102,6 +103,12 @@ class Task:
 
             elif in_ == constants.FORM_PARAM:
                 form_data.append(config)
+
+            elif in_ == constants.HEADER_PARAM:
+                name = config.get(constants.PARAMETER_NAME)
+                if not name:
+                    raise exceptions.ImproperSwaggerException("Config {} does not have name".format(config))
+                self.headers.append("'{name}': {config}".format(name=name, config=config))
 
             else:
                 raise exceptions.ImproperSwaggerException("Config {} does not have valid parameter type".format(config))
@@ -168,14 +175,14 @@ class Task:
             parameter_list.append("data=body(body_config, spec_instance.spec)")
         if self.query_params:
             parameter_list.append("params=path_params")
-        parameter_list.append("headers={{{headers}}}".format(headers=self.get_headers()))
+        parameter_list.append("headers=headers")
         return ", ".join(parameter_list)
 
     def construct_body_variables(self):
         body_definition = []
 
-        for key, value in self.data_body.items():
-            body_definition.append("{key} = {config}".format(key="body_config", config=value))
+        for value in self.data_body.values():
+            body_definition.append("body_config = {config}".format(config=value))
 
         query_params = []
         path_params = []
@@ -207,6 +214,12 @@ class Task:
 
             # Also get Path Parameters
             body_definition.append("url, path_params = formatted_url(url, query_config, path_config)")
+
+        if self.headers:
+            body_definition.append("header_config = {{{}}}".format(self.get_headers()))
+            body_definition.append("headers = {**self.default_headers, **header(header_config)}")
+        else:
+            body_definition.append("headers = self.default_headers")
 
         return body_definition
 
@@ -243,25 +256,32 @@ class TaskSet:
         self.tasks = tasks
 
     def generate_tasks(self, width):
-        join_string = "\n\n{w}".format(w=' '*(width-1) * 4)
-        return join_string.join([_task.convert(width) for _task in self.tasks])
+        join_string = "\n\n{w}".format(w=' '* width * 4)
+        return join_string.join([_task.convert(width + 1) for _task in self.tasks])
 
     @staticmethod
-    def generate_on_start():
-        return "def on_start(self):\n{w}self.login()".format(w=' ' * 8)
+    def generate_on_start(width):
+        return "def on_start(self):\n{w}self.login()".format(w=' ' * (width + 1) * 4)
 
     @property
     def task_set_name(self):
         return self.tag + "Behaviour"
 
+    @staticmethod
+    def default_headers(width):
+        decl = "@property\n{w}def default_headers(self):".format(w=' ' * width * 4)
+        defn = "return {'Authorization': 'Token {token}'.format(token=self.token)}"
+        return "{decl}\n{w}{defn}".format(decl=decl, defn=defn, w=' ' * (width + 1) * 4)
+
     def get_behaviour(self, width):
         behaviour_components = [
             "class {klass}(TaskSet):".format(klass=self.task_set_name),
             "token = None",
-            self.generate_on_start(),
-            self.generate_tasks(width + 1)
+            self.generate_on_start(width),
+            self.default_headers(width),
+            self.generate_tasks(width)
         ]
-        join_str = "\n\n{w}".format(w=' ' * 4)
+        join_str = "\n\n{w}".format(w=' ' * width * 4)
         return join_str.join(behaviour_components)
 
     def locust_properties(self, width):

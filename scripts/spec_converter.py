@@ -23,7 +23,7 @@ class LocustFileConfig:
         self.imports = [
             "from locust import HttpLocust, TaskSet, task",
             "from scripts import spec_converter, spec_models",
-            "from scripts.resources.decorators import fetch, body, formatted_url"
+            "from scripts.resources.decorators import fetch, body, formatted_url, header"
         ]
 
     def get_imports(self):
@@ -98,7 +98,7 @@ class SpecsFile:
 
 
 if __name__ == "__main__":
-    input_file = "yasg_sample.yaml"
+    input_file = "header_params.yaml"
     specs_file = SpecsFile(input_file)
     spec = spec_models.OpenAPISpec(specs_file.file_load())
     spec.get_tasks()
@@ -106,4 +106,4 @@ if __name__ == "__main__":
 
     locust_file = LocustFileConfig(tasks)
 
-    locust_file.write_to_file("yasg.py")
+    locust_file.write_to_file("header.py")
