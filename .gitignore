@@ -58,6 +58,7 @@ venv.bak/
 
 # Files with sensitive/local data
 settings/local.py
+settings/hooks.py
 locust_config/**
 
 # PyCharm

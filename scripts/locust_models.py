@@ -1,4 +1,6 @@
 import logging
+from io import open
+import os
 import random
 import re
 import string
@@ -8,6 +10,7 @@ from scripts import (
     exceptions,
     utils
 )
+from settings.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -267,21 +270,31 @@ class TaskSet:
     def task_set_name(self):
         return self.tag + "Behaviour"
 
+    # @staticmethod
+    # def default_headers(width):
+    #     decl = "@property\n{w}def default_headers(self):".format(w=' ' * width * 4)
+    #     defn = "return {'Authorization': 'Token {token}'.format(token=self.auth)}"
+    #     return "{decl}\n{w}{defn}".format(decl=decl, defn=defn, w=' ' * (width + 1) * 4)
+
     @staticmethod
-    def default_headers(width):
-        decl = "@property\n{w}def default_headers(self):".format(w=' ' * width * 4)
-        defn = "return {'Authorization': 'Token {token}'.format(token=self.token)}"
-        return "{decl}\n{w}{defn}".format(decl=decl, defn=defn, w=' ' * (width + 1) * 4)
+    def add_hooks(width):
+        hook_file = os.path.join(settings.BASE_DIR, "settings", "hooks.py")
+
+        with open(hook_file, "r") as hook_stream:
+            hooks_statements = [line for line in hook_stream]
+
+        join_str = "{w}".format(w=' ' * width * 4)
+        return join_str.join(hooks_statements)
 
     def get_behaviour(self, width):
+        join_str = "\n\n{w}".format(w=' ' * width * 4)
         behaviour_components = [
             "class {klass}(TaskSet):".format(klass=self.task_set_name),
-            "token = None",
+            # "auth = None",
+            self.add_hooks(width),
             self.generate_on_start(width),
-            self.default_headers(width),
             self.generate_tasks(width)
         ]
-        join_str = "\n\n{w}".format(w=' ' * width * 4)
         return join_str.join(behaviour_components)
 
     def locust_properties(self, width):

@@ -1,0 +1,15 @@
+auth = None
+
+def login(self):
+    """
+    This is REQUIRED hook
+    This hook can call Login Method of your project directly, and based on that set "auth" class variable
+    Or if you in advance know what the value of auth should be, you can set directly
+    """
+
+@property
+def default_headers(self):
+    """
+    This hook is used to specify which default headers would be used by
+    """
+    return {"Authorization": "token = {token}".format(token=self.auth)}

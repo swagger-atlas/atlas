@@ -17,7 +17,6 @@ Project Setup
 2. Run requirements
     - `pip install -r requirements.txt`
 
-
 3. Set up Pylint Hook
     - Create a file under .git/hooks/ with name pre-commit
     - Add to that file:
@@ -31,6 +30,7 @@ Project Setup
 
 4. Customize as per your needs
     - Copy local.py.template to local.py in Settings folder and fill in the appropriate settings
+    - Copy hooks.py.template to hooks.py in Settings folder and write the appropriate definition for functions
 
 
 How to Use
