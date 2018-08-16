@@ -34,7 +34,6 @@ class Task:
         self.spec = spec or {}
 
         self.decorators = ["@task(1)"]
-        self.have_resource = False
         self.custom_url = False
 
         self.data_body = dict()
@@ -85,7 +84,6 @@ class Task:
 
                 if resource:
                     self.decorators.append(self.create_resource_decorator(resource))
-                    self.have_resource = True
                     self.custom_url = True
                 else:
                     # if we do not have resource, we still need to make a valid URL
@@ -110,7 +108,6 @@ class Task:
 
         if form_data:
             self.data_body[self.func_name] = form_data
-            self.have_resource = True
 
     def construct_query_parameter(self, query_config, param_type="query"):
         """
@@ -152,7 +149,6 @@ class Task:
             raise exceptions.ImproperSwaggerException("An Object must define properties")
 
         self.data_body[self.func_name] = properties
-        self.have_resource = True
 
     def create_resource_decorator(self, resource):
         return "@{res_method}(resource={resource}, url={url})".format(**utils.StringDict(
@@ -246,10 +242,6 @@ class TaskSet:
         self.tag = tag or ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
         self.tasks = tasks
 
-    @property
-    def have_resource(self):
-        return any([task.have_resource for task in self.tasks])
-
     def generate_tasks(self, width):
         join_string = "\n\n{w}".format(w=' '*(width-1) * 4)
         return join_string.join([_task.convert(width) for _task in self.tasks])
@@ -290,7 +282,7 @@ class TaskSet:
         ))
 
     def convert(self, width):
-        return "{task_set}\n\n{locust}".format(**utils.StringDict(
+        return "{task_set}\n\n\n{locust}".format(**utils.StringDict(
             task_set=self.get_behaviour(width),
             locust=self.get_locust(width)
         ))
