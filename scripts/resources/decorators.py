@@ -111,4 +111,6 @@ def formatted_url(url, query_config, path_config):
     fake_obj.update_data(path_config)
     url = url.format_map(utils.StringDict(**fake_obj.func_kwargs["body"]))
     fake_obj.update_data(query_config)
+    # Note that since we use params argument in Requests library, we only ever support "multi" argument for Query Params
+    # This also means that we on surface do no support parameters without value
     return url, fake_obj.func_kwargs["body"]
