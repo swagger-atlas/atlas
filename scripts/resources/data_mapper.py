@@ -20,6 +20,12 @@ class FakeData:
         self.fake = Faker()
 
     def get_fake_mapper(self, config):
+
+        # Short circuit exit for read-only fields
+        read_only = config.get(swagger_constants.READ_ONLY, False)
+        if read_only:
+            return None
+
         item_type = config.get(swagger_constants.TYPE)
 
         # TODO: Reference handling
@@ -158,7 +164,9 @@ class FakeData:
         fake_object = {}
 
         for name, config in properties.items():
-            fake_object[name] = self.get_fake_mapper(config)(config)
+            fake_func = self.get_fake_mapper(config)
+            if fake_func:
+                fake_object[name] = fake_func(config)
 
         return fake_object
 

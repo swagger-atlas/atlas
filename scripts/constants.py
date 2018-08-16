@@ -16,6 +16,7 @@ FORM_PARAM = "formData"
 SCHEMA = "schema"
 REF = "$ref"
 PROPERTIES = "properties"
+READ_ONLY = "readOnly"
 
 # Open API Supported Methods
 GET = "get"
