@@ -47,6 +47,7 @@ NUMBER = "number"
 STRING = "string"
 BOOLEAN = "boolean"
 ARRAY = "array"
+ENUM = "enum"   # Strictly not a type, but is associated with both strings and numbers
 QUERY_TYPES = [INTEGER, NUMBER, STRING, BOOLEAN]    # Valid types for query Parameters
 
 # Integer Options

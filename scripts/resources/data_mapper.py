@@ -43,6 +43,17 @@ class FakeData:
         return fake_func
 
     @staticmethod
+    def get_enum(config):
+        enum_options = config.get(swagger_constants.ENUM, [])
+
+        choice = None
+
+        if enum_options:
+            choice = random.choice(enum_options)
+
+        return choice
+
+    @staticmethod
     def get_range(config):
         minimum = config.get(swagger_constants.MINIMUM, -LIMIT)
         maximum = config.get(swagger_constants.MAXIMUM, LIMIT)
@@ -59,9 +70,18 @@ class FakeData:
         return minimum, maximum
 
     def get_integer(self, config):
-        return random.randint(*self.get_range(config)) * config.get(swagger_constants.MULTIPLE_OF, 1)
+        return (
+            self.get_enum(config)
+            or random.randint(*self.get_range(config)) * config.get(swagger_constants.MULTIPLE_OF, 1)
+        )
 
     def get_float(self, config):
+
+        # Short-circuit return
+        num = self.get_enum(config)
+        if num:
+            return num
+
         minimum, maximum = self.get_range(config)
         left_side = random.randint(minimum, maximum)
         right_side = round(random.random(), 2)
@@ -92,8 +112,7 @@ class FakeData:
         }
 
     def get_string(self, config):
-        options = self.get_options(config)
-        return self.fake.text(max_nb_chars=options["maximum"])
+        return self.get_enum(config) or self.fake.text(max_nb_chars=self.get_options(config)["maximum"])
 
     def random_date_time(self, config):
         # Date time between 30 years in past to 30 years in future
@@ -106,18 +125,16 @@ class FakeData:
         return self.random_date_time(config).isoformat()
 
     def get_password(self, config):
-        options = self.get_options(config)
-        return self.fake.password(length=options["maximum"])
+        return self.get_enum(config) or self.fake.password(length=self.get_options(config)["maximum"])
 
     def get_base64(self, config):
         return base64.b64encode(self.get_string(config))
 
     def get_binary(self, config):
-        options = self.get_options(config)
-        return self.fake.binary(length=options["maximum"])
+        return self.get_enum(config) or self.fake.binary(length=self.get_options(config)["maximum"])
 
     def get_email(self, config):
-        return self.fake.free_email()
+        return self.get_enum(config) or self.fake.free_email()
 
     def get_uuid(self, config):
         return self.fake.uuid4()
