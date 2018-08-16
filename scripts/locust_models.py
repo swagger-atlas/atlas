@@ -265,7 +265,7 @@ class TaskSet:
         self.tasks = tasks
 
     def generate_tasks(self, width):
-        join_string = "\n\n{w}".format(w=' '* width * 4)
+        join_string = "\n\n{w}".format(w=' ' * width * 4)
         return join_string.join([_task.convert(width + 1) for _task in self.tasks])
 
     @staticmethod

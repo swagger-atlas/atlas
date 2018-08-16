@@ -62,12 +62,8 @@ indent-string='    '
 
 
 [DESIGN]
-max-args=10
-max-locals=15
+max-args=8
 max-returns=3
-max-branchs=10
-max-statements=50
-max-parents=7
+max-branches=10
 max-attributes=10
 min-public-methods=0
-max-public-methods=50
