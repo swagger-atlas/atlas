@@ -165,7 +165,7 @@ class Task:
         """
         parameter_list = ["url"]
         if self.data_body:
-            parameter_list.append("data=body(body_config)")
+            parameter_list.append("data=body(body_config, spec_instance.spec)")
         if self.query_params:
             parameter_list.append("params=path_params")
         parameter_list.append("headers={{{headers}}}".format(headers=self.get_headers()))

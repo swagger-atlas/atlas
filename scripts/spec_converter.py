@@ -98,7 +98,7 @@ class SpecsFile:
 
 
 if __name__ == "__main__":
-    input_file = "query_params.yaml"
+    input_file = "yasg_sample.yaml"
     specs_file = SpecsFile(input_file)
     spec = spec_models.OpenAPISpec(specs_file.file_load())
     spec.get_tasks()
@@ -106,4 +106,4 @@ if __name__ == "__main__":
 
     locust_file = LocustFileConfig(tasks)
 
-    locust_file.write_to_file("test_1.py")
+    locust_file.write_to_file("yasg.py")

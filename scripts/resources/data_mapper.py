@@ -6,7 +6,8 @@ from faker import Faker
 
 from scripts import (
     constants as swagger_constants,
-    exceptions
+    exceptions,
+    utils
 )
 
 # This is arbitrary limit. Test cases should not break with change of this limit.
@@ -16,10 +17,16 @@ LIMIT = 10 ** 6
 
 class FakeData:
 
-    def __init__(self):
+    def __init__(self, specs=None):
         self.fake = Faker()
+        self.specs = specs or {}      # Complete Spec File reference
 
     def get_fake_mapper(self, config):
+
+        ref = config.get(swagger_constants.REF)
+
+        if ref:
+            config = utils.resolve_reference(self.specs, ref)
 
         # Short circuit exit for read-only fields
         read_only = config.get(swagger_constants.READ_ONLY, False)
@@ -28,7 +35,6 @@ class FakeData:
 
         item_type = config.get(swagger_constants.TYPE)
 
-        # TODO: Reference handling
         if not item_type:
             raise exceptions.ImproperSwaggerException("Item type must be defined")
 
@@ -180,10 +186,10 @@ class FakeData:
 
         fake_object = {}
 
-        for name, config in properties.items():
-            fake_func = self.get_fake_mapper(config)
+        for name, prop_config in properties.items():
+            fake_func = self.get_fake_mapper(prop_config)
             if fake_func:
-                fake_object[name] = fake_func(config)
+                fake_object[name] = fake_func(prop_config)
 
         return fake_object
 

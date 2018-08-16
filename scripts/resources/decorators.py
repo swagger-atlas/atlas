@@ -3,8 +3,6 @@ from functools import wraps
 from string import Formatter
 
 from scripts import (
-    constants as swagger_constants,
-    exceptions,
     utils
 )
 from scripts.resources.generators import Resource
@@ -34,23 +32,23 @@ class FakeDataDecorator:
 
     def update_data(self, config):
 
-        body = {}
+        data_body = {}
 
         for item_name, item_config in config.items():
             fake_func = self.get_gen_function(item_config)
 
             if fake_func:
-                body[item_name] = fake_func(self.generator_class, item_config)
+                data_body[item_name] = fake_func(self.generator_class, item_config)
 
-        self.func_kwargs["body"] = body
+        self.func_kwargs["body"] = data_body
 
-    def get_generator_class(self):
-        return FakeData()
+    def get_generator_class(self, specs=None):
+        return FakeData(specs)
 
     def body(self, resource, *args, **kwargs):
         self.func_init(args, kwargs)
         self.resource = resource
-        self.generator_class = self.get_generator_class()
+        self.generator_class = self.get_generator_class(kwargs.get("specs"))
         return self.inner
 
     def func_init(self, *args, **kwargs):
@@ -64,7 +62,7 @@ class ResourceDecorator(FakeDataDecorator):
         super().__init__()
         self.url = None
 
-    def get_generator_class(self):
+    def get_generator_class(self, specs=None):
         return Resource(self.resource)
 
     def inner(self, func):
@@ -100,9 +98,9 @@ def fetch(resource, url, *args, **kwargs):
     return res_obj.fetch(resource, url, *args, **kwargs)
 
 
-def body(config):
+def body(config, specs=None):
     fake_obj = FakeDataDecorator()
-    fake_obj.generator_class = fake_obj.get_generator_class()
+    fake_obj.generator_class = fake_obj.get_generator_class(specs)
     fake_obj.update_data(config)
     return fake_obj.func_kwargs["body"]
 
