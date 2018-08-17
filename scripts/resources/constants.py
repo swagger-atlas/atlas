@@ -1,3 +1,5 @@
+GLOBALS = "globals"
+
 SOURCE = "source"
 SCRIPT = "script"
 DB_TABLE = "table"
@@ -8,5 +10,7 @@ KWARGS = "kwargs"
 
 TABLE = "table"
 COLUMN = "column"
+SQL = "sql"
+MAPPER = "mapper"
 
 DEFAULT_COLUMN = "id"

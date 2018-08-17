@@ -22,7 +22,7 @@ RESOURCES = defaultdict(set, {
 
 class Resource:
 
-    def __init__(self, resource_group_name, items=1, flat_for_single=True, *args, **kwargs):
+    def __init__(self, resource_group_name, *args, items=1, flat_for_single=True, **kwargs):
         """
         :param resource_group_name:
         :param items: Number of resources to fetch
@@ -109,18 +109,27 @@ class ResourceMap:
         return ret_stream
 
     def parse(self):
+
+        global_settings = self.map.pop(resource_constants.GLOBALS, {})
+
         for resource, config in self.map.items():
-            table = config.get(resource_constants.TABLE)
+            # We have already constructed this resource, so ignore this and move
+            if resource in RESOURCES:
+                continue
 
-            if not table:
-                raise exceptions.ResourcesException("Table not defined for {}".format(resource))
+            source = config.get(resource_constants.SOURCE, resource_constants.DB_TABLE)
 
-            column = config.get(resource_constants.COLUMN, resource_constants.DEFAULT_COLUMN)
+            if source == resource_constants.DB_TABLE:
+                result = self.parse_db_source(config, global_settings)
+            elif source == resource_constants.SCRIPT:
+                result = self.parse_python_source(config)
+            else:
+                raise exceptions.ResourcesException("Incorrect source defined for {}".format(resource))
 
-            if resource not in RESOURCES:
-                sql = self.construct_fetch_query(table, column)
-                result = self.client.fetch_ids(sql)
-                RESOURCES[resource] = result
+            if not isinstance(result, (list, tuple, set)):
+                raise exceptions.ResourcesException("Result for {} must be Built-in iterable".format(resource))
+
+            RESOURCES[resource] = set(result)
 
     def construct_fetch_query(self, table, column):
         """
@@ -129,6 +138,38 @@ class ResourceMap:
 
         return "select {column} from {table} limit {limit}".format(column=column, table=table, limit=self.limit)
 
+    def parse_db_source(self, config, global_settings):
+
+        # First check if raw SQL is provided
+        sql = config.get(resource_constants.SQL)
+        mapper = config.get(resource_constants.MAPPER, global_settings.get(resource_constants.MAPPER))
+
+        func = None
+        if mapper:
+            func = self.get_function_from_mapping_file(mapper)
+
+        if sql:
+            return self.client.fetch_rows(sql, mapper=func)
+
+        table = config.get(resource_constants.TABLE)
+
+        if not table:
+            raise exceptions.ResourcesException("Table not defined for {}".format(config))
+
+        column = config.get(resource_constants.COLUMN, resource_constants.DEFAULT_COLUMN)
+
+        sql = self.construct_fetch_query(table, column)
+        return self.client.fetch_ids(sql, mapper=func)
+
+    def get_function_from_mapping_file(self, func_name):
+        map_hook_file = "{}.{}".format(self.project_module, settings.RES_MAPPING_HOOKS_FILE)[:-len(".py")]
+        func = getattr(importlib.import_module(map_hook_file), func_name)
+
+        if not func:
+            raise exceptions.ResourcesException("Function {} not defined in Map Hooks File".format(func_name))
+
+        return func
+
     def parse_python_source(self, config):
 
         func_name = config.get(resource_constants.FUNCTION)
@@ -136,12 +177,7 @@ class ResourceMap:
         if not func_name:
             raise exceptions.ResourcesException("Function must be declared for {}".format(config))
 
-        # We need to remove .py extension when importing module
-        map_hook_file = "{}.{}".format(self.project_module, settings.RES_MAPPING_HOOKS_FILE)[:-len(".py")]
-        func = getattr(importlib.import_module(map_hook_file), func_name)
-
-        if not func:
-            raise exceptions.ResourcesException("Function {} not defined in Map Hooks".format(func_name))
+        func = self.get_function_from_mapping_file(func_name)
 
         args = config.get(resource_constants.ARGS, ())
 
@@ -157,5 +193,5 @@ class ResourceMap:
 
 
 if __name__ == "__main__":
-    res = ResourceMap()
-    res.parse_python_source({'func': "identity", "args": [{1, 2}]})
+    res_map = ResourceMap()
+    res_map.parse_python_source({'func': "identity", "args": [{1, 2}]})
