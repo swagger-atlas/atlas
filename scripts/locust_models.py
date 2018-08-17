@@ -42,7 +42,6 @@ class Task:
         self.data_body = dict()
         self.query_params = dict()
 
-        # self.headers = ['"Authorization": "Token {}".format(self.token)']
         self.headers = []
 
         self.parse_parameters()
@@ -172,9 +171,6 @@ class Task:
             resource=resource, url=self.url
         ))
 
-    def get_headers(self):
-        return ", ".join(self.headers)
-
     def get_client_parameters(self):
         """
         Parameters for calling Request method
@@ -184,7 +180,8 @@ class Task:
             parameter_list.append("data=body(body_config, spec_instance.spec)")
         if self.query_params:
             parameter_list.append("params=path_params")
-        parameter_list.append("headers=headers")
+        if self.headers:
+            parameter_list.append("headers=header(header_config)")
         return ", ".join(parameter_list)
 
     def construct_body_variables(self):
@@ -225,10 +222,7 @@ class Task:
             body_definition.append("url, path_params = formatted_url(url, query_config, path_config)")
 
         if self.headers:
-            body_definition.append("header_config = {{{}}}".format(self.get_headers()))
-            body_definition.append("headers = {**self.default_headers, **header(header_config)}")
-        else:
-            body_definition.append("headers = self.default_headers")
+            body_definition.append("header_config = {{{}}}".format(", ".join(self.headers)))
 
         return body_definition
 
@@ -275,12 +269,6 @@ class TaskSet:
     @property
     def task_set_name(self):
         return self.tag + "Behaviour"
-
-    # @staticmethod
-    # def default_headers(width):
-    #     decl = "@property\n{w}def default_headers(self):".format(w=' ' * width * 4)
-    #     defn = "return {'Authorization': 'Token {token}'.format(token=self.auth)}"
-    #     return "{decl}\n{w}{defn}".format(decl=decl, defn=defn, w=' ' * (width + 1) * 4)
 
     @staticmethod
     def add_hooks(width):

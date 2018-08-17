@@ -7,12 +7,21 @@ paths:
         required: True
     get:
       summary: This is sample API Summary,
-      operationId: retrieveUser
+      operationId: fetch_user
       parameters:
         - in: header
           name: X-Custom-Header
           type: integer
           required: False
+      responses:
+        200:
+          description: User Object
+          schema:
+            $ref: "#/definitions/user"
+  /api/user/:
+    get:
+      summary: This is sample API Summary,
+      operationId: list_user
       responses:
         200:
           description: User Object
