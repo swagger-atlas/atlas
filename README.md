@@ -16,6 +16,7 @@ Project Setup
 
 2. Run requirements
     - `pip install -r requirements.txt`
+    - See `http://initd.org/psycopg/docs/install.html#build-prerequisites` in case there are issues with Postgres Client
 
 3. Set up Pylint Hook
     - Create a file under .git/hooks/ with name pre-commit
@@ -34,6 +35,7 @@ Project Setup
         - Copy your swagger definition
         - Copy hooks.py.template and rename it as hooks.py
         - Add any mapping hooks as map_hooks.py
+        - Add your mapping file as res_mapping.yaml ([YAML](docs/yaml.md))
     - Copy local.py.template to local.py in Settings folder and fill in the appropriate settings
 
 
@@ -48,9 +50,8 @@ Converting Specs to Locust
 Creating a Resource Pool from Resource Mapping
 -----
 You can try and create a temporary resource map for testing
-1. Define resource map in `resources/sample_mapping.py`
-2. Use `parse` method of ``ResourceMap` class defined in `resources/generators`.
-3. You can then print `RESOURCES` from `resources/generators` to check updated resource pool.
+1. Use `parse` method of ``ResourceMap` class defined in `resources/generators`.
+2. You can then print `RESOURCES` from `resources/generators` to check updated resource pool.
 
 
 Running Locust

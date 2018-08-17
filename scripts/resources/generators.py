@@ -1,10 +1,15 @@
 from collections import defaultdict
+import importlib
+from io import open
+import os
 
 import random
+import yaml
 
 from scripts import exceptions
 from scripts.resources import constants as resource_constants
 from scripts.database import client as db_client
+from settings.conf import settings
 
 
 RESOURCES = defaultdict(set, {
@@ -81,11 +86,27 @@ class ResourceMap:
     Parse over Resource Map and create a cache of Resources
     """
 
-    def __init__(self, resource_map):
-        self.map = resource_map
-        self.limit = 50
+    def __init__(self):
 
+        self.map = self.read_mapping()
+        self.limit = 50
         self.client = db_client.Client()
+
+    @property
+    def project_path(self):
+        return os.path.join(settings.BASE_DIR, settings.PROJECT_FOLDER_NAME, settings.PROJECT_NAME)
+
+    @property
+    def project_module(self):
+        return "{proj_folder}.{name}".format(proj_folder=settings.PROJECT_FOLDER_NAME, name=settings.PROJECT_NAME)
+
+    def read_mapping(self):
+        _file = os.path.join(self.project_path, settings.MAPPING_FILE)
+
+        with open(_file) as open_api_file:
+            ret_stream = yaml.safe_load(open_api_file)
+
+        return ret_stream
 
     def parse(self):
         for resource, config in self.map.items():
@@ -107,3 +128,34 @@ class ResourceMap:
         """
 
         return "select {column} from {table} limit {limit}".format(column=column, table=table, limit=self.limit)
+
+    def parse_python_source(self, config):
+
+        func_name = config.get(resource_constants.FUNCTION)
+
+        if not func_name:
+            raise exceptions.ResourcesException("Function must be declared for {}".format(config))
+
+        # We need to remove .py extension when importing module
+        map_hook_file = "{}.{}".format(self.project_module, settings.RES_MAPPING_HOOKS_FILE)[:-len(".py")]
+        func = getattr(importlib.import_module(map_hook_file), func_name)
+
+        if not func:
+            raise exceptions.ResourcesException("Function {} not defined in Map Hooks".format(func_name))
+
+        args = config.get(resource_constants.ARGS, ())
+
+        if not isinstance(args, (tuple, list)):
+            raise exceptions.ResourcesException("Function {} Args should be tuple/list".format(func_name))
+
+        kwargs = config.get(resource_constants.KWARGS, {})
+
+        if not isinstance(kwargs, dict):
+            raise exceptions.ResourcesException("Function {} Keyword Args should be dict".format(func_name))
+
+        return func(*args, **kwargs)
+
+
+if __name__ == "__main__":
+    res = ResourceMap()
+    res.parse_python_source({'func': "identity", "args": [{1, 2}]})
