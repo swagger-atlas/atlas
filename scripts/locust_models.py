@@ -272,7 +272,8 @@ class TaskSet:
 
     @staticmethod
     def add_hooks(width):
-        hook_file = os.path.join(settings.BASE_DIR, "settings", "hooks.py")
+        hook_file = os.path.join(settings.BASE_DIR, settings.PROJECT_FOLDER_NAME,
+                                 settings.PROJECT_NAME, settings.LOCUST_HOOK_FILE)
 
         with open(hook_file, "r") as hook_stream:
             hooks_statements = [line for line in hook_stream]
@@ -284,7 +285,6 @@ class TaskSet:
         join_str = "\n\n{w}".format(w=' ' * width * 4)
         behaviour_components = [
             "class {klass}(TaskSet):".format(klass=self.task_set_name),
-            # "auth = None",
             self.add_hooks(width),
             self.generate_on_start(width),
             self.generate_tasks(width)

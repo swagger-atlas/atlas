@@ -29,8 +29,12 @@ Project Setup
     You can run pylint anytime by using `pylint --rcfile=pylint.rc <file_path>`
 
 4. Customize as per your needs
+    - Create a sub-folder under "project"
+    - In your newly created sub-folder:
+        - Copy your swagger definition
+        - Copy hooks.py.template and rename it as hooks.py
+        - Add any mapping hooks as map_hooks.py
     - Copy local.py.template to local.py in Settings folder and fill in the appropriate settings
-    - Copy hooks.py.template to hooks.py in Settings folder and write the appropriate definition for functions
 
 
 How to Use
