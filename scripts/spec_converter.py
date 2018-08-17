@@ -20,32 +20,38 @@ class LocustFileConfig:
     def __init__(self, task_set):
         self.task_set = task_set
 
-        self.imports = ["from locust import HttpLocust, TaskSet, task"]
-        self.global_vars = []
-
-        self.resource_task_set()
-
-    def resource_task_set(self):
-        if self.task_set.have_resource:
-            self.imports.append("from scripts.resources.decorators import ResourceDecorator")
-            self.global_vars.append("resource = ResourceDecorator()")
+        self.imports = [
+            "from locust import HttpLocust, TaskSet, task",
+            "from scripts import spec_converter, spec_models",
+            "from scripts.resources.decorators import fetch, body, formatted_url, header"
+        ]
 
     def get_imports(self):
         return "\n".join(self.imports)
 
-    def get_global_vars(self):
-        return "\n".join(self.global_vars) if self.global_vars else ""
-
-    def get_task_set(self):
-        return self.task_set.convert()
+    @staticmethod
+    def declare_spec_file():
+        statements = [
+            "specs_file = spec_converter.SpecsFile('{inp}')".format(inp=input_file),
+            "spec_instance = spec_models.OpenAPISpec(specs_file.file_load())"
+        ]
+        return "\n".join(statements)
 
     def convert(self):
-        file_components = ["{imports}", "{declarations}", "{task_set}"]
-        return "\n\n".join(file_components).format(**utils.StringDict(
+        file_components = ["{imports}", "{spec}", "{task_set}"]
+        return "\n\n\n".join(file_components).format(**utils.StringDict(
             imports=self.get_imports(),
-            declarations=self.get_global_vars(),
+            spec=self.declare_spec_file(),
             task_set=self.task_set.convert(width=1)
         ))
+
+    def write_to_file(self, file_name, file_path=None):
+        file_path = file_path or "locust_config"
+        _path = os.path.join(settings.BASE_DIR, file_path)
+        _file = os.path.join(_path, file_name)
+
+        with open(_file, 'w') as write_file:
+            write_file.write(self.convert() + "\n") # EOF New line append
 
 
 class SpecsFile:
@@ -92,11 +98,12 @@ class SpecsFile:
 
 
 if __name__ == "__main__":
-    specs_file = SpecsFile("simple.json")
+    input_file = "header_params.yaml"
+    specs_file = SpecsFile(input_file)
     spec = spec_models.OpenAPISpec(specs_file.file_load())
     spec.get_tasks()
     tasks = locust_models.TaskSet(tasks=spec.tasks, tag="User")
 
     locust_file = LocustFileConfig(tasks)
 
-    print(locust_file.convert())
+    locust_file.write_to_file("header.py")

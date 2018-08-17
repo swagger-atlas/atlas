@@ -36,7 +36,7 @@ class Operation:
         # This seems a valid assumption considering that none of Swagger Generators do that right now
 
         for parameter in parameters:
-            name = parameter.pop(swagger_constants.PARAMETER_NAME, None)
+            name = parameter.get(swagger_constants.PARAMETER_NAME, None)
 
             if not name:
                 raise exceptions.ImproperSwaggerException(
@@ -50,7 +50,8 @@ class Operation:
         func_name = self.config.get(swagger_constants.OPERATION)
         self.add_parameters(self.config.get(swagger_constants.PARAMETERS, []))
 
-        return locust_models.Task(func_name=func_name, parameters=self.parameters, url=self.url, method=self.method)
+        return locust_models.Task(func_name=func_name, parameters=self.parameters, url=self.url, method=self.method,
+                                  spec=self.spec)
 
 
 class OpenAPISpec:
@@ -72,7 +73,7 @@ class OpenAPISpec:
             for method, method_config in config.items():
 
                 if method in swagger_constants.VALID_METHODS:
-                    operation = Operation(url=path, method=method, config=method_config)
+                    operation = Operation(url=path, method=method, config=method_config, spec=self.spec)
                     operation.add_parameters(common_parameters)
                     self.tasks.append(operation.get_task())
                 else:

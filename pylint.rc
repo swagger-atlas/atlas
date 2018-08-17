@@ -36,6 +36,11 @@ ignore-mixin-members=yes
 # List of method names used to declare (i.e. assign) instance attributes
 defining-attr-methods=__init__,__new__,setUp
 
+# List of members which are set dynamically and missed by pylint inference
+# system, and so shouldn't trigger E1101 when accessed.
+# These are generated via Fake library for our project
+generated-members=text,date,password,boolean,uuid4,free_email,iso8601,binary
+
 
 [VARIABLES]
 init-import=no
@@ -57,12 +62,8 @@ indent-string='    '
 
 
 [DESIGN]
-max-args=10
-max-locals=15
+max-args=8
 max-returns=3
-max-branchs=10
-max-statements=50
-max-parents=7
+max-branches=10
 max-attributes=10
 min-public-methods=0
-max-public-methods=50
