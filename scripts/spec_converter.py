@@ -17,8 +17,9 @@ from settings.conf import settings
 
 class LocustFileConfig:
 
-    def __init__(self, task_set):
+    def __init__(self, task_set, specs_file=None):
         self.task_set = task_set
+        self.spec_file = specs_file or settings.SWAGGER_FILE
 
         self.imports = [
             "from locust import HttpLocust, TaskSet, task",
@@ -29,10 +30,9 @@ class LocustFileConfig:
     def get_imports(self):
         return "\n".join(self.imports)
 
-    @staticmethod
-    def declare_spec_file():
+    def declare_spec_file(self):
         statements = [
-            "specs_file = spec_converter.SpecsFile('{inp}')".format(inp=input_file),
+            "specs_file = spec_converter.SpecsFile('{inp}')".format(inp=self.spec_file),
             "spec_instance = spec_models.OpenAPISpec(specs_file.file_load())"
         ]
         return "\n".join(statements)
@@ -45,13 +45,13 @@ class LocustFileConfig:
             task_set=self.task_set.convert(width=1)
         ))
 
-    def write_to_file(self, file_name, file_path=None):
-        file_path = file_path or "locust_config"
-        _path = os.path.join(settings.BASE_DIR, file_path)
+    def write_to_file(self, file_name=None):
+        file_name = file_name or settings.LOCUST_FILE
+        _path = os.path.join(settings.BASE_DIR, settings.PROJECT_FOLDER_NAME, settings.PROJECT_NAME)
         _file = os.path.join(_path, file_name)
 
         with open(_file, 'w') as write_file:
-            write_file.write(self.convert() + "\n") # EOF New line append
+            write_file.write(self.convert() + "\n")  # Append EOF New line
 
 
 class SpecsFile:
@@ -61,15 +61,13 @@ class SpecsFile:
         constants.YAML: yaml.safe_load
     }
 
-    def __init__(self, spec_file, spec_path=None, converter=None):
+    def __init__(self, spec_file=None, converter=None):
         """
         :param spec_file: Specification File Name
-        :param spec_path: Specification File Path. Leave Blank to use default path in specs/ folder
         :param converter: Which converter to use (JSON or YAML). Leave Null to let converter identify on its own
         """
 
-        self.spec_path = spec_path or "specs"
-        self.spec_file = spec_file
+        self.spec_file = spec_file or settings.SWAGGER_FILE
         self.converter = converter
 
         if isinstance(self.converter, six.string_types):
@@ -88,7 +86,7 @@ class SpecsFile:
             raise exceptions.ImproperSwaggerException("Incorrect extension for {}".format(self.spec_file))
 
     def file_load(self):
-        file_path = os.path.join(settings.BASE_DIR, self.spec_path)
+        file_path = os.path.join(settings.BASE_DIR, settings.PROJECT_FOLDER_NAME, settings.PROJECT_NAME)
         _file = os.path.join(file_path, self.spec_file)
 
         with open(_file) as open_api_file:
@@ -98,12 +96,11 @@ class SpecsFile:
 
 
 if __name__ == "__main__":
-    input_file = "header_params.yaml"
-    specs_file = SpecsFile(input_file)
-    spec = spec_models.OpenAPISpec(specs_file.file_load())
+    in_file = ""
+    spec = spec_models.OpenAPISpec(SpecsFile(in_file).file_load())
     spec.get_tasks()
-    tasks = locust_models.TaskSet(tasks=spec.tasks, tag="User")
 
-    locust_file = LocustFileConfig(tasks)
+    _task_set = locust_models.TaskSet(tasks=spec.tasks, tag="User")
 
-    locust_file.write_to_file("header.py")
+    locust_config = LocustFileConfig(_task_set, in_file)
+    locust_config.write_to_file()

@@ -3,8 +3,12 @@ from . import base
 
 class Settings(base.Settings):
 
-    # Locust Settings
+    # Project Settings
     HOST_URL = ""
+
+    PROJECT_NAME = ""
+    SWAGGER_FILE = ""
+
     LOCUST_FILE = ""
 
     # This is the database from where we should pick test values.
