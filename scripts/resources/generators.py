@@ -13,10 +13,10 @@ from settings.conf import settings
 
 
 RESOURCES = defaultdict(set, {
-    "user": {53859, 54001, 53775},
-    "session": {1, 2, 3, 4},
-    "activity": {1},
-    "session-type": {1, 3}
+    # "user": {53859, 54001, 53775},
+    # "session": {1, 2, 3, 4},
+    # "activity": {1},
+    # "session-type": {1, 3}
 })
 
 
@@ -130,6 +130,7 @@ class ResourceMap:
                 raise exceptions.ResourcesException("Result for {} must be Built-in iterable".format(resource))
 
             RESOURCES[resource] = set(result)
+            # print(RESOURCES)
 
     def construct_fetch_query(self, table, column):
         """
@@ -194,4 +195,5 @@ class ResourceMap:
 
 if __name__ == "__main__":
     res_map = ResourceMap()
-    res_map.parse_python_source({'func': "identity", "args": [{1, 2}]})
+    res_map.parse()
+    print(RESOURCES)

@@ -75,3 +75,6 @@ MIN_ITEMS = "minItems"
 MAX_ITEMS = "maxItems"
 ITEMS = "items"
 UNIQUE_ITEMS = "uniqueItems"
+
+# References
+DEFINITIONS = "definitions"
