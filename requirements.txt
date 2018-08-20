@@ -12,7 +12,7 @@ six==1.11.0
 # DB Management
 peewee==3.6.4
 pymysql==0.9.2
-psycopg2-binary==2.7.5
+psycopg2==2.7.5
 
 # Developer Tools
 pylint==2.1.0
