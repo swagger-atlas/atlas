@@ -1,4 +1,3 @@
-from collections import defaultdict
 import importlib
 from io import open
 import os
@@ -12,15 +11,34 @@ from scripts.database import client as db_client
 from settings.conf import settings
 
 
-RESOURCES = defaultdict(set, {
-    # "user": {53859, 54001, 53775},
-    # "session": {1, 2, 3, 4},
-    # "activity": {1},
-    # "session-type": {1, 3}
-})
+class ResourceReadWriteMixin:
+
+    def __init__(self):
+        self.resources = {}
+
+    @property
+    def project_path(self):
+        return os.path.join(settings.BASE_DIR, settings.PROJECT_FOLDER_NAME, settings.PROJECT_NAME)
+
+    def read_resources(self):
+        _file = os.path.join(self.project_path, settings.RESOURCE_POOL_FILE)
+
+        try:
+            with open(_file) as resource_file:
+                ret_stream = yaml.safe_load(resource_file)
+        except FileNotFoundError:
+            ret_stream = {}
+
+        return ret_stream
+
+    def write_resources(self):
+        _file = os.path.join(self.project_path, settings.RESOURCE_POOL_FILE)
+
+        with open(_file, 'a+') as auto_write_file:
+            yaml.dump(self.resources, auto_write_file, default_flow_style=False)
 
 
-class Resource:
+class Resource(ResourceReadWriteMixin):
 
     def __init__(self, resource_group_name, *args, items=1, flat_for_single=True, **kwargs):
         """
@@ -42,8 +60,10 @@ class Resource:
         self.items = items
         self.flat_result = flat_for_single if items == 1 else False
 
+        super().__init__()
+
     def resource_set(self):
-        group = RESOURCES.get(self.resource_name)
+        group = self.resources.get(self.resource_name)
         resources = []
         if group and len(group) >= self.items:
             resources = self.get_random_element_from_set(group)
@@ -59,11 +79,15 @@ class Resource:
         # TODO
 
     def add_resources_to_pool(self, resource_data):
-        res = RESOURCES[self.resource_name]
+        res = self.resources[self.resource_name]
         for data in resource_data:
             res.add(data)
+        self.write_resources()
 
     def get_resources(self):
+
+        if not self.resources:
+            self.resources = self.read_resources()
 
         # First try Resources from Pre-built cache
         resources = self.resource_set()
@@ -81,7 +105,7 @@ class Resource:
         return resources
 
 
-class ResourceMap:
+class ResourceMap(ResourceReadWriteMixin):
     """
     Parse over Resource Map and create a cache of Resources
     """
@@ -92,9 +116,7 @@ class ResourceMap:
         self.limit = 50
         self.client = db_client.Client()
 
-    @property
-    def project_path(self):
-        return os.path.join(settings.BASE_DIR, settings.PROJECT_FOLDER_NAME, settings.PROJECT_NAME)
+        super().__init__()
 
     @property
     def project_module(self):
@@ -116,14 +138,14 @@ class ResourceMap:
         final_config = config
 
         while True:
-            parent_resource = config.pop(resource_constants.RESOURCE)
+            parent_resource = config.pop(resource_constants.RESOURCE, None)
 
             if parent_resource:
-                parent_resource = self.map.get(parent_resource)
-                if not parent_resource:
-                    raise exceptions.ResourcesException("Improper Parent defined for {}".format(config))
-                final_config = {**parent_resource, **config}
-                config = parent_resource
+                parent = self.map.get(parent_resource)
+                if not parent:
+                    raise exceptions.ResourcesException("Can not find Parent {}".format(parent_resource))
+                final_config = {**parent, **config}
+                config = parent
             else:
                 break
 
@@ -132,10 +154,11 @@ class ResourceMap:
     def parse(self):
 
         global_settings = self.map.pop(resource_constants.GLOBALS, {})
+        self.resources = self.read_resources()
 
         for resource, config in self.map.items():
             # We have already constructed this resource, so ignore this and move
-            if resource in RESOURCES:
+            if resource in self.resources:
                 continue
 
             config = self.inherit_resources(config)
@@ -152,7 +175,8 @@ class ResourceMap:
             if not isinstance(result, (list, tuple, set)):
                 raise exceptions.ResourcesException("Result for {} must be Built-in iterable".format(resource))
 
-            RESOURCES[resource] = set(result)
+            self.resources[resource] = set(result)
+        self.write_resources()
 
     def construct_fetch_query(self, table, column):
         """
@@ -218,4 +242,3 @@ class ResourceMap:
 if __name__ == "__main__":
     res_map = ResourceMap()
     res_map.parse()
-    print(RESOURCES)

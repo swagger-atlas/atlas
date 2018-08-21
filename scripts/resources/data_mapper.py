@@ -162,7 +162,7 @@ class FakeData:
 
         item_length = random.randint(min_items, max_items)
 
-        fake_items = [fake_func(item_config) for _ in range(item_length)]
+        fake_items = [fake_func(self, item_config) for _ in range(item_length)]
 
         is_unique = config.get(swagger_constants.UNIQUE_ITEMS, False)
 
@@ -171,13 +171,17 @@ class FakeData:
 
             # If due to de-duplication, our array count decreases and is less than what is required
             while len(fake_items) < min_items:
-                fake_items.add(fake_func(item_config))
+                fake_items.add(fake_func(self, item_config))
 
             fake_items = list(fake_items)
 
         return fake_items
 
     def get_object(self, config):
+
+        ref = config.get(swagger_constants.REF)
+        if ref:
+            config = utils.resolve_reference(self.specs, ref)
 
         properties = config.get(swagger_constants.PROPERTIES)
 
@@ -189,7 +193,7 @@ class FakeData:
         for name, prop_config in properties.items():
             fake_func = self.get_fake_mapper(prop_config)
             if fake_func:
-                fake_object[name] = fake_func(prop_config)
+                fake_object[name] = fake_func(self, prop_config)
 
         return fake_object
 
