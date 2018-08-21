@@ -47,6 +47,13 @@ Converting Specs to Locust
 1. You can convert OpenAPI Specifications using `scripts/spec_converter.py`
 
 
+Auto-generating Resources from Swagger
+------
+1. Run `scripts/resources/auto_generate.py`.
+    - Updated resources will be available in MAPPING_FILE.
+    - Your SWAGGER_FILE would also have been updated
+
+
 Creating a Resource Pool from Resource Mapping
 -----
 You can try and create a temporary resource map for testing

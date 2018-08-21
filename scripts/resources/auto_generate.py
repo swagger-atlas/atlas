@@ -6,7 +6,8 @@ import yaml
 from settings.conf import settings
 from scripts import (
     constants as swagger_constants,
-    exceptions
+    exceptions,
+    utils
 )
 
 
@@ -84,7 +85,7 @@ class AutoGenerator:
         ref_id = properties.get("id")
 
         if ref_id:
-            resource = ref_id.get(swagger_constants.RESOURCE, ref_name)
+            resource = ref_id.get(swagger_constants.RESOURCE, utils.convert_to_snake_case(ref_name))
 
             if resource:
                 ref_config[swagger_constants.RESOURCE] = resource

@@ -31,8 +31,7 @@ VALID_METHODS = [GET, POST, DELETE, PATCH, PUT]
 FETCH = "fetch"
 
 RESOURCE_MAPPING = {
-    GET: FETCH,
-    PUT: FETCH
+    GET: FETCH
 }
 
 # Valid Swagger/OpenAPI extensions

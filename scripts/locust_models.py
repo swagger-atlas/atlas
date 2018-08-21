@@ -166,8 +166,8 @@ class Task:
         self.data_body[self.func_name] = properties
 
     def create_resource_decorator(self, resource):
-        return "@{res_method}(resource={resource}, url={url})".format(**utils.StringDict(
-            res_method=constants.RESOURCE_MAPPING.get(self.method),
+        return "@{res_method}(resource='{resource}', url='{url}')".format(**utils.StringDict(
+            res_method=constants.RESOURCE_MAPPING.get(self.method, constants.FETCH),
             resource=resource, url=self.url
         ))
 

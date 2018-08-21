@@ -1,4 +1,4 @@
-GLOBALS = "globals"
+GLOBALS = "$globals"
 
 RESOURCE = "resource"
 
