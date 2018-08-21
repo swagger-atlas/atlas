@@ -1,5 +1,7 @@
 GLOBALS = "globals"
 
+RESOURCE = "resource"
+
 SOURCE = "source"
 SCRIPT = "script"
 DB_TABLE = "table"

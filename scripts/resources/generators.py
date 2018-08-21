@@ -108,6 +108,27 @@ class ResourceMap:
 
         return ret_stream
 
+    def inherit_resources(self, config):
+        """
+        Inherit resources as far as we want
+        """
+
+        final_config = config
+
+        while True:
+            parent_resource = config.pop(resource_constants.RESOURCE)
+
+            if parent_resource:
+                parent_resource = self.map.get(parent_resource)
+                if not parent_resource:
+                    raise exceptions.ResourcesException("Improper Parent defined for {}".format(config))
+                final_config = {**parent_resource, **config}
+                config = parent_resource
+            else:
+                break
+
+        return final_config
+
     def parse(self):
 
         global_settings = self.map.pop(resource_constants.GLOBALS, {})
@@ -116,6 +137,8 @@ class ResourceMap:
             # We have already constructed this resource, so ignore this and move
             if resource in RESOURCES:
                 continue
+
+            config = self.inherit_resources(config)
 
             source = config.get(resource_constants.SOURCE, resource_constants.DB_TABLE)
 
@@ -130,7 +153,6 @@ class ResourceMap:
                 raise exceptions.ResourcesException("Result for {} must be Built-in iterable".format(resource))
 
             RESOURCES[resource] = set(result)
-            # print(RESOURCES)
 
     def construct_fetch_query(self, table, column):
         """
