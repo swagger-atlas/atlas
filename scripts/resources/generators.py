@@ -29,7 +29,7 @@ class ResourceReadWriteMixin:
         except FileNotFoundError:
             ret_stream = {}
 
-        return ret_stream
+        return ret_stream or {}
 
     def write_resources(self):
         _file = os.path.join(self.project_path, settings.RESOURCE_POOL_FILE)
@@ -178,12 +178,15 @@ class ResourceMap(ResourceReadWriteMixin):
             self.resources[resource] = set(result)
         self.write_resources()
 
-    def construct_fetch_query(self, table, column):
+    def construct_fetch_query(self, table, column, filters):
         """
         Construct a simple SQL Fetch Query
         """
+        select_statement = "select {column} from {table}".format(column=column, table=table)
+        filter_statement = "where {filters}".format(filters=filters) if filters else ""
+        limit_statement = "limit {limit}".format(limit=self.limit)
 
-        return "select {column} from {table} limit {limit}".format(column=column, table=table, limit=self.limit)
+        return " ".join([select_statement, filter_statement, limit_statement])
 
     def parse_db_source(self, config, global_settings):
 
@@ -204,8 +207,9 @@ class ResourceMap(ResourceReadWriteMixin):
             raise exceptions.ResourcesException("Table not defined for {}".format(config))
 
         column = config.get(resource_constants.COLUMN, resource_constants.DEFAULT_COLUMN)
+        filters = config.get(resource_constants.FILTERS, global_settings.get(resource_constants.FILTERS))
 
-        sql = self.construct_fetch_query(table, column)
+        sql = self.construct_fetch_query(table, column, filters)
         return self.client.fetch_ids(sql, mapper=func)
 
     def get_function_from_mapping_file(self, func_name):

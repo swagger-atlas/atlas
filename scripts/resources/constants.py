@@ -14,5 +14,6 @@ TABLE = "table"
 COLUMN = "column"
 SQL = "sql"
 MAPPER = "mapper"
+FILTERS = "filters"
 
 DEFAULT_COLUMN = "id"
