@@ -70,7 +70,8 @@ class Resource(ResourceReadWriteMixin):
         return resources
 
     def get_random_element_from_set(self, resource_set):
-        return random.sample(resource_set, self.items)
+        elements = random.sample(resource_set, self.items)
+        return [element[resource_constants.RESOURCE_VALUE] for element in elements]
 
     def get_resource_from_db(self):
         """
@@ -81,7 +82,7 @@ class Resource(ResourceReadWriteMixin):
     def add_resources_to_pool(self, resource_data):
         res = self.resources[self.resource_name]
         for data in resource_data:
-            res.add(data)
+            res.append({resource_constants.RESOURCE_VALUE: data})
         self.write_resources()
 
     def get_resources(self):
@@ -175,7 +176,7 @@ class ResourceMap(ResourceReadWriteMixin):
             if not isinstance(result, (list, tuple, set)):
                 raise exceptions.ResourcesException("Result for {} must be Built-in iterable".format(resource))
 
-            self.resources[resource] = set(result)
+            self.resources[resource] = [{resource_constants.RESOURCE_VALUE: res} for res in result]
         self.write_resources()
 
     def construct_fetch_query(self, table, column, filters):
