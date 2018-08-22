@@ -1,4 +1,9 @@
+import re
+
 from scripts import exceptions
+
+first_cap_re = re.compile('(.)([A-Z][a-z]+)')
+all_cap_re = re.compile('([a-z0-9])([A-Z])')
 
 
 class StringDict(dict):
@@ -52,3 +57,8 @@ def resolve_reference(spec, ref_definition):
             ))
 
     return spec
+
+
+def convert_to_snake_case(name):
+    intermediate_string = first_cap_re.sub(r'\1_\2', name)
+    return all_cap_re.sub(r'\1_\2', intermediate_string).lower()

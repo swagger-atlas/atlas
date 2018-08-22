@@ -1,6 +1,5 @@
 import itertools
 from functools import wraps
-from string import Formatter
 
 from scripts import (
     utils
@@ -61,6 +60,7 @@ class ResourceDecorator(FakeDataDecorator):
     def __init__(self):
         super().__init__()
         self.url = None
+        self.param_name = ""
 
     def get_generator_class(self, specs=None):
         return Resource(self.resource)
@@ -69,7 +69,8 @@ class ResourceDecorator(FakeDataDecorator):
 
         @wraps(func)
         def wrapper(*f_args, **f_kwargs):
-            self.update_url(url=self.url, resources=self.generator_class.get_resources())
+            self.func_kwargs[self.param_name] = self.generator_class.get_resources()
+            # self.update_url(url=self.url, resources=self.generator_class.get_resources())
             f_kwargs.update(self.func_kwargs)
             return func(*f_args, **f_kwargs)
 
@@ -81,21 +82,20 @@ class ResourceDecorator(FakeDataDecorator):
         self.func_args = tuple(itertools.chain(self.func_args, resources))
 
     def update_url(self, url, resources):
-        # Formatter returns an iterable, and we only care about first value
-        str_key = Formatter().parse(url).__next__()[1]
-        self.func_kwargs["format_url"] = url.format(**{str_key: resources})
+        self.func_kwargs[self.param_name] = url.format_map(utils.StringDict(**{self.param_name: resources}))
 
-    def fetch(self, resource, url, *args, **kwargs):
+    def fetch(self, resource, name, *args, **kwargs):
         self.func_init(args, kwargs)
         self.resource = resource
-        self.url = url
+        # self.url = url
+        self.param_name = name
         self.generator_class = self.get_generator_class()
         return self.inner
 
 
-def fetch(resource, url, *args, **kwargs):
+def fetch(resource, name, *args, **kwargs):
     res_obj = ResourceDecorator()
-    return res_obj.fetch(resource, url, *args, **kwargs)
+    return res_obj.fetch(resource, name, *args, **kwargs)
 
 
 def body(config, specs=None):

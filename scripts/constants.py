@@ -31,8 +31,7 @@ VALID_METHODS = [GET, POST, DELETE, PATCH, PUT]
 FETCH = "fetch"
 
 RESOURCE_MAPPING = {
-    GET: FETCH,
-    PUT: FETCH
+    GET: FETCH
 }
 
 # Valid Swagger/OpenAPI extensions
@@ -75,3 +74,6 @@ MIN_ITEMS = "minItems"
 MAX_ITEMS = "maxItems"
 ITEMS = "items"
 UNIQUE_ITEMS = "uniqueItems"
+
+# References
+DEFINITIONS = "definitions"
