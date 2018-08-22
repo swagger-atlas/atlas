@@ -37,7 +37,6 @@ class Task:
         self.spec = spec or {}
 
         self.decorators = ["@task(1)"]
-        self.custom_url = False
 
         self.data_body = dict()
         self.query_params = dict()
@@ -56,8 +55,6 @@ class Task:
 
     def get_function_parameters(self):
         parameter_list = ["self"]
-        if self.custom_url:
-            parameter_list.append("format_url")
         parameter_list.append("**kwargs")
         return ", ".join(parameter_list)
 
@@ -112,8 +109,7 @@ class Task:
         resource = config.get(constants.RESOURCE)
 
         if resource:
-            self.decorators.append(self.create_resource_decorator(resource))
-            self.custom_url = True
+            self.decorators.append(self.create_resource_decorator(resource, config[constants.PARAMETER_NAME]))
         else:
             # if we do not have resource, we still need to make a valid URL
             self.construct_query_parameter(config, param_type="path")
@@ -165,10 +161,10 @@ class Task:
 
         self.data_body[self.func_name] = properties
 
-    def create_resource_decorator(self, resource):
-        return "@{res_method}(resource='{resource}', url='{url}')".format(**utils.StringDict(
+    def create_resource_decorator(self, resource, name):
+        return "@{res_method}(resource='{resource}', name='{name}')".format(**utils.StringDict(
             res_method=constants.RESOURCE_MAPPING.get(self.method, constants.FETCH),
-            resource=resource, url=self.url
+            resource=resource, name=name
         ))
 
     def get_client_parameters(self):
@@ -203,7 +199,7 @@ class Task:
 
         query_str = "{}"
         path_str = "{}"
-        url_str = "url = {}".format("format_url" if self.custom_url else "'{}'".format(self.url))
+        url_str = "url = '{}'.format_map(utils.StringDict(**kwargs))".format(self.url)
 
         body_definition.append(url_str)
 
@@ -294,8 +290,8 @@ class TaskSet:
     def locust_properties(self, width):
         properties = {
             "task_set": self.task_set_name,
-            "min_wait": 5000,
-            "max_wait": 9000
+            "min_wait": 1000,
+            "max_wait": 3000
         }
         return "\n{w}".join(
             ["{key} = {value}".format(key=key, value=value) for key, value in properties.items()]
