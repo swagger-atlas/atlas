@@ -32,9 +32,11 @@ Project Setup
 4. Customize as per your needs
     - Create a sub-folder under "project"
     - In your newly created sub-folder:
+        - Create a folder called "resources"
         - Copy your swagger definition
         - Copy hooks.py.template and rename it as hooks.py
         - Add any mapping hooks as map_hooks.py
+        - Create the profiles as "profiles.yaml"
         - Add your mapping file as res_mapping.yaml ([YAML](docs/yaml.md))
     - Copy local.py.template to local.py in Settings folder and fill in the appropriate settings
 
@@ -56,7 +58,6 @@ Creating a Resource Pool from Resource Mapping
 -----
 You can try and create a temporary resource map for testing
 1. Use `parse` method of ``ResourceMap` class defined in `resources/generators`.
-2. You can then print `RESOURCES` from `resources/generators` to check updated resource pool.
 
 
 Running Locust

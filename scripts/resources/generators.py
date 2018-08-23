@@ -1,14 +1,19 @@
-from copy import deepcopy
 import importlib
 import random
 
-from scripts import exceptions, utils
+from scripts import exceptions, utils, mixins
 from scripts.resources import constants as resource_constants
 from scripts.database import client as db_client
 from settings.conf import settings
 
 
-class Resource(utils.YAMLReadWriteMixin):
+class ResourceMixin(mixins.ProfileMixin, mixins.YAMLReadWriteMixin):
+    """
+    Base Resource Mixin
+    """
+
+
+class Resource(ResourceMixin):
 
     def __init__(self, resource_group_name, *args, items=1, flat_for_single=True, **kwargs):
         """
@@ -75,7 +80,7 @@ class Resource(utils.YAMLReadWriteMixin):
         return resources
 
 
-class ResourceMap(utils.YAMLReadWriteMixin):
+class ResourceMap(ResourceMixin):
     """
     Parse over Resource Map and create a cache of Resources
     """
@@ -85,8 +90,6 @@ class ResourceMap(utils.YAMLReadWriteMixin):
         self.map = self.read_file(settings.MAPPING_FILE)
         self.limit = 50
         self.client = db_client.Client()
-
-        self.resources = {}
 
         self.profiles = profiles or []
         self.active_profile_config = None
@@ -112,11 +115,11 @@ class ResourceMap(utils.YAMLReadWriteMixin):
 
         return final_config
 
-    def read_for_profile(self, global_settings):
+    def read_for_profile(self, resources, global_settings):
 
         for resource, config in self.map.items():
             # We have already constructed this resource, so ignore this and move
-            if resource in self.resources:
+            if resource in resources:
                 continue
 
             config = self.inherit_resources(config)
@@ -133,19 +136,17 @@ class ResourceMap(utils.YAMLReadWriteMixin):
             if not isinstance(result, (list, tuple, set)):
                 raise exceptions.ResourcesException("Result for {} must be Built-in iterable".format(resource))
 
-            self.resources[resource] = [{resource_constants.RESOURCE_VALUE: res} for res in result]
+            resources[resource] = [{resource_constants.RESOURCE_VALUE: res} for res in result]
 
     def parse(self):
 
         global_settings = self.map.pop(resource_constants.GLOBALS, {})
-        self.resources = self.read_file(settings.RESOURCE_POOL_FILE, {})
-        orig_resources = deepcopy(self.resources)
 
         for name, config in self.get_profiles().items():
+            resources = self.read_file(self.get_profile_resource_name(name, config), {}, settings.RESOURCES_FOLDER)
             self.active_profile_config = config
-            self.read_for_profile(global_settings)
-            self.write_file("{}_{}".format(name, settings.RESOURCE_POOL_FILE), self.resources)
-            self.resources = orig_resources     # Reset the resources back for next profile iteration
+            self.read_for_profile(resources, global_settings)
+            self.write_file(self.get_profile_resource_name(name, config), resources, settings.RESOURCES_FOLDER)
 
     def construct_fetch_query(self, table, column, filters):
         """

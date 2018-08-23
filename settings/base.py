@@ -11,5 +11,5 @@ class Settings:
     LOCUST_HOOK_FILE = "hooks.py"
     MAPPING_FILE = "res_mapping.yaml"
     RES_MAPPING_HOOKS_FILE = "map_hooks.py"
-    RESOURCE_POOL_FILE = "resources.yaml"
     PROFILES_FILE = "profiles.yaml"
+    RESOURCES_FOLDER = "resources"
