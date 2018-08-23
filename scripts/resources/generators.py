@@ -1,44 +1,13 @@
 import importlib
-from io import open
-import os
-
 import random
-import yaml
 
-from scripts import exceptions
+from scripts import exceptions, utils
 from scripts.resources import constants as resource_constants
 from scripts.database import client as db_client
 from settings.conf import settings
 
 
-class ResourceReadWriteMixin:
-
-    def __init__(self):
-        self.resources = {}
-
-    @property
-    def project_path(self):
-        return os.path.join(settings.BASE_DIR, settings.PROJECT_FOLDER_NAME, settings.PROJECT_NAME)
-
-    def read_resources(self):
-        _file = os.path.join(self.project_path, settings.RESOURCE_POOL_FILE)
-
-        try:
-            with open(_file) as resource_file:
-                ret_stream = yaml.safe_load(resource_file)
-        except FileNotFoundError:
-            ret_stream = {}
-
-        return ret_stream or {}
-
-    def write_resources(self):
-        _file = os.path.join(self.project_path, settings.RESOURCE_POOL_FILE)
-
-        with open(_file, 'a+') as auto_write_file:
-            yaml.dump(self.resources, auto_write_file, default_flow_style=False)
-
-
-class Resource(ResourceReadWriteMixin):
+class Resource(utils.YAMLReadWriteMixin):
 
     def __init__(self, resource_group_name, *args, items=1, flat_for_single=True, **kwargs):
         """
@@ -59,19 +28,21 @@ class Resource(ResourceReadWriteMixin):
         self.resource_name = resource_group_name
         self.items = items
         self.flat_result = flat_for_single if items == 1 else False
-
-        super().__init__()
+        self.resources = self.read_file(settings.RESOURCE_POOL_FILE, {})
 
     def resource_set(self):
-        group = self.resources.get(self.resource_name)
-        resources = []
-        if group and len(group) >= self.items:
-            resources = self.get_random_element_from_set(group)
-        return resources
+        return self.extract_values_from_resources(self.resources.get(self.resource_name, []))
 
-    def get_random_element_from_set(self, resource_set):
-        elements = random.sample(resource_set, self.items)
-        return [element[resource_constants.RESOURCE_VALUE] for element in elements]
+    def extract_values_from_resources(self, resource_set):
+        if len(resource_set) > self.items:
+            resource_set = random.sample(resource_set, self.items)
+
+        ret = []
+        for element in resource_set:
+            resource_val = element.get(resource_constants.RESOURCE_VALUE)
+            if resource_val is not None:    # Allowing for values of False, 0 and empty strings
+                ret.append(resource_val)
+        return ret
 
     def get_resource_from_db(self):
         """
@@ -83,12 +54,9 @@ class Resource(ResourceReadWriteMixin):
         res = self.resources[self.resource_name]
         for data in resource_data:
             res.append({resource_constants.RESOURCE_VALUE: data})
-        self.write_resources()
+        self.write_file(settings.RESOURCE_POOL_FILE, self.resources)
 
     def get_resources(self):
-
-        if not self.resources:
-            self.resources = self.read_resources()
 
         # First try Resources from Pre-built cache
         resources = self.resource_set()
@@ -106,30 +74,18 @@ class Resource(ResourceReadWriteMixin):
         return resources
 
 
-class ResourceMap(ResourceReadWriteMixin):
+class ResourceMap(utils.YAMLReadWriteMixin):
     """
     Parse over Resource Map and create a cache of Resources
     """
 
     def __init__(self):
 
-        self.map = self.read_mapping()
+        self.map = self.read_file(settings.MAPPING_FILE)
         self.limit = 50
         self.client = db_client.Client()
 
-        super().__init__()
-
-    @property
-    def project_module(self):
-        return "{proj_folder}.{name}".format(proj_folder=settings.PROJECT_FOLDER_NAME, name=settings.PROJECT_NAME)
-
-    def read_mapping(self):
-        _file = os.path.join(self.project_path, settings.MAPPING_FILE)
-
-        with open(_file) as open_api_file:
-            ret_stream = yaml.safe_load(open_api_file)
-
-        return ret_stream
+        self.resources = {}
 
     def inherit_resources(self, config):
         """
@@ -155,7 +111,7 @@ class ResourceMap(ResourceReadWriteMixin):
     def parse(self):
 
         global_settings = self.map.pop(resource_constants.GLOBALS, {})
-        self.resources = self.read_resources()
+        self.resources = self.read_file(settings.RESOURCE_POOL_FILE, {})
 
         for resource, config in self.map.items():
             # We have already constructed this resource, so ignore this and move
@@ -177,7 +133,7 @@ class ResourceMap(ResourceReadWriteMixin):
                 raise exceptions.ResourcesException("Result for {} must be Built-in iterable".format(resource))
 
             self.resources[resource] = [{resource_constants.RESOURCE_VALUE: res} for res in result]
-        self.write_resources()
+        self.write_file(settings.RESOURCE_POOL_FILE, self.resources)
 
     def construct_fetch_query(self, table, column, filters):
         """
@@ -213,8 +169,9 @@ class ResourceMap(ResourceReadWriteMixin):
         sql = self.construct_fetch_query(table, column, filters)
         return self.client.fetch_ids(sql, mapper=func)
 
-    def get_function_from_mapping_file(self, func_name):
-        map_hook_file = "{}.{}".format(self.project_module, settings.RES_MAPPING_HOOKS_FILE)[:-len(".py")]
+    @staticmethod
+    def get_function_from_mapping_file(func_name):
+        map_hook_file = "{}.{}".format(settings.PROJECT_MODULE, settings.RES_MAPPING_HOOKS_FILE)[:-len(".py")]
         func = getattr(importlib.import_module(map_hook_file), func_name)
 
         if not func:

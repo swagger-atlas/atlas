@@ -1,8 +1,3 @@
-from io import open
-import os
-
-import yaml
-
 from settings.conf import settings
 from scripts import (
     constants as swagger_constants,
@@ -11,7 +6,7 @@ from scripts import (
 )
 
 
-class AutoGenerator:
+class AutoGenerator(utils.YAMLReadWriteMixin):
     """
     Auto Generate Resource Mapping from Swagger definition.
     Auto update Swagger definition
@@ -20,34 +15,14 @@ class AutoGenerator:
     def __init__(self, swagger_file=None):
 
         self.swagger_file = swagger_file or settings.SWAGGER_FILE
-        self.specs = self.read_specs()
+        self.specs = self.read_file(self.swagger_file, {})
 
-        self.resources = self.read_resources()
+        self.resources = self.read_file(settings.MAPPING_FILE, {})
         self.new_resources = set()
-
-    @property
-    def project_path(self):
-        return os.path.join(settings.BASE_DIR, settings.PROJECT_FOLDER_NAME, settings.PROJECT_NAME)
-
-    def read_resources(self):
-        _file = os.path.join(self.project_path, settings.MAPPING_FILE)
-
-        with open(_file) as mapping_file:
-            ret_stream = yaml.safe_load(mapping_file)
-
-        return ret_stream
 
     def add_resource(self, resource):
         if resource and resource not in self.resources:
             self.new_resources.add(resource)
-
-    def read_specs(self):
-        _file = os.path.join(self.project_path, self.swagger_file)
-
-        with open(_file) as open_api_file:
-            ret_stream = yaml.safe_load(open_api_file)
-
-        return ret_stream
 
     def parse_params(self, params):
 
@@ -116,23 +91,14 @@ class AutoGenerator:
                     if parameters:
                         self.parse_params(parameters)
 
-    def update_specs(self):
-        _file = os.path.join(self.project_path, self.swagger_file)
-
-        with open(_file, 'w') as open_api_file:
-            yaml.dump(self.specs, open_api_file, default_flow_style=False)
-
-    def update_resources(self):
-        _file = os.path.join(self.project_path, settings.MAPPING_FILE)
-
-        auto_resource = {resource: "# Add your definition here" for resource in self.new_resources}
-
-        with open(_file, 'a+') as auto_write_file:
-            yaml.dump(auto_resource, auto_write_file, default_flow_style=False)
-
     def update(self):
-        self.update_specs()
-        self.update_resources()
+
+        # Update Specs File
+        self.write_file(self.swagger_file, self.specs)
+
+        # Update Resource Mapping File
+        auto_resource = {resource: "# Add your definition here" for resource in self.new_resources}
+        self.write_file(settings.MAPPING_FILE, auto_resource)
 
 
 if __name__ == "__main__":
