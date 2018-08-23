@@ -37,18 +37,12 @@ class Resource(ResourceMixin):
         self.resources = self.read_file(settings.RESOURCE_POOL_FILE, {})
 
     def resource_set(self):
-        return self.extract_values_from_resources(self.resources.get(self.resource_name, []))
+        resource_set = self.resources.get(self.resource_name, [])
 
-    def extract_values_from_resources(self, resource_set):
         if len(resource_set) > self.items:
             resource_set = random.sample(resource_set, self.items)
 
-        ret = []
-        for element in resource_set:
-            resource_val = element.get(resource_constants.RESOURCE_VALUE)
-            if resource_val is not None:    # Allowing for values of False, 0 and empty strings
-                ret.append(resource_val)
-        return ret
+        return resource_set
 
     def get_resource_from_db(self):
         """
@@ -57,9 +51,9 @@ class Resource(ResourceMixin):
         # TODO
 
     def add_resources_to_pool(self, resource_data):
-        res = self.resources[self.resource_name]
+        res = set(self.resources[self.resource_name])
         for data in resource_data:
-            res.append({resource_constants.RESOURCE_VALUE: data})
+            res.add(data)
         self.write_file(settings.RESOURCE_POOL_FILE, self.resources)
 
     def get_resources(self):
@@ -136,7 +130,7 @@ class ResourceMap(ResourceMixin):
             if not isinstance(result, (list, tuple, set)):
                 raise exceptions.ResourcesException("Result for {} must be Built-in iterable".format(resource))
 
-            resources[resource] = [{resource_constants.RESOURCE_VALUE: res} for res in result]
+            resources[resource] = set(result)
 
     def parse(self):
 

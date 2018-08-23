@@ -17,5 +17,3 @@ MAPPER = "mapper"
 FILTERS = "filters"
 
 DEFAULT_COLUMN = "id"
-
-RESOURCE_VALUE = "value"
