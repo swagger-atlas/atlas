@@ -1,3 +1,4 @@
+from copy import deepcopy
 import importlib
 import random
 
@@ -79,13 +80,16 @@ class ResourceMap(utils.YAMLReadWriteMixin):
     Parse over Resource Map and create a cache of Resources
     """
 
-    def __init__(self):
+    def __init__(self, profiles=None):
 
         self.map = self.read_file(settings.MAPPING_FILE)
         self.limit = 50
         self.client = db_client.Client()
 
         self.resources = {}
+
+        self.profiles = profiles or []
+        self.active_profile_config = None
 
     def inherit_resources(self, config):
         """
@@ -108,10 +112,7 @@ class ResourceMap(utils.YAMLReadWriteMixin):
 
         return final_config
 
-    def parse(self):
-
-        global_settings = self.map.pop(resource_constants.GLOBALS, {})
-        self.resources = self.read_file(settings.RESOURCE_POOL_FILE, {})
+    def read_for_profile(self, global_settings):
 
         for resource, config in self.map.items():
             # We have already constructed this resource, so ignore this and move
@@ -133,7 +134,18 @@ class ResourceMap(utils.YAMLReadWriteMixin):
                 raise exceptions.ResourcesException("Result for {} must be Built-in iterable".format(resource))
 
             self.resources[resource] = [{resource_constants.RESOURCE_VALUE: res} for res in result]
-        self.write_file(settings.RESOURCE_POOL_FILE, self.resources)
+
+    def parse(self):
+
+        global_settings = self.map.pop(resource_constants.GLOBALS, {})
+        self.resources = self.read_file(settings.RESOURCE_POOL_FILE, {})
+        orig_resources = deepcopy(self.resources)
+
+        for name, config in self.get_profiles().items():
+            self.active_profile_config = config
+            self.read_for_profile(global_settings)
+            self.write_file("{}_{}".format(name, settings.RESOURCE_POOL_FILE), self.resources)
+            self.resources = orig_resources     # Reset the resources back for next profile iteration
 
     def construct_fetch_query(self, table, column, filters):
         """
@@ -151,13 +163,21 @@ class ResourceMap(utils.YAMLReadWriteMixin):
         sql = config.get(resource_constants.SQL)
         mapper = config.get(resource_constants.MAPPER, global_settings.get(resource_constants.MAPPER))
 
+        client_func = self.client.fetch_rows
+
         func = None
         if mapper:
             func = self.get_function_from_mapping_file(mapper)
 
-        if sql:
-            return self.client.fetch_rows(sql, mapper=func)
+        if not sql:
+            # If Raw SQL is not provided, then we need to construct query
+            sql = self.construct_query(config, global_settings)
+            client_func = self.client.fetch_ids
 
+        # Query should be formatted according to Profile configuration
+        return client_func(sql=sql.format(**self.active_profile_config), mapper=func)
+
+    def construct_query(self, config, global_settings):
         table = config.get(resource_constants.TABLE)
 
         if not table:
@@ -166,12 +186,11 @@ class ResourceMap(utils.YAMLReadWriteMixin):
         column = config.get(resource_constants.COLUMN, resource_constants.DEFAULT_COLUMN)
         filters = config.get(resource_constants.FILTERS, global_settings.get(resource_constants.FILTERS))
 
-        sql = self.construct_fetch_query(table, column, filters)
-        return self.client.fetch_ids(sql, mapper=func)
+        return self.construct_fetch_query(table, column, filters)
 
     @staticmethod
     def get_function_from_mapping_file(func_name):
-        map_hook_file = "{}.{}".format(settings.PROJECT_MODULE, settings.RES_MAPPING_HOOKS_FILE)[:-len(".py")]
+        map_hook_file = "{}.{}".format(utils.get_project_module(), settings.RES_MAPPING_HOOKS_FILE)[:-len(".py")]
         func = getattr(importlib.import_module(map_hook_file), func_name)
 
         if not func:
@@ -199,6 +218,15 @@ class ResourceMap(utils.YAMLReadWriteMixin):
             raise exceptions.ResourcesException("Function {} Keyword Args should be dict".format(func_name))
 
         return func(*args, **kwargs)
+
+    def get_profiles(self):
+        profiles = self.read_file(settings.PROFILES_FILE, {})
+
+        if self.profiles:
+            profile_to_read = set(self.profiles)
+            profiles = {key: val for key, val in profiles if key in profile_to_read}
+
+        return profiles
 
 
 if __name__ == "__main__":

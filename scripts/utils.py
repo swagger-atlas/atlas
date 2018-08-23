@@ -69,12 +69,20 @@ def convert_to_snake_case(name):
     return all_cap_re.sub(r'\1_\2', intermediate_string).lower()
 
 
+def get_project_path():
+    return os.path.join(settings.BASE_DIR, settings.PROJECT_FOLDER_NAME, settings.PROJECT_NAME)
+
+
+def get_project_module():
+    return "{folder}.{name}".format(folder=settings.PROJECT_FOLDER_NAME, name=settings.PROJECT_NAME)
+
+
 class YAMLReadWriteMixin:
 
     @staticmethod
     def read_file(file_name, default_value=None):
 
-        _file = os.path.join(settings.PROJECT_PATH, file_name)
+        _file = os.path.join(get_project_path(), file_name)
 
         try:
             with open(_file) as file_stream:
@@ -86,7 +94,7 @@ class YAMLReadWriteMixin:
 
     @staticmethod
     def write_file(file_name, write_data):
-        _file = os.path.join(settings.PROJECT_PATH, file_name)
+        _file = os.path.join(get_project_path(), file_name)
 
         with open(_file, 'a+') as file_stream:
             yaml.dump(write_data, file_stream, default_flow_style=False)
