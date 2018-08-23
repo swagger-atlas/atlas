@@ -34,7 +34,19 @@ class Resource(ResourceMixin):
         self.resource_name = resource_group_name
         self.items = items
         self.flat_result = flat_for_single if items == 1 else False
-        self.resources = self.read_file(settings.RESOURCE_POOL_FILE, {})
+
+        self.resources = {}
+
+        self.profiles = self.read_file(settings.PROFILES_FILE, {})
+        self.active_profile = ""
+
+    @property
+    def profile_config(self):
+        return self.profiles.get(self.active_profile)
+
+    @property
+    def profile_resource(self):
+        return self.get_profile_resource_name(self.active_profile, self.profile_config)
 
     def resource_set(self):
         resource_set = self.resources.get(self.resource_name, [])
@@ -54,9 +66,12 @@ class Resource(ResourceMixin):
         res = set(self.resources[self.resource_name])
         for data in resource_data:
             res.add(data)
-        self.write_file(settings.RESOURCE_POOL_FILE, self.resources)
+        self.write_file(self.profile_resource, self.resources, settings.RESOURCES_FOLDER)
 
-    def get_resources(self):
+    def get_resources(self, profile):
+
+        self.active_profile = profile
+        self.resources = self.read_file(self.profile_resource, {}, settings.RESOURCES_FOLDER)
 
         # First try Resources from Pre-built cache
         resources = self.resource_set()

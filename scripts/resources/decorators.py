@@ -56,6 +56,9 @@ class FakeDataDecorator:
 
 
 class ResourceDecorator(FakeDataDecorator):
+    """
+    Should be only used to decorate Task Set Class Methods
+    """
 
     def __init__(self):
         super().__init__()
@@ -69,8 +72,9 @@ class ResourceDecorator(FakeDataDecorator):
 
         @wraps(func)
         def wrapper(*f_args, **f_kwargs):
-            self.func_kwargs[self.param_name] = self.generator_class.get_resources()
-            # self.update_url(url=self.url, resources=self.generator_class.get_resources())
+            instance = f_args[0]    # First argument of methods must be self
+            profile = getattr(instance, "profile")
+            self.func_kwargs[self.param_name] = self.generator_class.get_resources(profile=profile)
             f_kwargs.update(self.func_kwargs)
             return func(*f_args, **f_kwargs)
 
