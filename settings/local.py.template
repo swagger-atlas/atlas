@@ -22,3 +22,6 @@ class Settings(base.Settings):
         "host": "",
         "port": ""
     }
+
+    # This API would not be hit during load test
+    LOGOUT_API_URL = "/logout/"

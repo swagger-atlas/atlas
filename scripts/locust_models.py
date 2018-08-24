@@ -53,9 +53,9 @@ class Task:
 
         return re.sub("-", "_", fun_name)
 
-    def get_function_parameters(self):
-        parameter_list = ["self"]
-        parameter_list.append("**kwargs")
+    @staticmethod
+    def get_function_parameters():
+        parameter_list = ["self", "**kwargs"]
         return ", ".join(parameter_list)
 
     def get_function_declaration(self, width):
@@ -133,6 +133,10 @@ class Task:
 
         if _type not in constants.QUERY_TYPES:
             raise exceptions.ImproperSwaggerException("Unsupported type for parameter - {}".format(name))
+
+        # Special Handling for Page Query Parameters
+        if name in settings.POSITIVE_INTEGER_PARAMS:
+            query_config[constants.MINIMUM] = 1
 
         self.query_params[name] = (param_type, query_config)
 

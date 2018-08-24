@@ -54,13 +54,7 @@ class Resource(ResourceMixin):
         if len(resource_set) > self.items:
             resource_set = random.sample(resource_set, self.items)
 
-        return resource_set
-
-    def get_resource_from_db(self):
-        """
-        :return:
-        """
-        # TODO
+        return list(resource_set)
 
     def add_resources_to_pool(self, resource_data):
         res = set(self.resources[self.resource_name])
@@ -73,15 +67,10 @@ class Resource(ResourceMixin):
         self.active_profile = profile
         self.resources = self.read_file(self.profile_resource, {}, settings.RESOURCES_FOLDER)
 
-        # First try Resources from Pre-built cache
         resources = self.resource_set()
 
-        # If un-successful fetch from db,
-        resources = resources or self.get_resource_from_db()
-
-        # If still un-successful (Resource do not exist in DB also)
         if not resources:
-            raise exceptions.ResourcesException("Resource Not found - {}".format(self.resource_name))
+            raise exceptions.ResourcesException("Resource Pool Not found for - {}".format(self.resource_name))
 
         if self.flat_result:
             resources = resources[0]

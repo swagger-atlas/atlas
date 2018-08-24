@@ -13,3 +13,9 @@ class Settings:
     RES_MAPPING_HOOKS_FILE = "map_hooks.py"
     PROFILES_FILE = "profiles.yaml"
     RESOURCES_FOLDER = "resources"
+
+    # Page Query Parameters
+    # These parameters are esp. handled, since they must be positive
+    page_size_param = 'page_size'
+    page_param = 'page'
+    POSITIVE_INTEGER_PARAMS = [page_param, page_size_param]

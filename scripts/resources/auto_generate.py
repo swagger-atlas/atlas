@@ -2,11 +2,12 @@ from settings.conf import settings
 from scripts import (
     constants as swagger_constants,
     exceptions,
+    mixins,
     utils
 )
 
 
-class AutoGenerator(utils.YAMLReadWriteMixin):
+class AutoGenerator(mixins.YAMLReadWriteMixin):
     """
     Auto Generate Resource Mapping from Swagger definition.
     Auto update Swagger definition

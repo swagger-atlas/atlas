@@ -10,8 +10,7 @@ def login(self):
     It must set profile method
     """
 
-    self.profile = "your profile value"
-    # Your code here
+    self.profile = "<your code here>"
 
     self.update_default_headers()
 
@@ -20,4 +19,4 @@ def update_default_headers(self):
     This hook is used to update default headers.
     We have provided the necessary code for Token Auth, though you can replace it with code you need
     """
-    self.client.headers.update({"Authorization": "token = {token}".format(token=self.auth)})
+    self.client.headers.update({"Authorization": "Token {token}".format(token=self.auth)})
