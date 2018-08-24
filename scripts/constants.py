@@ -12,6 +12,7 @@ BODY_PARAM = "body"
 QUERY_PARAM = "query"
 FORM_PARAM = "formData"
 HEADER_PARAM = "header"
+REQUIRED = "required"
 
 # Defining an Object/Schema
 SCHEMA = "schema"

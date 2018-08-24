@@ -134,6 +134,11 @@ class Task:
         if _type not in constants.QUERY_TYPES:
             raise exceptions.ImproperSwaggerException("Unsupported type for parameter - {}".format(name))
 
+        # Only use query params if strictly required
+        is_optional_param = not (settings.HIT_ALL_QUERY_PARAMS or query_config.get(constants.REQUIRED, False))
+        if param_type == "query" and is_optional_param:
+            return
+
         # Special Handling for Page Query Parameters
         if name in settings.POSITIVE_INTEGER_PARAMS:
             query_config[constants.MINIMUM] = 1
