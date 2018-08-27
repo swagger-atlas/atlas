@@ -24,7 +24,7 @@ class LocustFileConfig:
         self.imports = [
             "from locust import HttpLocust, TaskSet, task",
             "from scripts import spec_converter, spec_models, utils",
-            "from scripts.resources.decorators import fetch, body, formatted_url, header"
+            "from scripts.resources.decorators import DataMapper"
         ]
 
     def get_imports(self):
