@@ -80,18 +80,19 @@ class Task:
                 raise exceptions.ImproperSwaggerException("In is required field for OpenAPI Parameter")
 
             if in_ == constants.PATH_PARAM:
-                self.parse_path_params(config)
+                self.construct_url_parameter(config, param_type="path")
 
             elif in_ == constants.BODY_PARAM:
+
                 schema = config.get(constants.SCHEMA)
 
                 if not schema:
                     raise exceptions.ImproperSwaggerException("Body Parameter must specify schema")
 
-                self.parse_schema(schema)
+                self.data_body.append(schema)
 
             elif in_ == constants.QUERY_PARAM:
-                self.construct_query_parameter(config)
+                self.construct_url_parameter(config)
 
             elif in_ == constants.FORM_PARAM:
                 form_data.append(config)
@@ -105,22 +106,13 @@ class Task:
         if form_data:
             self.data_body.append(form_data)
 
-    def parse_path_params(self, config):
-        resource = config.get(constants.RESOURCE)
-
-        if resource:
-            self.decorators.append(self.create_resource_decorator(resource, config[constants.PARAMETER_NAME]))
-        else:
-            # if we do not have resource, we still need to make a valid URL
-            self.construct_query_parameter(config, param_type="path")
-
     def parse_header_params(self, config):
         name = config.get(constants.PARAMETER_NAME)
         if not name:
             raise exceptions.ImproperSwaggerException("Config {} does not have name".format(config))
         self.headers.append("'{name}': {config}".format(name=name, config=config))
 
-    def construct_query_parameter(self, query_config, param_type="query"):
+    def construct_url_parameter(self, query_config, param_type="query"):
         """
         :param query_config: Parameter Configuration
         :param param_type: Type of parameter. Query/Path
@@ -145,48 +137,17 @@ class Task:
 
         self.query_params[name] = (param_type, query_config)
 
-    def parse_schema(self, schema_config):
-        """
-        Parse the schema for request bodies
-        """
-
-        ref = schema_config.get(constants.REF)
-
-        if ref:
-            schema_config = utils.resolve_reference(self.spec, ref)
-
-        schema_type = schema_config.get(constants.TYPE)
-
-        if not schema_type:
-            raise exceptions.ImproperSwaggerException("Request body must either define reference or Data Type")
-
-        if schema_type != constants.OBJECT:
-            schema_config[constants.PROPERTIES] = {"dummy": schema_type}
-
-        properties = schema_config.get(constants.PROPERTIES)
-
-        if not properties:
-            raise exceptions.ImproperSwaggerException("An Object must define properties")
-
-        self.data_body.append(properties)
-
-    def create_resource_decorator(self, resource, name):
-        return "@{res_method}(resource='{resource}', name='{name}')".format(**utils.StringDict(
-            res_method=constants.RESOURCE_MAPPING.get(self.method, constants.FETCH),
-            resource=resource, name=name
-        ))
-
     def get_client_parameters(self):
         """
         Parameters for calling Request method
         """
         parameter_list = ["url"]
         if self.data_body:
-            parameter_list.append("data=body(body_config, self.profile, spec_instance.spec)")
+            parameter_list.append("data=self.mapper.generate_data(body_config)")
         if self.query_params:
             parameter_list.append("params=path_params")
         if self.headers:
-            parameter_list.append("headers=header(header_config)")
+            parameter_list.append("headers=self.mapper.generate_data(header_config)")
         return ", ".join(parameter_list)
 
     def construct_body_variables(self):
@@ -225,7 +186,7 @@ class Task:
 
             # Also get Path Parameters
             body_definition.append(
-                "url, path_params = formatted_url(url, query_config, path_config, profile=self.profile)"
+                "url, path_params = self.mapper.format_url(url, query_config, path_config)"
             )
 
         if self.headers:
@@ -273,6 +234,15 @@ class TaskSet:
     def generate_on_start(width):
         return "def on_start(self):\n{w}self.login()".format(w=' ' * (width + 1) * 4)
 
+    @staticmethod
+    def mapper(width):
+        statements = [
+            "@property\n{w}def mapper(self):".format(w=' ' * width * 4),
+            "return DataMapper(profile=self.profile, specs=spec_instance.spec)"
+        ]
+        join_string = "\n{w}".format(w=' ' * (width + 1) * 4)
+        return join_string.join(statements)
+
     @property
     def task_set_name(self):
         return self.tag + "Behaviour"
@@ -294,6 +264,7 @@ class TaskSet:
             "class {klass}(TaskSet):".format(klass=self.task_set_name),
             self.add_hooks(width),
             self.generate_on_start(width),
+            self.mapper(width),
             self.generate_tasks(width)
         ]
         return join_str.join(behaviour_components)
