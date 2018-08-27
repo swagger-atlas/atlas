@@ -72,3 +72,7 @@ def get_project_path():
 
 def get_project_module():
     return "{folder}.{name}".format(folder=settings.PROJECT_FOLDER_NAME, name=settings.PROJECT_NAME)
+
+
+def get_input_project_module():
+    return "{path}.{input_folder}".format(path=get_project_module(), input_folder=settings.INPUT_FOLDER)

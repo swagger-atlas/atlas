@@ -36,8 +36,6 @@ class Task:
 
         self.spec = spec or {}
 
-        self.decorators = ["@task(1)"]
-
         self.data_body = []
         self.query_params = dict()
 
@@ -46,24 +44,12 @@ class Task:
         self.parse_parameters()
 
     @staticmethod
-    def normalize_function_name(fun_name):
+    def normalize_function_name(func_name):
         """
         Convert - into _
         """
 
-        return re.sub("-", "_", fun_name)
-
-    @staticmethod
-    def get_function_parameters():
-        parameter_list = ["self", "**kwargs"]
-        return ", ".join(parameter_list)
-
-    def get_function_declaration(self, width):
-        return "{decorators}\n{w}def {name}({parameters}):".format(
-            **utils.StringDict(
-                decorators=self.get_decorators(width), name=self.func_name, parameters=self.get_function_parameters(),
-                w=' ' * width * 4)
-        )
+        return re.sub("-", "_", func_name)
 
     def parse_parameters(self):
         """
@@ -205,18 +191,17 @@ class Task:
         join_str = "\n{w}".format(w=' ' * width * 4)
         return join_str.join(body_definition)
 
-    def get_decorators(self, width):
-        return "\n{w}".join(self.decorators).format_map(utils.StringDict(w=' ' * width * 4))
-
     def convert(self, width):
         """
         Convert the task to function
         """
 
-        components = ["{declaration}", "{definition}"]
+        components = [
+            "@task(1)\n{w}def {name}(self):".format(**utils.StringDict(name=self.func_name, w=' ' * (width-1) * 4)),
+            "{definition}"
+        ]
         return "\n{w}".join(components).format(**utils.StringDict(
-            declaration=self.get_function_declaration(width - 1), definition=self.get_function_definition(width),
-            w=' ' * width * 4
+            definition=self.get_function_definition(width), w=' ' * width * 4
         ))
 
 

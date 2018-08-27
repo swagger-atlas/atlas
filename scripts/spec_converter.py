@@ -47,8 +47,7 @@ class LocustFileConfig:
 
     def write_to_file(self, file_name=None):
         file_name = file_name or settings.LOCUST_FILE
-        _path = os.path.join(settings.BASE_DIR, settings.PROJECT_FOLDER_NAME, settings.PROJECT_NAME)
-        _file = os.path.join(_path, file_name)
+        _file = os.path.join(utils.get_project_path(), settings.OUTPUT_FOLDER, file_name)
 
         with open(_file, 'w') as write_file:
             write_file.write(self.convert() + "\n")  # Append EOF New line
@@ -86,8 +85,7 @@ class SpecsFile:
             raise exceptions.ImproperSwaggerException("Incorrect extension for {}".format(self.spec_file))
 
     def file_load(self):
-        file_path = os.path.join(settings.BASE_DIR, settings.PROJECT_FOLDER_NAME, settings.PROJECT_NAME)
-        _file = os.path.join(file_path, self.spec_file)
+        _file = os.path.join(utils.get_project_path(), settings.OUTPUT_FOLDER, self.spec_file)
 
         with open(_file) as open_api_file:
             ret_stream = self.CONVERTER[self.converter](open_api_file)
