@@ -2,6 +2,7 @@ import itertools
 from functools import wraps
 
 from scripts import (
+    constants,
     utils
 )
 from scripts.resources.generators import Resource
@@ -80,6 +81,23 @@ class ResourceDecorator(FakeDataDecorator):
 
         return wrapper
 
+    def update_query_params(self, config, profile):
+
+        data_body = {}
+
+        for item_name, item_config in config.items():
+            resource = item_config.get(constants.RESOURCE)
+
+            if resource:
+                data_body[item_name] = self.generator_class.get_resources(profile=profile)
+            else:
+                fake_func = super().generator_class.get_fake_mapper(item_config)
+
+                if fake_func:
+                    data_body[item_name] = fake_func(self.generator_class, item_config)
+
+        self.func_kwargs["body"] = data_body
+
     def add_resource_to_args(self, resources):
         if not isinstance(resources, tuple):
             resources = (resources,)
@@ -109,15 +127,16 @@ def body(config, specs=None):
     return fake_obj.func_kwargs["body"]
 
 
-def formatted_url(url, query_config, path_config):
+def formatted_url(url, query_config, path_config, profile):
     fake_obj = FakeDataDecorator()
+    res_obj = ResourceDecorator()
     fake_obj.generator_class = fake_obj.get_generator_class()
     fake_obj.update_data(path_config)
     url = url.format_map(utils.StringDict(**fake_obj.func_kwargs["body"]))
-    fake_obj.update_data(query_config)
+    res_obj.update_query_params(query_config, profile)
     # Note that since we use params argument in Requests library, we only ever support "multi" argument for Query Params
     # This also means that we on surface do no support parameters without value
-    return url, fake_obj.func_kwargs["body"]
+    return url, res_obj.func_kwargs["body"]
 
 
 def header(config):
