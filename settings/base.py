@@ -8,6 +8,9 @@ class Settings:
 
     PROJECT_FOLDER_NAME = "project"     # Name of top-level namespace where all projects are
 
+    INPUT_FOLDER = "input"
+    OUTPUT_FOLDER = "output"
+
     LOCUST_HOOK_FILE = "hooks.py"
     MAPPING_FILE = "res_mapping.yaml"
     RES_MAPPING_HOOKS_FILE = "map_hooks.py"

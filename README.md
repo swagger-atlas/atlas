@@ -30,35 +30,37 @@ Project Setup
     You can run pylint anytime by using `pylint --rcfile=pylint.rc <file_path>`
 
 4. Customize as per your needs
-    - Create a sub-folder under "project"
-    - In your newly created sub-folder:
-        - Create a folder called "resources"
-        - Copy your swagger definition
-        - Copy hooks.py.template and rename it as hooks.py
-        - Add any mapping hooks as map_hooks.py
-        - Create the profiles as "profiles.yaml"
-        - Add your mapping file as res_mapping.yaml ([YAML](docs/yaml.md))
     - Copy local.py.template to local.py in Settings folder and fill in the appropriate settings
 
 
 How to Use
 ===========
 
+Setup your Project Files
+-------
+1. Run `scripts/project_setup.py`
+1. In newly set up folder, navigate to input folder. There:
+    - Copy your swagger definition
+    - Copy hooks.py.template
+    - Add any mapping hooks as map_hooks.py
+    - Create the profiles as "profiles.yaml"
+    - Add your mapping file as res_mapping.yaml ([YAML](docs/yaml.md))
+1. Names for above should match as specified in settings file
+
 Auto-generating Resources from Swagger
 ------
 1. Run `scripts/resources/auto_generate.py`.
     - Updated resources will be available in MAPPING_FILE.
-    - Your SWAGGER_FILE would also have been updated
-
-Converting Specs to Locust
-------
-1. You can convert OpenAPI Specifications using `scripts/spec_converter.py`
+    - SWAGGER_FILE would also be generated again in Output path
 
 Creating a Resource Pool from Resource Mapping
 -----
 You can try and create a temporary resource map for testing
 1. Use `parse` method of ``ResourceMap` class defined in `resources/generators`.
 
+Converting Specs to Locust
+------
+1. You can convert OpenAPI Specifications using `scripts/spec_converter.py`
 
 Running Locust
 ------
