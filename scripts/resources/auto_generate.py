@@ -16,9 +16,9 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
     def __init__(self, swagger_file=None):
 
         self.swagger_file = swagger_file or settings.SWAGGER_FILE
-        self.specs = self.read_file(self.swagger_file, {})
+        self.specs = self.read_file_from_input(self.swagger_file, {})
 
-        self.resources = self.read_file(settings.MAPPING_FILE, {})
+        self.resources = self.read_file_from_input(settings.MAPPING_FILE, {})
         self.new_resources = set()
 
     def add_resource(self, resource):
@@ -95,11 +95,11 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
     def update(self):
 
         # Update Specs File
-        self.write_file(self.swagger_file, self.specs, append_mode=False)
+        self.write_file_to_output(self.swagger_file, self.specs, append_mode=False)
 
         # Update Resource Mapping File
         auto_resource = {resource: "# Add your definition here" for resource in self.new_resources}
-        self.write_file(settings.MAPPING_FILE, auto_resource)
+        self.write_file_to_output(settings.MAPPING_FILE, {**self.resources, **auto_resource}, append_mode=False)
 
 
 if __name__ == "__main__":

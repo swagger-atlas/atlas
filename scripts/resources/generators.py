@@ -1,4 +1,5 @@
 import importlib
+import os
 import random
 
 from scripts import exceptions, utils, mixins
@@ -37,7 +38,7 @@ class Resource(ResourceMixin):
 
         self.resources = {}
 
-        self.profiles = self.read_file(settings.PROFILES_FILE, {})
+        self.profiles = self.read_file_from_input(settings.PROFILES_FILE, {})
         self.active_profile = ""
 
     @property
@@ -59,7 +60,9 @@ class Resource(ResourceMixin):
     def get_resources(self, profile):
 
         self.active_profile = profile
-        self.resources = self.read_file(self.profile_resource, {}, settings.RESOURCES_FOLDER)
+        self.resources = self.read_file_from_output(
+            self.profile_resource, {}, project_sub_folder=settings.RESOURCES_FOLDER
+        )
 
         resources = self.resource_set()
 
@@ -79,7 +82,7 @@ class ResourceMap(ResourceMixin):
 
     def __init__(self, profiles=None):
 
-        self.map = self.read_file(settings.MAPPING_FILE)
+        self.map = self.read_file_from_output(settings.MAPPING_FILE)
         self.limit = 50
         self.client = db_client.Client()
 
@@ -135,10 +138,16 @@ class ResourceMap(ResourceMixin):
         global_settings = self.map.pop(resource_constants.GLOBALS, {})
 
         for name, config in self.get_profiles().items():
-            resources = self.read_file(self.get_profile_resource_name(name, config), {}, settings.RESOURCES_FOLDER)
+            resources = self.read_file(
+                self.get_profile_resource_name(name, config), {},
+                os.path.join(settings.OUTPUT_FOLDER, settings.RESOURCES_FOLDER)
+            )
             self.active_profile_config = config
             self.read_for_profile(resources, global_settings)
-            self.write_file(self.get_profile_resource_name(name, config), resources, settings.RESOURCES_FOLDER)
+            self.write_file(
+                self.get_profile_resource_name(name, config), resources,
+                os.path.join(settings.OUTPUT_FOLDER, settings.RESOURCES_FOLDER)
+            )
 
     def construct_fetch_query(self, table, column, filters):
         """
@@ -183,7 +192,7 @@ class ResourceMap(ResourceMixin):
 
     @staticmethod
     def get_function_from_mapping_file(func_name):
-        map_hook_file = "{}.{}".format(utils.get_project_module(), settings.RES_MAPPING_HOOKS_FILE)[:-len(".py")]
+        map_hook_file = "{}.{}".format(utils.get_input_project_module(), settings.RES_MAPPING_HOOKS_FILE)[:-len(".py")]
         func = getattr(importlib.import_module(map_hook_file), func_name)
 
         if not func:
@@ -213,7 +222,7 @@ class ResourceMap(ResourceMixin):
         return func(*args, **kwargs)
 
     def get_profiles(self):
-        profiles = self.read_file(settings.PROFILES_FILE, {})
+        profiles = self.read_file_from_input(settings.PROFILES_FILE, {})
 
         if self.profiles:
             profile_to_read = set(self.profiles)

@@ -55,11 +55,12 @@ Auto-generating Resources from Swagger
 
 Creating a Resource Pool from Resource Mapping
 -----
-You can try and create a temporary resource map for testing
+1. Run the auto-generation of resources outlined above
 1. Use `parse` method of ``ResourceMap` class defined in `resources/generators`.
 
 Converting Specs to Locust
 ------
+1. Create the Resource Pool as outlined above
 1. You can convert OpenAPI Specifications using `scripts/spec_converter.py`
 
 Running Locust
