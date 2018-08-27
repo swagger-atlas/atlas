@@ -2,6 +2,7 @@ import itertools
 from functools import wraps
 
 from scripts import (
+    constants,
     utils
 )
 from scripts.resources.generators import Resource
@@ -56,6 +57,9 @@ class FakeDataDecorator:
 
 
 class ResourceDecorator(FakeDataDecorator):
+    """
+    Should be only used to decorate Task Set Class Methods
+    """
 
     def __init__(self):
         super().__init__()
@@ -69,12 +73,31 @@ class ResourceDecorator(FakeDataDecorator):
 
         @wraps(func)
         def wrapper(*f_args, **f_kwargs):
-            self.func_kwargs[self.param_name] = self.generator_class.get_resources()
-            # self.update_url(url=self.url, resources=self.generator_class.get_resources())
+            instance = f_args[0]    # First argument of methods must be self
+            profile = getattr(instance, "profile")
+            self.func_kwargs[self.param_name] = self.generator_class.get_resources(profile=profile)
             f_kwargs.update(self.func_kwargs)
             return func(*f_args, **f_kwargs)
 
         return wrapper
+
+    def update_params(self, config, profile, specs=None):
+
+        data_body = {}
+
+        for item_name, item_config in config.items():
+            resource = item_config.get(constants.RESOURCE)
+
+            if resource:
+                data_body[item_name] = self.generator_class.get_resources(profile=profile)
+            else:
+                generator_class = super().get_generator_class(specs)
+                fake_func = generator_class.get_fake_mapper(item_config)
+
+                if fake_func:
+                    data_body[item_name] = fake_func(generator_class, item_config)
+
+        self.func_kwargs["body"] = data_body
 
     def add_resource_to_args(self, resources):
         if not isinstance(resources, tuple):
@@ -98,22 +121,24 @@ def fetch(resource, name, *args, **kwargs):
     return res_obj.fetch(resource, name, *args, **kwargs)
 
 
-def body(config, specs=None):
-    fake_obj = FakeDataDecorator()
-    fake_obj.generator_class = fake_obj.get_generator_class(specs)
-    fake_obj.update_data(config)
-    return fake_obj.func_kwargs["body"]
+def body(config, profile, specs=None):
+    res_obj = ResourceDecorator()
+    res_obj.generator_class = res_obj.get_generator_class(specs)
+    res_obj.update_params(config, profile, specs)
+    return res_obj.func_kwargs["body"]
 
 
-def formatted_url(url, query_config, path_config):
+def formatted_url(url, query_config, path_config, profile):
     fake_obj = FakeDataDecorator()
+    res_obj = ResourceDecorator()
+    res_obj.generator_class = res_obj.get_generator_class()
     fake_obj.generator_class = fake_obj.get_generator_class()
     fake_obj.update_data(path_config)
     url = url.format_map(utils.StringDict(**fake_obj.func_kwargs["body"]))
-    fake_obj.update_data(query_config)
+    res_obj.update_params(query_config, profile)
     # Note that since we use params argument in Requests library, we only ever support "multi" argument for Query Params
     # This also means that we on surface do no support parameters without value
-    return url, fake_obj.func_kwargs["body"]
+    return url, res_obj.func_kwargs["body"]
 
 
 def header(config):

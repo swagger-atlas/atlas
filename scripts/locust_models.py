@@ -38,7 +38,7 @@ class Task:
 
         self.decorators = ["@task(1)"]
 
-        self.data_body = dict()
+        self.data_body = []
         self.query_params = dict()
 
         self.headers = []
@@ -53,9 +53,9 @@ class Task:
 
         return re.sub("-", "_", fun_name)
 
-    def get_function_parameters(self):
-        parameter_list = ["self"]
-        parameter_list.append("**kwargs")
+    @staticmethod
+    def get_function_parameters():
+        parameter_list = ["self", "**kwargs"]
         return ", ".join(parameter_list)
 
     def get_function_declaration(self, width):
@@ -103,7 +103,7 @@ class Task:
                 raise exceptions.ImproperSwaggerException("Config {} does not have valid parameter type".format(config))
 
         if form_data:
-            self.data_body[self.func_name] = form_data
+            self.data_body.append(form_data)
 
     def parse_path_params(self, config):
         resource = config.get(constants.RESOURCE)
@@ -134,6 +134,15 @@ class Task:
         if _type not in constants.QUERY_TYPES:
             raise exceptions.ImproperSwaggerException("Unsupported type for parameter - {}".format(name))
 
+        # Only use query params if strictly required
+        is_optional_param = not (settings.HIT_ALL_QUERY_PARAMS or query_config.get(constants.REQUIRED, False))
+        if param_type == "query" and is_optional_param:
+            return
+
+        # Special Handling for Page Query Parameters
+        if name in settings.POSITIVE_INTEGER_PARAMS:
+            query_config[constants.MINIMUM] = 1
+
         self.query_params[name] = (param_type, query_config)
 
     def parse_schema(self, schema_config):
@@ -159,7 +168,7 @@ class Task:
         if not properties:
             raise exceptions.ImproperSwaggerException("An Object must define properties")
 
-        self.data_body[self.func_name] = properties
+        self.data_body.append(properties)
 
     def create_resource_decorator(self, resource, name):
         return "@{res_method}(resource='{resource}', name='{name}')".format(**utils.StringDict(
@@ -173,7 +182,7 @@ class Task:
         """
         parameter_list = ["url"]
         if self.data_body:
-            parameter_list.append("data=body(body_config, spec_instance.spec)")
+            parameter_list.append("data=body(body_config, self.profile, spec_instance.spec)")
         if self.query_params:
             parameter_list.append("params=path_params")
         if self.headers:
@@ -183,7 +192,7 @@ class Task:
     def construct_body_variables(self):
         body_definition = []
 
-        for value in self.data_body.values():
+        for value in self.data_body:
             body_definition.append("body_config = {config}".format(config=value))
 
         query_params = []
@@ -215,7 +224,9 @@ class Task:
             body_definition.append("path_config = {p}".format_map(utils.StringDict(p=path_str)))
 
             # Also get Path Parameters
-            body_definition.append("url, path_params = formatted_url(url, query_config, path_config)")
+            body_definition.append(
+                "url, path_params = formatted_url(url, query_config, path_config, profile=self.profile)"
+            )
 
         if self.headers:
             body_definition.append("header_config = {{{}}}".format(", ".join(self.headers)))

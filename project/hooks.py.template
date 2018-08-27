@@ -1,4 +1,5 @@
 auth = None
+profile = None
 
 def login(self):
     """
@@ -6,9 +7,10 @@ def login(self):
     This hook can call Login Method of your project directly, and based on that set "auth" class variable
     Or if you in advance know what the value of auth should be, you can set directly here
     It must call update_default_headers function
+    It must set profile method
     """
 
-    # Your code here
+    self.profile = "<your code here>"
 
     self.update_default_headers()
 
@@ -17,4 +19,4 @@ def update_default_headers(self):
     This hook is used to update default headers.
     We have provided the necessary code for Token Auth, though you can replace it with code you need
     """
-    self.client.headers.update({"Authorization": "token = {token}".format(token=self.auth)})
+    self.client.headers.update({"Authorization": "Token {token}".format(token=self.auth)})

@@ -1,6 +1,8 @@
+import os
 import re
 
 from scripts import exceptions
+from settings.conf import settings
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
@@ -62,3 +64,11 @@ def resolve_reference(spec, ref_definition):
 def convert_to_snake_case(name):
     intermediate_string = first_cap_re.sub(r'\1_\2', name)
     return all_cap_re.sub(r'\1_\2', intermediate_string).lower()
+
+
+def get_project_path():
+    return os.path.join(settings.BASE_DIR, settings.PROJECT_FOLDER_NAME, settings.PROJECT_NAME)
+
+
+def get_project_module():
+    return "{folder}.{name}".format(folder=settings.PROJECT_FOLDER_NAME, name=settings.PROJECT_NAME)

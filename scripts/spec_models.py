@@ -6,6 +6,7 @@ from scripts import (
     exceptions,
     locust_models
 )
+from settings.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +68,10 @@ class OpenAPISpec:
         paths = self.spec.get(swagger_constants.PATHS, {})
 
         for path, config in paths.items():
+
+            # We do not include Logout URL in our Load Test
+            if path == settings.LOGOUT_API_URL:
+                continue
 
             common_parameters = config.pop(swagger_constants.PARAMETERS, [])
 
