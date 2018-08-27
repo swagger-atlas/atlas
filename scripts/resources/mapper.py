@@ -3,7 +3,7 @@ from scripts import (
     utils
 )
 from scripts.resources.generators import Resource
-from scripts.resources.data_mapper import FakeData
+from scripts.resources.fake_generators import FakeData
 
 
 class DataMapper:
