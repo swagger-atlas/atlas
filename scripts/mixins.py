@@ -43,11 +43,12 @@ class YAMLReadWriteMixin:
 
         return ret_stream or default_value
 
-    def write_file(self, file_name, write_data, project_sub_folder=None):
+    def write_file(self, file_name, write_data, project_sub_folder=None, append_mode=True):
         _file = os.path.join(self.get_project_folder(project_sub_folder), file_name)
 
         # If there is no data to write, no point opening a file
         # If you ever need to change this behaviour, take care that some write op who append to file may depend on this
         if write_data:
-            with open(_file, 'a+') as file_stream:
+            write_mode = "a+" if append_mode else "w+"
+            with open(_file, write_mode) as file_stream:
                 yaml.dump(write_data, file_stream, default_flow_style=False)

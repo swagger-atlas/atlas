@@ -38,7 +38,7 @@ class Task:
 
         self.decorators = ["@task(1)"]
 
-        self.data_body = dict()
+        self.data_body = []
         self.query_params = dict()
 
         self.headers = []
@@ -103,7 +103,7 @@ class Task:
                 raise exceptions.ImproperSwaggerException("Config {} does not have valid parameter type".format(config))
 
         if form_data:
-            self.data_body[self.func_name] = form_data
+            self.data_body.append(form_data)
 
     def parse_path_params(self, config):
         resource = config.get(constants.RESOURCE)
@@ -168,7 +168,7 @@ class Task:
         if not properties:
             raise exceptions.ImproperSwaggerException("An Object must define properties")
 
-        self.data_body[self.func_name] = properties
+        self.data_body.append(properties)
 
     def create_resource_decorator(self, resource, name):
         return "@{res_method}(resource='{resource}', name='{name}')".format(**utils.StringDict(
@@ -182,7 +182,7 @@ class Task:
         """
         parameter_list = ["url"]
         if self.data_body:
-            parameter_list.append("data=body(body_config, spec_instance.spec)")
+            parameter_list.append("data=body(body_config, self.profile, spec_instance.spec)")
         if self.query_params:
             parameter_list.append("params=path_params")
         if self.headers:
@@ -192,7 +192,7 @@ class Task:
     def construct_body_variables(self):
         body_definition = []
 
-        for value in self.data_body.values():
+        for value in self.data_body:
             body_definition.append("body_config = {config}".format(config=value))
 
         query_params = []

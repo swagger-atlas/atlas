@@ -58,13 +58,13 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         if properties is None:      # Properties can be empty dictionary, which is fine
             raise exceptions.ImproperSwaggerException("Properties must be defined for {}".format(ref_name))
 
-        ref_id = properties.get("id")
+        ref_id = properties.get("id", {})
 
         if ref_id:
             resource = ref_id.get(swagger_constants.RESOURCE, utils.convert_to_snake_case(ref_name))
 
             if resource:
-                ref_config[swagger_constants.RESOURCE] = resource
+                ref_id[swagger_constants.RESOURCE] = resource
                 self.add_resource(resource)
 
     def parse(self):
@@ -95,7 +95,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
     def update(self):
 
         # Update Specs File
-        self.write_file(self.swagger_file, self.specs)
+        self.write_file(self.swagger_file, self.specs, append_mode=False)
 
         # Update Resource Mapping File
         auto_resource = {resource: "# Add your definition here" for resource in self.new_resources}

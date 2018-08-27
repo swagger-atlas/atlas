@@ -81,7 +81,7 @@ class ResourceDecorator(FakeDataDecorator):
 
         return wrapper
 
-    def update_query_params(self, config, profile):
+    def update_params(self, config, profile, specs=None):
 
         data_body = {}
 
@@ -91,10 +91,11 @@ class ResourceDecorator(FakeDataDecorator):
             if resource:
                 data_body[item_name] = self.generator_class.get_resources(profile=profile)
             else:
-                fake_func = super().generator_class.get_fake_mapper(item_config)
+                generator_class = super().get_generator_class(specs)
+                fake_func = generator_class.get_fake_mapper(item_config)
 
                 if fake_func:
-                    data_body[item_name] = fake_func(self.generator_class, item_config)
+                    data_body[item_name] = fake_func(generator_class, item_config)
 
         self.func_kwargs["body"] = data_body
 
@@ -120,20 +121,21 @@ def fetch(resource, name, *args, **kwargs):
     return res_obj.fetch(resource, name, *args, **kwargs)
 
 
-def body(config, specs=None):
-    fake_obj = FakeDataDecorator()
-    fake_obj.generator_class = fake_obj.get_generator_class(specs)
-    fake_obj.update_data(config)
-    return fake_obj.func_kwargs["body"]
+def body(config, profile, specs=None):
+    res_obj = ResourceDecorator()
+    res_obj.generator_class = res_obj.get_generator_class(specs)
+    res_obj.update_params(config, profile, specs)
+    return res_obj.func_kwargs["body"]
 
 
 def formatted_url(url, query_config, path_config, profile):
     fake_obj = FakeDataDecorator()
     res_obj = ResourceDecorator()
+    res_obj.generator_class = res_obj.get_generator_class()
     fake_obj.generator_class = fake_obj.get_generator_class()
     fake_obj.update_data(path_config)
     url = url.format_map(utils.StringDict(**fake_obj.func_kwargs["body"]))
-    res_obj.update_query_params(query_config, profile)
+    res_obj.update_params(query_config, profile)
     # Note that since we use params argument in Requests library, we only ever support "multi" argument for Query Params
     # This also means that we on surface do no support parameters without value
     return url, res_obj.func_kwargs["body"]

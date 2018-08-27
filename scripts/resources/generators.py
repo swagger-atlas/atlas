@@ -56,12 +56,6 @@ class Resource(ResourceMixin):
 
         return list(resource_set)
 
-    def add_resources_to_pool(self, resource_data):
-        res = set(self.resources[self.resource_name])
-        for data in resource_data:
-            res.add(data)
-        self.write_file(self.profile_resource, self.resources, settings.RESOURCES_FOLDER)
-
     def get_resources(self, profile):
 
         self.active_profile = profile
