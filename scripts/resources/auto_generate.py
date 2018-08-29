@@ -78,10 +78,13 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         ref = schema.get(swagger_constants.REF)
 
         if ref:
-            ref_config = utils.resolve_reference(self.specs, ref)
-            ref_name = ref.split("/")[-1]
-            self.parse_reference(ref_name, ref_config)
+            self.get_ref_name_and_config(ref)
         # We have no way to map in-line obj def. to a resource
+
+    def get_ref_name_and_config(self, ref):
+        ref_config = utils.resolve_reference(self.specs, ref)
+        ref_name = ref.split("/")[-1]
+        self.parse_reference(ref_name, ref_config)
 
     def parse_reference(self, ref_name, ref_config):
 
@@ -90,14 +93,15 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         if properties is None:      # Properties can be empty dictionary, which is fine
             raise exceptions.ImproperSwaggerException("Properties must be defined for {}".format(ref_name))
 
-        ref_id = properties.get("id", {})
+        for key, value in properties.items():
+            if swagger_constants.REF in value:
+                self.get_ref_name_and_config(value[swagger_constants.REF])
+            elif key == "id":
+                resource = value.get(swagger_constants.RESOURCE, utils.convert_to_snake_case(ref_name))
 
-        if ref_id:
-            resource = ref_id.get(swagger_constants.RESOURCE, utils.convert_to_snake_case(ref_name))
-
-            if resource:
-                ref_id[swagger_constants.RESOURCE] = resource
-                self.add_resource(resource)
+                if resource:
+                    value[swagger_constants.RESOURCE] = resource
+                    self.add_resource(resource)
 
     def parse(self):
 
