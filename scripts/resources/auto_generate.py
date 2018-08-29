@@ -25,6 +25,24 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         if resource and resource not in self.resources:
             self.new_resources.add(resource)
 
+    @staticmethod
+    def extract_resource_name_from_param(param_name):
+        """
+        Extract Resource Name from parameter name
+        Names could be either snake case (foo_id) or camelCase (fooId)
+        Return None if no such resource could be found
+        """
+
+        resource_name = None
+
+        if param_name.endswith("_id"):
+            resource_name = param_name[:-len("_id")]
+
+        elif param_name.endswith("Id"):
+            resource_name = param_name[:-len("Id")]
+
+        return resource_name
+
     def parse_params(self, params):
 
         for param in params:
@@ -45,11 +63,11 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
                 if resource is not None:    # Empty strings should be respected
                     self.add_resource(resource)
-
-                elif name.endswith("_id"):
-                    resource = name[:-len("_id")]
-                    param[swagger_constants.RESOURCE] = resource
-                    self.add_resource(resource)
+                elif not resource:          # If resource is explicitly empty string, we should not generate them
+                    resource = self.extract_resource_name_from_param(name)
+                    if resource:
+                        param[swagger_constants.RESOURCE] = resource
+                        self.add_resource(resource)
 
     def parse_reference(self, ref_name, ref_config):
 
