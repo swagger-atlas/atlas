@@ -155,7 +155,7 @@ class Task:
 
         query_str = "{}"
         path_str = "{}"
-        url_str = "url = '{}'.format_map(utils.StringDict(**kwargs))".format(self.url)
+        url_str = "url = '{}'".format(self.url)
 
         body_definition.append(url_str)
 
@@ -235,7 +235,7 @@ class TaskSet:
     @staticmethod
     def add_hooks(width):
         hook_file = os.path.join(settings.BASE_DIR, settings.PROJECT_FOLDER_NAME,
-                                 settings.PROJECT_NAME, settings.LOCUST_HOOK_FILE)
+                                 settings.PROJECT_NAME, settings.INPUT_FOLDER, settings.LOCUST_HOOK_FILE)
 
         with open(hook_file, "r") as hook_stream:
             hooks_statements = [line for line in hook_stream]
