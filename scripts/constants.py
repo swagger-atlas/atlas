@@ -13,6 +13,7 @@ QUERY_PARAM = "query"
 FORM_PARAM = "formData"
 HEADER_PARAM = "header"
 REQUIRED = "required"
+URL_PARAMS = {PATH_PARAM, QUERY_PARAM}
 
 # Defining an Object/Schema
 SCHEMA = "schema"
@@ -26,14 +27,7 @@ POST = "post"
 DELETE = "delete"
 PATCH = "patch"
 PUT = "put"
-VALID_METHODS = [GET, POST, DELETE, PATCH, PUT]
-
-# Resource Constants
-FETCH = "fetch"
-
-RESOURCE_MAPPING = {
-    GET: FETCH
-}
+VALID_METHODS = {GET, POST, DELETE, PATCH, PUT}
 
 # Valid Swagger/OpenAPI extensions
 JSON = "json"

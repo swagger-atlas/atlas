@@ -51,7 +51,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
             if not param_type:
                 raise exceptions.ImproperSwaggerException("Param type not defined for {}".format(param))
 
-            if param_type == swagger_constants.PATH_PARAM:
+            if param_type in swagger_constants.URL_PARAMS:
 
                 name = param.get(swagger_constants.PARAMETER_NAME)
 
