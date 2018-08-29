@@ -69,6 +69,20 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                         param[swagger_constants.RESOURCE] = resource
                         self.add_resource(resource)
 
+            elif param_type == swagger_constants.BODY_PARAM:
+                self.resolve_body_param(param)
+
+    def resolve_body_param(self, param_config):
+        schema = param_config.get(swagger_constants.SCHEMA, {})
+
+        ref = schema.get(swagger_constants.REF)
+
+        if ref:
+            ref_config = utils.resolve_reference(self.specs, ref)
+            ref_name = ref.split("/")[-1]
+            self.parse_reference(ref_name, ref_config)
+        # We have no way to map in-line obj def. to a resource
+
     def parse_reference(self, ref_name, ref_config):
 
         properties = ref_config.get(swagger_constants.PROPERTIES)
@@ -86,16 +100,8 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 self.add_resource(resource)
 
     def parse(self):
-        paths = self.specs.get(swagger_constants.PATHS, {})
-        self.parse_paths(paths)
 
-        references = self.specs.get(swagger_constants.DEFINITIONS)
-        for ref_name, ref_config in references.items():
-            self.parse_reference(ref_name, ref_config)
-
-    def parse_paths(self, paths):
-
-        for path in paths.values():
+        for path in self.specs.get(swagger_constants.PATHS, {}).values():
 
             parameters = path.get(swagger_constants.PARAMETERS)
 
