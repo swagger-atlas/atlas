@@ -49,23 +49,24 @@ Setup your Project Files
 
 Auto-generating Resources from Swagger
 ------
-1. Run `scripts/resources/auto_generate.py`.
+1. Run `scripts/resources_creator/creators.py`.
     - Updated resources will be available in MAPPING_FILE.
     - SWAGGER_FILE would also be generated again in Output path
 
 Creating a Resource Pool from Resource Mapping
 -----
 1. Run the auto-generation of resources outlined above
-1. Use `parse` method of ``ResourceMap` class defined in `resources/generators`.
+1. Update the Resource Mapping file
+1. Run `scripts/resource_data_generator/generators.py`
 
 Converting Specs to Locust
 ------
 1. Create the Resource Pool as outlined above
-1. You can convert OpenAPI Specifications using `scripts/spec_converter.py`
+1. You can convert OpenAPI Specifications using `scripts/transformer/locust/transformer.py`
 
 Running Locust
 ------
-1. You can run locust from executing `scripts/locust_runner.py` file
+1. You can run locust from executing `scripts/transformer/locust/runner.py` file
 
 
 Contributing to ATLAS
