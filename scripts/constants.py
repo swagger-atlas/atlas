@@ -20,6 +20,7 @@ SCHEMA = "schema"
 REF = "$ref"
 PROPERTIES = "properties"
 READ_ONLY = "readOnly"
+TITLE = "title"
 
 # Open API Supported Methods
 GET = "get"
@@ -72,3 +73,6 @@ UNIQUE_ITEMS = "uniqueItems"
 
 # References
 DEFINITIONS = "definitions"
+
+# Extra Keys for Data Providers
+EXTRA_KEYS = [PARAMETER_NAME, IN_, READ_ONLY, REQUIRED, TITLE]

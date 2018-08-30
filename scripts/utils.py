@@ -1,7 +1,7 @@
 import os
 import re
 
-from scripts import exceptions
+from scripts import constants, exceptions
 from settings.conf import settings
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')

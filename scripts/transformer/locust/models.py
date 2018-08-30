@@ -34,8 +34,8 @@ class Task:
 
         self.spec = spec or {}
 
-        self.data_body = []
-        self.query_params = dict()
+        self.data_body = dict()
+        self.url_params = dict()
 
         self.headers = []
 
@@ -55,54 +55,52 @@ class Task:
         For the body parameter, add the definition
         """
 
-        form_data = []
-
         for config in self.parameters.values():
             in_ = config.get(constants.IN_)
 
             if not in_:
                 raise exceptions.ImproperSwaggerException("In is required field for OpenAPI Parameter")
 
+            name = config.get(constants.PARAMETER_NAME)
+
+            if not name:
+                raise exceptions.ImproperSwaggerException("Config {} does not have name".format(config))
+
             if in_ == constants.PATH_PARAM:
-                self.construct_url_parameter(config, param_type="path")
+                self.construct_url_parameter(name, config, param_type="path")
 
             elif in_ == constants.BODY_PARAM:
-
                 schema = config.get(constants.SCHEMA)
-
                 if not schema:
                     raise exceptions.ImproperSwaggerException("Body Parameter must specify schema")
-
-                self.data_body.append(schema)
+                self.data_body = schema
 
             elif in_ == constants.QUERY_PARAM:
-                self.construct_url_parameter(config)
+                self.construct_url_parameter(name, config)
 
             elif in_ == constants.FORM_PARAM:
-                form_data.append(config)
+                self.data_body[name] = config
 
             elif in_ == constants.HEADER_PARAM:
-                self.parse_header_params(config)
+                self.parse_header_params(name, config)
 
             else:
                 raise exceptions.ImproperSwaggerException("Config {} does not have valid parameter type".format(config))
 
-        if form_data:
-            self.data_body.append(form_data)
+        self.data_body = self.generate_data_config(self.data_body)
 
-    def parse_header_params(self, config):
-        name = config.get(constants.PARAMETER_NAME)
-        if not name:
-            raise exceptions.ImproperSwaggerException("Config {} does not have name".format(config))
-        self.headers.append("'{name}': {config}".format(name=name, config=config))
+    def parse_header_params(self, name, config):
+        config = self.generate_data_config({name: config})
+        if config:
+            self.headers.append("'{name}': {config}".format(name=name, config=config[name]))
 
-    def construct_url_parameter(self, query_config, param_type="query"):
+    def construct_url_parameter(self, name, config, param_type="query"):
         """
-        :param query_config: Parameter Configuration
+        :param name: Parameter name
+        :param config: Parameter Configuration
         :param param_type: Type of parameter. Query/Path
         """
-        name = query_config[constants.PARAMETER_NAME]
-        _type = query_config.get(constants.TYPE)
+        _type = config.get(constants.TYPE)
 
         if not _type:
             raise exceptions.ImproperSwaggerException("Type not defined for parameter - {}".format(name))
@@ -111,15 +109,59 @@ class Task:
             raise exceptions.ImproperSwaggerException("Unsupported type for parameter - {}".format(name))
 
         # Only use query params if strictly required
-        is_optional_param = not (settings.HIT_ALL_QUERY_PARAMS or query_config.get(constants.REQUIRED, False))
+        is_optional_param = not (settings.HIT_ALL_QUERY_PARAMS or config.get(constants.REQUIRED, False))
         if param_type == "query" and is_optional_param:
             return
 
         # Special Handling for Page Query Parameters
         if name in settings.POSITIVE_INTEGER_PARAMS:
-            query_config[constants.MINIMUM] = 1
+            config[constants.MINIMUM] = 1
 
-        self.query_params[name] = (param_type, query_config)
+        config = self.generate_data_config({name: config})
+
+        if config:
+            self.url_params[name] = (param_type, config[name])
+
+    def generate_data_config(self, config):
+        data_body = {}
+
+        for item_name, item_config in config.items():
+
+            # First, resolve references
+            ref = item_config if item_name == constants.REF else item_config.get(constants.REF)
+
+            if ref:
+                ref_config = self.generate_data_config(
+                    utils.resolve_reference(self.spec, ref).get(constants.PROPERTIES, {})
+                )
+                if item_name == constants.REF:
+                    data_body = ref_config  # This is top-level reference, so replace complete body
+                else:
+                    data_body[item_name] = ref_config   # This is field-level reference
+                continue  # We generated the data already, move on to next once
+
+            # Do not generate data for Read-only fields
+            read_only = item_config.get(constants.READ_ONLY, False)
+            if read_only:
+                continue
+
+            resource = item_config.get(constants.RESOURCE)
+
+            if resource:
+                # If it is resource, we only need resource mapping
+                data_body[item_name] = {constants.RESOURCE: resource}
+            else:
+                item_data = {}
+                for key, value in item_config.items():
+                    if key in constants.EXTRA_KEYS:
+                        continue
+                    if isinstance(value, dict):
+                        item_data[key] = self.generate_data_config({key: value})
+                    else:
+                        item_data[key] = value
+                data_body[item_name] = item_data
+
+        return data_body
 
     def get_client_parameters(self):
         """
@@ -128,7 +170,7 @@ class Task:
         parameter_list = ["url"]
         if self.data_body:
             parameter_list.append("data=self.mapper.generate_data(body_config)")
-        if self.query_params:
+        if self.url_params:
             parameter_list.append("params=path_params")
         if self.headers:
             parameter_list.append("headers=self.mapper.generate_data(header_config)")
@@ -137,8 +179,8 @@ class Task:
     def construct_body_variables(self):
         body_definition = []
 
-        for value in self.data_body:
-            body_definition.append("body_config = {config}".format(config=value))
+        if self.data_body:
+            body_definition.append("body_config = {config}".format(config=self.data_body))
 
         query_params = []
         path_params = []
@@ -147,7 +189,7 @@ class Task:
             "query": query_params,
             "path": path_params
         }
-        for key, value in self.query_params.items():
+        for key, value in self.url_params.items():
             param_str = "'{name}': {config}".format(name=key, config=value[1])
             param_map[value[0]].append(param_str)
 
