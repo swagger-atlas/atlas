@@ -15,7 +15,6 @@ class LocustFileConfig:
 
         self.imports = [
             "from locust import HttpLocust, TaskSet, task",
-            "from scripts.transformer import open_api_models, open_api_reader",
             "from scripts.data_provider.locust.mapper import DataMapper",
             "from {path}.{hooks} import LocustHook".format(
                 path=utils.get_input_project_module(), hooks=settings.LOCUST_HOOK_FILE[:-len(".py")])
@@ -24,18 +23,10 @@ class LocustFileConfig:
     def get_imports(self):
         return "\n".join(self.imports)
 
-    def declare_spec_file(self):
-        statements = [
-            "specs_file = open_api_reader.SpecsFile('{inp}')".format(inp=self.spec_file),
-            "spec_instance = open_api_models.OpenAPISpec(specs_file.file_load())"
-        ]
-        return "\n".join(statements)
-
     def convert(self):
-        file_components = ["{imports}", "{spec}", "{task_set}"]
+        file_components = ["{imports}", "{task_set}"]
         return "\n\n\n".join(file_components).format(**utils.StringDict(
             imports=self.get_imports(),
-            spec=self.declare_spec_file(),
             task_set=self.task_set.convert(width=1)
         ))
 

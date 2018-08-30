@@ -8,9 +8,8 @@ from scripts.data_provider.locust.fake_providers import FakeData
 
 class DataMapper:
 
-    def __init__(self, profile=None, specs=None):
+    def __init__(self, profile=None):
         self.profile = profile
-        self.specs = specs
 
     def get_resource(self, resource):
         return Resource(resource).get_resources(profile=self.profile)
@@ -31,21 +30,6 @@ class DataMapper:
         data_body = {}
 
         for item_name, item_config in config.items():
-
-            # First, resolve references
-            ref = item_config if item_name == constants.REF else item_config.get(constants.REF)
-
-            if ref:
-                data_body[item_name] = self.generate_data(
-                    utils.resolve_reference(self.specs, ref).get(constants.PROPERTIES, {})
-                )
-                continue    # We generated the data already, move on to next once
-
-            # Do not generate data for Read-only fields
-            read_only = item_config.get(constants.READ_ONLY, False)
-            if read_only:
-                continue
-
             resource = item_config.get(constants.RESOURCE)
 
             value = self.get_resource(resource) if resource else self.get_fake_data(item_config)

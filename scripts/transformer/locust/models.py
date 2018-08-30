@@ -269,7 +269,7 @@ class TaskSet:
     def mapper(width):
         statements = [
             "@property\n{w}def mapper(self):".format(w=' ' * width * 4),
-            "return DataMapper(profile=self.profile, specs=spec_instance.spec)"
+            "return DataMapper(profile=self.profile)"
         ]
         join_string = "\n{w}".format(w=' ' * (width + 1) * 4)
         return join_string.join(statements)
