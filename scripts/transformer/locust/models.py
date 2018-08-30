@@ -8,6 +8,7 @@ from scripts import (
     exceptions,
     utils
 )
+from scripts.transformer import data_config
 from settings.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ class Task:
         self.url = url
         self.parameters = parameters or {}
 
-        self.spec = spec or {}
+        self.data_config = data_config.DataConfig(spec or {})
 
         self.data_body = dict()
         self.url_params = dict()
@@ -87,10 +88,10 @@ class Task:
             else:
                 raise exceptions.ImproperSwaggerException("Config {} does not have valid parameter type".format(config))
 
-        self.data_body = self.generate_data_config(self.data_body)
+        self.data_body = self.data_config.generate(self.data_body)
 
     def parse_header_params(self, name, config):
-        config = self.generate_data_config({name: config})
+        config = self.data_config.generate({name: config})
         if config:
             self.headers.append("'{name}': {config}".format(name=name, config=config[name]))
 
@@ -117,51 +118,10 @@ class Task:
         if name in settings.POSITIVE_INTEGER_PARAMS:
             config[constants.MINIMUM] = 1
 
-        config = self.generate_data_config({name: config})
+        config = self.data_config.generate({name: config})
 
         if config:
             self.url_params[name] = (param_type, config[name])
-
-    def generate_data_config(self, config):
-        data_body = {}
-
-        for item_name, item_config in config.items():
-
-            # First, resolve references
-            ref = item_config if item_name == constants.REF else item_config.get(constants.REF)
-
-            if ref:
-                ref_config = self.generate_data_config(
-                    utils.resolve_reference(self.spec, ref).get(constants.PROPERTIES, {})
-                )
-                if item_name == constants.REF:
-                    data_body = ref_config  # This is top-level reference, so replace complete body
-                else:
-                    data_body[item_name] = ref_config   # This is field-level reference
-                continue  # We generated the data already, move on to next once
-
-            # Do not generate data for Read-only fields
-            read_only = item_config.get(constants.READ_ONLY, False)
-            if read_only:
-                continue
-
-            resource = item_config.get(constants.RESOURCE)
-
-            if resource:
-                # If it is resource, we only need resource mapping
-                data_body[item_name] = {constants.RESOURCE: resource}
-            else:
-                item_data = {}
-                for key, value in item_config.items():
-                    if key in constants.EXTRA_KEYS:
-                        continue
-                    if isinstance(value, dict):
-                        item_data[key] = self.generate_data_config({key: value})
-                    else:
-                        item_data[key] = value
-                data_body[item_name] = item_data
-
-        return data_body
 
     def get_client_parameters(self):
         """
