@@ -1,6 +1,4 @@
 import logging
-from io import open
-import os
 import random
 import re
 import string
@@ -217,7 +215,13 @@ class TaskSet:
 
     @staticmethod
     def generate_on_start(width):
-        return "def on_start(self):\n{w}self.login()".format(w=' ' * (width + 1) * 4)
+        statements = [
+            "def on_start(self):",
+            "hook = LocustHook()",
+            "self.profile, self.auth = hook.login(self.client)"
+        ]
+        join_str = "\n{w}".format(w=' ' * (width + 1) * 4)
+        return join_str.join(statements)
 
     @staticmethod
     def mapper(width):
@@ -233,21 +237,18 @@ class TaskSet:
         return self.tag + "Behaviour"
 
     @staticmethod
-    def add_hooks(width):
-        hook_file = os.path.join(settings.BASE_DIR, settings.PROJECT_FOLDER_NAME,
-                                 settings.PROJECT_NAME, settings.INPUT_FOLDER, settings.LOCUST_HOOK_FILE)
-
-        with open(hook_file, "r") as hook_stream:
-            hooks_statements = [line for line in hook_stream]
-
-        join_str = "{w}".format(w=' ' * width * 4)
-        return join_str.join(hooks_statements)
+    def add_class_vars(width):
+        class_vars = [
+            "profile = ''",
+            "auth = ''"
+        ]
+        return "\n{w}".format(w=' ' * width * 4).join(class_vars)
 
     def get_behaviour(self, width):
         join_str = "\n\n{w}".format(w=' ' * width * 4)
         behaviour_components = [
             "class {klass}(TaskSet):".format(klass=self.task_set_name),
-            self.add_hooks(width),
+            self.add_class_vars(width),
             self.generate_on_start(width),
             self.mapper(width),
             self.generate_tasks(width)
