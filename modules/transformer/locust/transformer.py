@@ -15,7 +15,7 @@ class LocustFileConfig:
 
         self.imports = [
             "from locust import HttpLocust, TaskSet, task",
-            "from modules.data_provider.locust.mapper import DataMapper",
+            "from modules.data_provider.locust.providers import Provider",
             "from {path}.{hooks} import LocustHook".format(
                 path=utils.get_input_project_module(), hooks=settings.LOCUST_HOOK_FILE[:-len(".py")])
         ]

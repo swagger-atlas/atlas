@@ -129,11 +129,11 @@ class Task:
         """
         parameter_list = ["url"]
         if self.data_body:
-            parameter_list.append("data=self.mapper.generate_data(body_config)")
+            parameter_list.append("data=self.data_provider.generate_data(body_config)")
         if self.url_params:
             parameter_list.append("params=path_params")
         if self.headers:
-            parameter_list.append("headers=self.mapper.generate_data(header_config)")
+            parameter_list.append("headers=self.data_provider.generate_data(header_config)")
         return ", ".join(parameter_list)
 
     def construct_body_variables(self):
@@ -172,7 +172,7 @@ class Task:
 
             # Also get Path Parameters
             body_definition.append(
-                "url, path_params = self.mapper.format_url(url, query_config, path_config)"
+                "url, path_params = self.data_provider.format_url(url, query_config, path_config)"
             )
 
         if self.headers:
@@ -226,10 +226,10 @@ class TaskSet:
         return join_str.join(statements)
 
     @staticmethod
-    def mapper(width):
+    def data_provider(width):
         statements = [
-            "@property\n{w}def mapper(self):".format(w=' ' * width * 4),
-            "return DataMapper(profile=self.profile)"
+            "@property\n{w}def data_provider(self):".format(w=' ' * width * 4),
+            "return Provider(profile=self.profile)"
         ]
         join_string = "\n{w}".format(w=' ' * (width + 1) * 4)
         return join_string.join(statements)
@@ -252,7 +252,7 @@ class TaskSet:
             "class {klass}(TaskSet):".format(klass=self.task_set_name),
             self.add_class_vars(width),
             self.generate_on_start(width),
-            self.mapper(width),
+            self.data_provider(width),
             self.generate_tasks(width)
         ]
         return join_str.join(behaviour_components)
