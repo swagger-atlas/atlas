@@ -1,5 +1,5 @@
 from settings.conf import settings
-from scripts import (
+from modules import (
     constants as swagger_constants,
     exceptions,
     mixins,
