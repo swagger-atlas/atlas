@@ -10,13 +10,6 @@ from settings.conf import settings
 RESOURCE_FILE_NAME = "resource_file"
 
 
-class ProfileMixin:
-
-    @staticmethod
-    def get_profile_resource_name(profile_name, profile_config):
-        return profile_config.get(RESOURCE_FILE_NAME, profile_name + ".yaml")
-
-
 class YAMLReadWriteMixin:
     """
     To read and write YAML files in Project Folder.
@@ -73,3 +66,13 @@ class YAMLReadWriteMixin:
         sub_folder = kwargs.pop('project_sub_folder', None)
         sub_folder = os.path.join(settings.OUTPUT_FOLDER, sub_folder) if sub_folder else settings.OUTPUT_FOLDER
         return self.write_file(*args, **kwargs, project_sub_folder=sub_folder)
+
+
+class ProfileMixin(YAMLReadWriteMixin):
+    """
+    Profile Mixin inherits ability to read and write to profiles also
+    """
+
+    @staticmethod
+    def get_profile_resource_name(profile_name, profile_config):
+        return profile_config.get(RESOURCE_FILE_NAME, profile_name + ".yaml")

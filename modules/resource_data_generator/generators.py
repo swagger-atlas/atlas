@@ -3,17 +3,11 @@ import os
 
 from modules import exceptions, utils, mixins
 from modules.resource_data_generator import constants as resource_constants
-from modules.database import client as db_client
+from modules.resource_data_generator.database import client as db_client
 from settings.conf import settings
 
 
-class ResourceMixin(mixins.ProfileMixin, mixins.YAMLReadWriteMixin):
-    """
-    Base Resource Mixin
-    """
-
-
-class ResourceMap(ResourceMixin):
+class ResourceMap(mixins.ProfileMixin):
     """
     Parse over Resource Map and create a cache of Resources
     """

@@ -6,9 +6,9 @@ from faker import Faker
 
 from modules import (
     constants,
-    exceptions
+    exceptions,
+    mixins
 )
-from modules.resource_data_generator.generators import ResourceMixin
 from settings.conf import settings
 
 # This is arbitrary limit. Test cases should not break with change of this limit.
@@ -236,7 +236,7 @@ class FakeData:
     }
 
 
-class Resource(ResourceMixin):
+class Resource(mixins.ProfileMixin):
 
     def __init__(self, resource_group_name, *args, items=1, flat_for_single=True, **kwargs):
         """
