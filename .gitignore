@@ -57,8 +57,8 @@ env.bak/
 venv.bak/
 
 # Files with sensitive/local data
+project/*/
 settings/local.py
-scripts/locust_config.py
 
 # PyCharm
 .idea/

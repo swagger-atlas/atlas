@@ -3,8 +3,13 @@ from . import base
 
 class Settings(base.Settings):
 
-    # Locust Settings
+    # Project Settings
     HOST_URL = ""
+
+    PROJECT_NAME = ""
+    SWAGGER_FILE = ""
+
+    LOCUST_FILE = ""
 
     # This is the database from where we should pick test values.
     # You can use your local project database when testing the integration
@@ -17,3 +22,6 @@ class Settings(base.Settings):
         "host": "",
         "port": ""
     }
+
+    # This API would not be hit during load test
+    LOGOUT_API_URL = "/logout/"

@@ -16,7 +16,7 @@ Project Setup
 
 2. Run requirements
     - `pip install -r requirements.txt`
-
+    - See `http://initd.org/psycopg/docs/install.html#build-prerequisites` in case there are issues with Postgres Client
 
 3. Set up Pylint Hook
     - Create a file under .git/hooks/ with name pre-commit
@@ -36,22 +36,37 @@ Project Setup
 How to Use
 ===========
 
-Converting Specs to Locust
-------
-1. You can convert OpenAPI Specifications using `scripts/spec_converter.py`
+Setup your Project Files
+-------
+1. Run `modules/project_setup.py`
+1. In newly set up folder, navigate to input folder. There:
+    - Copy your swagger definition
+    - Copy hooks.py.template
+    - Add any mapping hooks as map_hooks.py
+    - Create the profiles as "profiles.yaml"
+    - Add your mapping file as res_mapping.yaml ([YAML](docs/yaml.md))
+1. Names for above should match as specified in settings file
 
+Auto-generating Resources from Swagger
+------
+1. Run `modules/resources_creator/creators.py`.
+    - Updated resources will be available in MAPPING_FILE.
+    - SWAGGER_FILE would also be generated again in Output path
 
 Creating a Resource Pool from Resource Mapping
 -----
-You can try and create a temporary resource map for testing
-1. Define resource map in `resources/sample_mapping.py`
-2. Use `parse` method of ``ResourceMap` class defined in `resources/generators`.
-3. You can then print `RESOURCES` from `resources/generators` to check updated resource pool.
+1. Run the auto-generation of resources outlined above
+1. Update the Resource Mapping file
+1. Run `modules/resource_data_generator/generators.py`
 
+Converting Specs to Locust
+------
+1. Create the Resource Pool as outlined above
+1. You can convert OpenAPI Specifications using `modules/transformer/locust/transformer.py`
 
 Running Locust
 ------
-1. You can run locust from executing `scripts/locust_runner.py` file
+1. You can run locust from executing `modules/transformer/locust/runner.py` file
 
 
 Contributing to ATLAS

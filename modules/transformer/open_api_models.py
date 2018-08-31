@@ -1,11 +1,11 @@
 import logging
 from collections import OrderedDict
 
-from scripts import (
+from modules import (
     constants as swagger_constants,
-    exceptions,
-    locust_models
+    exceptions
 )
+from settings.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class Operation:
         # This seems a valid assumption considering that none of Swagger Generators do that right now
 
         for parameter in parameters:
-            name = parameter.pop(swagger_constants.PARAMETER_NAME, None)
+            name = parameter.get(swagger_constants.PARAMETER_NAME, None)
 
             if not name:
                 raise exceptions.ImproperSwaggerException(
@@ -45,12 +45,14 @@ class Operation:
 
             self.parameters[name] = parameter
 
-    def get_task(self):
+    def get_task(self, transformer_task_model):
 
         func_name = self.config.get(swagger_constants.OPERATION)
         self.add_parameters(self.config.get(swagger_constants.PARAMETERS, []))
 
-        return locust_models.Task(func_name=func_name, parameters=self.parameters, url=self.url, method=self.method)
+        return transformer_task_model(
+            func_name=func_name, parameters=self.parameters, url=self.url, method=self.method, spec=self.spec
+        )
 
 
 class OpenAPISpec:
@@ -61,19 +63,23 @@ class OpenAPISpec:
         self.paths = OrderedDict()
         self.tasks = []
 
-    def get_tasks(self):
+    def get_tasks(self, transformer_task_model):
 
         paths = self.spec.get(swagger_constants.PATHS, {})
 
         for path, config in paths.items():
+
+            # We do not include Logout URL in our Load Test
+            if path == settings.LOGOUT_API_URL:
+                continue
 
             common_parameters = config.pop(swagger_constants.PARAMETERS, [])
 
             for method, method_config in config.items():
 
                 if method in swagger_constants.VALID_METHODS:
-                    operation = Operation(url=path, method=method, config=method_config)
+                    operation = Operation(url=path, method=method, config=method_config, spec=self.spec)
                     operation.add_parameters(common_parameters)
-                    self.tasks.append(operation.get_task())
+                    self.tasks.append(operation.get_task(transformer_task_model))
                 else:
                     logger.warning("Incorrect method - %s %s", method, method_config)
