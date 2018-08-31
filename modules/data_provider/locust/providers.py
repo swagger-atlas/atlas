@@ -6,7 +6,6 @@ from faker import Faker
 
 from modules import (
     constants,
-    utils,
     exceptions
 )
 from modules.resource_data_generator.generators import ResourceMixin
@@ -49,12 +48,6 @@ class Provider:
                 data_body[item_name] = value
 
         return data_body
-
-    def format_url(self, url, query_config, path_config):
-        path_params = self.generate_data(path_config)
-        url = url.format_map(utils.StringDict(**path_params))
-        query_params = self.generate_data(query_config)
-        return url, query_params
 
 
 class FakeData:

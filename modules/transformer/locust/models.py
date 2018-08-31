@@ -172,7 +172,7 @@ class Task:
 
             # Also get Path Parameters
             body_definition.append(
-                "url, path_params = self.data_provider.format_url(url, query_config, path_config)"
+                "url, path_params = self.format_url(url, query_config, path_config)"
             )
 
         if self.headers:
@@ -234,6 +234,18 @@ class TaskSet:
         join_string = "\n{w}".format(w=' ' * (width + 1) * 4)
         return join_string.join(statements)
 
+    @staticmethod
+    def format_url(width):
+        statements = [
+            "def format_url(self, url, query_config, path_config):",
+            "path_params = self.data_provider.generate_data(path_config)",
+            "url = url.format(**path_params)",
+            "query_params = self.data_provider.generate_data(query_config)",
+            "return url, query_params"
+        ]
+        join_string = "\n{w}".format(w=' ' * (width + 1) * 4)
+        return join_string.join(statements)
+
     @property
     def task_set_name(self):
         return self.tag + "Behaviour"
@@ -253,6 +265,7 @@ class TaskSet:
             self.add_class_vars(width),
             self.generate_on_start(width),
             self.data_provider(width),
+            self.format_url(width),
             self.generate_tasks(width)
         ]
         return join_str.join(behaviour_components)
