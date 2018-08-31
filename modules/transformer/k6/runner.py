@@ -3,7 +3,7 @@ import subprocess
 
 from settings.conf import settings
 
-file_path = os.path.join(settings.BASE_DIR, settings.PROJECT_FOLDER_NAME, settings.PROJECT_NAME, settings.OUTPUT_FOLDER,
+file_path = os.path.join(settings.BASE_DIR, settings.PROJECT_FOLDER_NAME, settings.PROJECT_NAME, settings.BUILD_FOLDER,
                          settings.K6_FILE)
 
 options = [

@@ -17,6 +17,7 @@ class Settings:
     RES_MAPPING_HOOKS_FILE = "map_hooks.py"
     PROFILES_FILE = "profiles.yaml"
     RESOURCES_FOLDER = "resources"
+    BUILD_FOLDER = "build"
 
     # Page Query Parameters
     # These parameters are esp. handled, since they must be positive
