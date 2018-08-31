@@ -1,6 +1,7 @@
 import re
 
 from modules.transformer.base import models
+from modules.transformer.k6 import constants as k6_constants
 
 
 class Task(models.Task):
@@ -10,15 +11,31 @@ class Task(models.Task):
 
     @staticmethod
     def normalize_function_name(func_name):
-        return re.sub("-", "_", func_name)
+        snake_case = re.sub("-", "_", func_name)
+        return "".join([x.title() if idx > 0 else x for idx, x in enumerate(snake_case.split("_"))])
 
     def parse_parameters(self):
         pass
 
+    def get_url_string(self):
+        return "baseURL + '{url}'".format(url=self.url)
+
+    def get_function_definition(self, width):
+        body = list()
+
+        body.append("let res = http.{method}({url});".format(
+            url=self.get_url_string(), method=k6_constants.K6_MAP.get(self.method, self.method)
+        ))
+
+        check_statement = "check(res, {'success_resp': (r) => (r.status >= 200 && r.status < 300) });"
+
+        body.append(check_statement)
+        return "\n{w}".format(w=' ' * width * 4).join(body)
+
     def convert(self, width):
         statements = [
             "function {func_name}() {{".format(func_name=self.func_name),
-            "{w}http.{method}('{url}')".format(w=' ' * width * 4, url=self.url, method=self.method),
+            "{w}{body}".format(w=' ' * width * 4, body=self.get_function_definition(width)),
             "}"
         ]
         return "\n".join(statements)
@@ -33,9 +50,13 @@ class TaskSet(models.TaskSet):
         join_string = "\n\n".format(w=' ' * width * 4)
         return join_string.join([_task.convert(width) for _task in self.tasks])
 
+    @staticmethod
+    def group_statement(task):
+        return "group('{func_name}', {func_name});".format(func_name=task.func_name)
+
     def task_calls(self, width):
         join_string = "\n{w}".format(w=' ' * width * 4)
-        return join_string.join(["{}();".format(_task.func_name) for _task in self.tasks])
+        return join_string.join([self.group_statement(_task) for _task in self.tasks])
 
     def convert(self, width):
         statements = [

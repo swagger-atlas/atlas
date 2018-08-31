@@ -12,6 +12,7 @@ class K6FileConfig(transformer.FileConfig):
     def get_imports():
         imports = [
             "import http from 'k6/http'",
+            "import { check, group } from 'k6'"
         ]
         return "\n".join(imports)
 
