@@ -1,3 +1,6 @@
+import os
+
+from modules import utils
 from modules.transformer import open_api_models, open_api_reader
 from modules.transformer.base import transformer
 from modules.transformer.k6 import models as k6_models
@@ -12,14 +15,19 @@ class K6FileConfig(transformer.FileConfig):
     def get_imports():
         imports = [
             "import http from 'k6/http'",
-            "import { check, group } from 'k6'"
+            "import { check, group } from 'k6'",
+            "import {{ K6Hook }} from '{path}'".format(
+                path=os.path.join(utils.get_project_path(), settings.INPUT_FOLDER, settings.K6_HOOK_FILE)
+            )
         ]
         return "\n".join(imports)
 
     @staticmethod
     def get_global_vars():
         statements = [
-            "const baseURL = '{}';".format(settings.HOST_URL)
+            "const baseURL = '{}';".format(settings.HOST_URL),
+            "const hook = new K6Hook();",
+            "const defaultHeaders = hook.defaultHeaders();"
         ]
         return "\n".join(statements)
 

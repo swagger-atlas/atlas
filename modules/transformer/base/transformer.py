@@ -22,12 +22,12 @@ class FileConfig:
         return ""
 
     def convert(self):
-        file_components = ["{imports}", "{global_vars}", "{task_set}"]
-        return "\n\n\n".join(file_components).format(**utils.StringDict(
-            imports=self.get_imports(),
-            global_vars=self.get_global_vars(),
-            task_set=self.task_set.convert(width=1)
-        ))
+        file_components = [
+            self.get_imports(),
+            self.get_global_vars(),
+            self.task_set.convert(width=1)
+        ]
+        return "\n\n\n".join([component for component in file_components if component])
 
     def write_to_file(self, file_name=None):
         file_name = file_name or self.OUT_FILE

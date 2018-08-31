@@ -1,5 +1,6 @@
 import re
 
+from modules import constants
 from modules.transformer.base import models
 from modules.transformer.k6 import constants as k6_constants
 
@@ -20,11 +21,23 @@ class Task(models.Task):
     def get_url_string(self):
         return "baseURL + '{url}'".format(url=self.url)
 
+    def get_http_method_parameters(self):
+        parameters = [
+            self.get_url_string()
+        ]
+
+        if self.method != constants.GET:
+            parameters.append("{}")
+
+        parameters.append("{'headers': defaultHeaders}")
+
+        return ", ".join(parameters)
+
     def get_function_definition(self, width):
         body = list()
 
-        body.append("let res = http.{method}({url});".format(
-            url=self.get_url_string(), method=k6_constants.K6_MAP.get(self.method, self.method)
+        body.append("let res = http.{method}({parameters});".format(
+            parameters=self.get_http_method_parameters(), method=k6_constants.K6_MAP.get(self.method, self.method)
         ))
 
         check_statement = "check(res, {'success_resp': (r) => (r.status >= 200 && r.status < 300) });"

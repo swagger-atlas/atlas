@@ -12,6 +12,7 @@ class Settings:
     OUTPUT_FOLDER = "output"
 
     LOCUST_HOOK_FILE = "hooks.py"
+    K6_HOOK_FILE = "hooks.js"
     MAPPING_FILE = "res_mapping.yaml"
     RES_MAPPING_HOOKS_FILE = "map_hooks.py"
     PROFILES_FILE = "profiles.yaml"
