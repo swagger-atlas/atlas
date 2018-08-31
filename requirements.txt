@@ -8,6 +8,7 @@ PyYAML==3.13
 faker==0.8.17
 
 six==1.11.0
+requests==2.19.1
 
 # DB Management
 peewee==3.6.4
