@@ -5,7 +5,7 @@ import os
 import six
 import yaml
 
-from scripts import (
+from modules import (
     constants,
     exceptions,
     utils,

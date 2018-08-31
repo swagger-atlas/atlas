@@ -3,7 +3,7 @@ import os
 
 import yaml
 
-from scripts import utils
+from modules import utils
 from settings.conf import settings
 
 

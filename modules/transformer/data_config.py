@@ -1,4 +1,4 @@
-from scripts import constants, utils
+from modules import constants, utils
 
 
 class DataConfig:

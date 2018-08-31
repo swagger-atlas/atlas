@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from scripts import utils
+from modules import utils
 from settings.conf import settings
 
 

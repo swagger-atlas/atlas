@@ -1,7 +1,7 @@
 import random
 
-from scripts import exceptions
-from scripts.resource_data_generator.generators import ResourceMixin
+from modules import exceptions
+from modules.resource_data_generator.generators import ResourceMixin
 from settings.conf import settings
 
 

@@ -1,9 +1,9 @@
 from io import open
 import os
 
-from scripts import utils
-from scripts.transformer import open_api_models, open_api_reader
-from scripts.transformer.locust import models as locust_models
+from modules import utils
+from modules.transformer import open_api_models, open_api_reader
+from modules.transformer.locust import models as locust_models
 from settings.conf import settings
 
 
@@ -15,7 +15,7 @@ class LocustFileConfig:
 
         self.imports = [
             "from locust import HttpLocust, TaskSet, task",
-            "from scripts.data_provider.locust.mapper import DataMapper",
+            "from modules.data_provider.locust.mapper import DataMapper",
             "from {path}.{hooks} import LocustHook".format(
                 path=utils.get_input_project_module(), hooks=settings.LOCUST_HOOK_FILE[:-len(".py")])
         ]

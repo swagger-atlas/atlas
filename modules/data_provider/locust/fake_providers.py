@@ -4,7 +4,7 @@ import random
 
 from faker import Faker
 
-from scripts import (
+from modules import (
     constants as swagger_constants,
     exceptions,
 )

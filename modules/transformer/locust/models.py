@@ -3,12 +3,12 @@ import random
 import re
 import string
 
-from scripts import (
+from modules import (
     constants,
     exceptions,
     utils
 )
-from scripts.transformer import data_config
+from modules.transformer import data_config
 from settings.conf import settings
 
 logger = logging.getLogger(__name__)

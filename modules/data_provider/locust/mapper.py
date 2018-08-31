@@ -1,9 +1,9 @@
-from scripts import (
+from modules import (
     constants,
     utils
 )
-from scripts.data_provider.locust.resource_providers import Resource
-from scripts.data_provider.locust.fake_providers import FakeData
+from modules.data_provider.locust.resource_providers import Resource
+from modules.data_provider.locust.fake_providers import FakeData
 
 
 class DataMapper:

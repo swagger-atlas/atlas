@@ -1,7 +1,7 @@
 import logging
 from collections import OrderedDict
 
-from scripts import (
+from modules import (
     constants as swagger_constants,
     exceptions
 )

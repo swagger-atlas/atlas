@@ -1,7 +1,7 @@
 import logging
 
 from settings.conf import settings
-from scripts.database import constants, utils
+from modules.database import constants, utils
 
 logger = logging.getLogger(__name__)
 

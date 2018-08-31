@@ -1,9 +1,9 @@
 import importlib
 import os
 
-from scripts import exceptions, utils, mixins
-from scripts.resource_data_generator import constants as resource_constants
-from scripts.database import client as db_client
+from modules import exceptions, utils, mixins
+from modules.resource_data_generator import constants as resource_constants
+from modules.database import client as db_client
 from settings.conf import settings
 
 
