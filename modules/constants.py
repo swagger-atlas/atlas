@@ -1,3 +1,6 @@
+# Note: This file is converted to JS equivalent
+# So keep this simple and only add key value types which have JS equivalent
+
 PATHS = "paths"
 
 OPERATION = "operationId"
@@ -21,6 +24,7 @@ REF = "$ref"
 PROPERTIES = "properties"
 READ_ONLY = "readOnly"
 TITLE = "title"
+DESCRIPTION = "description"
 
 # Open API Supported Methods
 GET = "get"
@@ -44,7 +48,7 @@ STRING = "string"
 BOOLEAN = "boolean"
 ARRAY = "array"
 ENUM = "enum"   # Strictly not a type, but is associated with both strings and numbers
-QUERY_TYPES = [INTEGER, NUMBER, STRING, BOOLEAN, ARRAY]    # Valid types for query Parameters
+QUERY_TYPES = {INTEGER, NUMBER, STRING, BOOLEAN, ARRAY}    # Valid types for query Parameters
 
 # Integer Options
 MINIMUM = "minimum"
@@ -75,4 +79,4 @@ UNIQUE_ITEMS = "uniqueItems"
 DEFINITIONS = "definitions"
 
 # Extra Keys for Data Providers
-EXTRA_KEYS = [PARAMETER_NAME, IN_, READ_ONLY, REQUIRED, TITLE]
+EXTRA_KEYS = {PARAMETER_NAME, IN_, READ_ONLY, REQUIRED, TITLE}
