@@ -1,46 +1,21 @@
 import logging
-import random
 import re
-import string
 
 from modules import (
     constants,
     exceptions,
     utils
 )
-from modules.transformer import data_config
+from modules.transformer.base import models
 from settings.conf import settings
 
 logger = logging.getLogger(__name__)
 
 
-class Task:
+class Task(models.Task):
     """
     Define a single Task of Locust File
     """
-
-    def __init__(self, func_name, method, url, parameters=None, spec=None):
-        """
-        :param func_name: Function name to be defined in Locust Config File
-        :param method: Request Method
-        :param url: URL to which this method corresponds
-        :param parameters: OpenAPI Parameters
-        :param spec: Complete spec definition
-        """
-
-        self.func_name = self.normalize_function_name(func_name)
-        self.method = method
-        self.url = url
-        self.parameters = parameters or {}
-
-        self.data_config = data_config.DataConfig(spec or {})
-
-        self.data_body = dict()
-        self.url_params = dict()
-
-        self.headers = []
-
-        self.parse_parameters()
 
     @staticmethod
     def normalize_function_name(func_name):
@@ -205,11 +180,7 @@ class Task:
         ))
 
 
-class TaskSet:
-
-    def __init__(self, tasks, tag=None):
-        self.tag = tag or ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-        self.tasks = tasks
+class TaskSet(models.TaskSet):
 
     def generate_tasks(self, width):
         join_string = "\n\n{w}".format(w=' ' * width * 4)

@@ -10,6 +10,7 @@ class Settings(base.Settings):
     SWAGGER_FILE = ""
 
     LOCUST_FILE = ""
+    K6_FILE = ""
 
     # This is the database from where we should pick test values.
     # You can use your local project database when testing the integration
