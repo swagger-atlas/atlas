@@ -1,6 +1,6 @@
 import re
 
-from modules import constants
+from modules import constants, utils
 from modules.transformer.base import models
 from modules.transformer.k6 import constants as k6_constants
 
@@ -15,26 +15,73 @@ class Task(models.Task):
         snake_case = re.sub("-", "_", func_name)
         return "".join([x.title() if idx > 0 else x for idx, x in enumerate(snake_case.split("_"))])
 
-    def parse_parameters(self):
-        pass
+    def body_definition(self):
+        body = list()
 
-    def get_url_string(self):
-        return "baseURL + '{url}'".format(url=self.url)
+        if self.data_body:
+            body.append("const body_config = {config};".format(config=self.data_body))
+
+        query_params = []
+        path_params = []
+
+        param_map = {
+            "query": query_params,
+            "path": path_params
+        }
+        for key, value in self.url_params.items():
+            param_str = "'{name}': {config}".format(name=key, config=value[1])
+            param_map[value[0]].append(param_str)
+
+        query_str = "{}"
+        path_str = "{}"
+        url_str = "let url = '{}';".format(self.url)
+
+        body.append(url_str)
+
+        if query_params:
+            query_str = "{" + ", ".join(query_params) + "}"
+
+        if path_params:
+            path_str = "{" + ", ".join(path_params) + "}"
+
+        if query_str != "{}" or path_str != "{}":
+            # If one if present, we need to append both
+            body.append("const queryConfig = {q};".format_map(utils.StringDict(q=query_str)))
+            body.append("const pathConfig = {p};".format_map(utils.StringDict(p=path_str)))
+
+            # Also get Path Parameters
+            body.append(
+                "url = formatURL(url, queryConfig, pathConfig);"
+            )
+
+        if self.headers:
+            body.append("let headers = defaultHeaders;")
+            body.append("_.merge(headers, provider.generateData(header_config))")
+
+        return body
 
     def get_http_method_parameters(self):
+
         parameters = [
-            self.get_url_string()
+            "baseURL + url"
         ]
 
         if self.method != constants.GET:
-            parameters.append("{}")
+            parameters.append("provider.generateData(body_config)" if self.data_body else "{}")
 
-        parameters.append("{'headers': defaultHeaders}")
+        request_params = {
+            "headers": "headers" if self.headers else "defaultHeaders"
+        }
+        request_param_str = ""
+        for key, value in request_params.items():
+            request_param_str += "'{name}': {config}".format(name=key, config=value)
+        parameters.append("{" + request_param_str + "}")
 
         return ", ".join(parameters)
 
     def get_function_definition(self, width):
-        body = list()
+
+        body = self.body_definition()
 
         body.append("let res = http.{method}({parameters});".format(
             parameters=self.get_http_method_parameters(), method=k6_constants.K6_MAP.get(self.method, self.method)
@@ -67,6 +114,20 @@ class TaskSet(models.TaskSet):
     def group_statement(task):
         return "group('{func_name}', {func_name});".format(func_name=task.func_name)
 
+    @staticmethod
+    def format_url(width):
+        statements = [
+            "function formatURL(self, url, queryConfig, pathConfig) {",
+            "const pathParams = provider.generateData(pathConfig);",
+            "url = dynamicTemplate(url, pathParams);",
+            "const queryParams = provider.generateData(queryConfig);",
+            "const queryString = Object.keys(queryParams).map(key => key + '=' + params[key]).join('&');",
+            "url = queryString? url + '?' + queryString : url;",
+            "return url;"
+        ]
+        join_string = "\n{w}".format(w=' ' * width * 4)
+        return join_string.join(statements) + "}"
+
     def task_calls(self, width):
         join_string = "\n{w}".format(w=' ' * width * 4)
         return join_string.join([self.group_statement(_task) for _task in self.tasks])
@@ -76,6 +137,8 @@ class TaskSet(models.TaskSet):
             "export default function() {",
             "{w}{task_calls}".format(task_calls=self.task_calls(width), w=' ' * width * 4),
             "}",
+            "\n",
+            self.format_url(width),
             "\n",
             self.task_definitions(width)
         ]
