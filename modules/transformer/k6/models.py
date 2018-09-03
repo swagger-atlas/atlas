@@ -15,9 +15,6 @@ class Task(models.Task):
         snake_case = re.sub("-", "_", func_name)
         return "".join([x.title() if idx > 0 else x for idx, x in enumerate(snake_case.split("_"))])
 
-    def parse_parameters(self):
-        pass
-
     def get_url_string(self):
         return "baseURL + '{url}'".format(url=self.url)
 

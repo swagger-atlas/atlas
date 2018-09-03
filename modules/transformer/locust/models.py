@@ -1,13 +1,8 @@
 import logging
 import re
 
-from modules import (
-    constants,
-    exceptions,
-    utils
-)
+from modules import utils
 from modules.transformer.base import models
-from settings.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -22,83 +17,9 @@ class Task(models.Task):
         """
         Convert - into _
         """
-
         return re.sub("-", "_", func_name)
 
-    def parse_parameters(self):
-        """
-        For the Path parameters, add required resources
-        For the body parameter, add the definition
-        """
-
-        for config in self.parameters.values():
-            in_ = config.get(constants.IN_)
-
-            if not in_:
-                raise exceptions.ImproperSwaggerException("In is required field for OpenAPI Parameter")
-
-            name = config.get(constants.PARAMETER_NAME)
-
-            if not name:
-                raise exceptions.ImproperSwaggerException("Config {} does not have name".format(config))
-
-            if in_ == constants.PATH_PARAM:
-                self.construct_url_parameter(name, config, param_type="path")
-
-            elif in_ == constants.BODY_PARAM:
-                schema = config.get(constants.SCHEMA)
-                if not schema:
-                    raise exceptions.ImproperSwaggerException("Body Parameter must specify schema")
-                self.data_body = schema
-
-            elif in_ == constants.QUERY_PARAM:
-                self.construct_url_parameter(name, config)
-
-            elif in_ == constants.FORM_PARAM:
-                self.data_body[name] = config
-
-            elif in_ == constants.HEADER_PARAM:
-                self.parse_header_params(name, config)
-
-            else:
-                raise exceptions.ImproperSwaggerException("Config {} does not have valid parameter type".format(config))
-
-        self.data_body = self.data_config.generate(self.data_body)
-
-    def parse_header_params(self, name, config):
-        config = self.data_config.generate({name: config})
-        if config:
-            self.headers.append("'{name}': {config}".format(name=name, config=config[name]))
-
-    def construct_url_parameter(self, name, config, param_type="query"):
-        """
-        :param name: Parameter name
-        :param config: Parameter Configuration
-        :param param_type: Type of parameter. Query/Path
-        """
-        _type = config.get(constants.TYPE)
-
-        if not _type:
-            raise exceptions.ImproperSwaggerException("Type not defined for parameter - {}".format(name))
-
-        if _type not in constants.QUERY_TYPES:
-            raise exceptions.ImproperSwaggerException("Unsupported type for parameter - {}".format(name))
-
-        # Only use query params if strictly required
-        is_optional_param = not (settings.HIT_ALL_QUERY_PARAMS or config.get(constants.REQUIRED, False))
-        if param_type == "query" and is_optional_param:
-            return
-
-        # Special Handling for Page Query Parameters
-        if name in settings.POSITIVE_INTEGER_PARAMS:
-            config[constants.MINIMUM] = 1
-
-        config = self.data_config.generate({name: config})
-
-        if config:
-            self.url_params[name] = (param_type, config[name])
-
-    def get_client_parameters(self):
+    def get_http_method_parameters(self):
         """
         Parameters for calling Request method
         """
@@ -160,7 +81,7 @@ class Task(models.Task):
         body_definition = self.construct_body_variables()
 
         body_definition.append("self.client.{method}({params})".format_map(
-            utils.StringDict(method=self.method, params=self.get_client_parameters())
+            utils.StringDict(method=self.method, params=self.get_http_method_parameters())
         ))
 
         join_str = "\n{w}".format(w=' ' * width * 4)
