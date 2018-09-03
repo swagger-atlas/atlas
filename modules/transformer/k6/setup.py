@@ -47,20 +47,25 @@ class K6Setup:
 
             value = getattr(python_object, item)
 
+            js_val = None
+
             if isinstance(value, six.string_types):
-                out_data.append("export const {} = '{}';".format(item, value))
+                js_val = "'{}'".format(value)
             elif isinstance(value, bool):       # This should be checked before integer
-                out_data.append("export const {} = {};".format(item, BOOL_MAP[value]))
+                js_val = BOOL_MAP[value]
             elif isinstance(value, int):
-                out_data.append("export const {} = {};".format(item, value))
+                js_val = value
             elif isinstance(value, (list, tuple)):
-                out_data.append("export const {} = {};".format(item, list(value)))
+                js_val = list(value)
             elif isinstance(value, set):
-                out_data.append("export const {} = new Set({});".format(item, list(value)))
+                js_val = "new Set({})".format(list(value))
             else:
                 # While this may not necessarily be an error, we do not convert it.
                 # This includes any Dict structure for now
                 print("No compatible data found - {} {}".format(item, value))
+
+            if js_val is not None:
+                out_data.append("export const {} = {};".format(item, js_val))
 
         return out_data
 
