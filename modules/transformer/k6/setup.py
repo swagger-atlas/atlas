@@ -10,6 +10,7 @@ from settings.conf import settings
 
 LIBS = {
     "lodash": "https://raw.githubusercontent.com/lodash/lodash/4.17.10-npm/lodash.js",
+    "dynamicTemplate": "https://raw.githubusercontent.com/mikemaccana/dynamic-template/master/index.js",
 }
 
 

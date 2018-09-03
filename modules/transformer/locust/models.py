@@ -27,12 +27,12 @@ class Task(models.Task):
         if self.data_body:
             parameter_list.append("data=self.data_provider.generate_data(body_config)")
         if self.url_params:
-            parameter_list.append("params=path_params")
+            parameter_list.append("params=query_params")
         if self.headers:
             parameter_list.append("headers=self.data_provider.generate_data(header_config)")
         return ", ".join(parameter_list)
 
-    def construct_body_variables(self):
+    def body_definition(self):
         body_definition = []
 
         if self.data_body:
@@ -78,7 +78,7 @@ class Task(models.Task):
 
     def get_function_definition(self, width):
 
-        body_definition = self.construct_body_variables()
+        body_definition = self.body_definition()
 
         body_definition.append("self.client.{method}({params})".format_map(
             utils.StringDict(method=self.method, params=self.get_http_method_parameters())

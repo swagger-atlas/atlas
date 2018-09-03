@@ -23,7 +23,6 @@ class Task:
         self.func_name = self.normalize_function_name(func_name)
         self.method = method
         self.url = url
-        self.parameters = parameters or {}
 
         self.data_config = data_config.DataConfig(spec or {})
 
@@ -32,19 +31,19 @@ class Task:
 
         self.headers = []
 
-        self.parse_parameters()
+        self.parse_parameters(parameters or {})
 
     @staticmethod
     def normalize_function_name(func_name):
         raise NotImplementedError
 
-    def parse_parameters(self):
+    def parse_parameters(self, parameters):
         """
         For the Path parameters, add required resources
         For the body parameter, add the definition
         """
 
-        for config in self.parameters.values():
+        for config in parameters.values():
             in_ = config.get(constants.IN_)
 
             if not in_:
