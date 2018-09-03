@@ -1,20 +1,18 @@
 import * as _ from 'js_libs/lodash.js';
-import * as constants from 'js_libs/constants.js'
 import * as faker from 'js_libs/faker.js'
 import { DateTime } from 'js_libs/luxon.js'
+import * as yaml from 'js_libs/yaml.js'
 
+import * as constants from 'js_libs/constants.js'
+import * as settings from 'js_libs/settings.js'
 
 /*
         Custom Exception Definitions
  */
-class CustomError extends Error {
-    constructor(...args) {
-        super(...args);
-        Error.captureStackTrace(this, CustomError);
-    }
-}
 
-class InvalidDataOptionsError extends CustomError {}
+class InvalidDataOptionsError extends Error {}
+
+class EmptyResourceError extends Error {}
 
 /*
     End Exceptions Definition
@@ -150,7 +148,7 @@ const FakeData = {
             fakeItems = new Set(fakeItems);
 
             // If due to de-duplication, our array count decreases and is less than what is required
-            while (len(fakeItems) < minItems){
+            while (fakeItems.length < minItems){
                 fakeItems.add(fakeFunc(itemConfig))
             }
 
@@ -235,9 +233,66 @@ const FakeData = {
 };
 
 
+class ResourceProvider {
+    constructor(resourceName, items, isFlatForSingle) {
+        this.resourceName = resourceName;
+        this.items = items || 1;
+        this.isFlat = this.items === 1 ? isFlatForSingle : false;
+
+        this.resources = {};
+
+        this.profiles = ResourceProvider.readYAMLFile(settings.PROFILES_FILE);
+        this.activeProfile = null;
+    }
+
+    get profileResource() {
+        return _.get(_.get(this.profiles, this.activeProfile, {}), "resource_file", this.activeProfile + ".yaml")
+    }
+
+    static readYAMLFile(relativePath) {
+        return yaml.load(relativePath);
+    }
+
+    resourceSet() {
+        // Several Lodash arguments work only on arrays, so converting here if set
+        let resourceSet = [..._.get(this.resources, this.resourceName, [])];
+
+        if (resourceSet.length > self.items) {
+            resourceSet = _.sampleSize(resourceSet, self.items);
+        }
+
+        return resourceSet;
+    }
+
+    getResources(profile) {
+        this.activeProfile = profile;
+
+        // Not able to find a short and good module in JS which can work with any OS
+        // So this will only work with OS which use / as path separator
+        this.resources = ResourceProvider.readYAMLFile(settings.RESOURCES_FOLDER + "/" + this.profileResource);
+
+        let resources = this.resourceSet();
+
+        if (_.isEmpty(resources)) {
+            new EmptyResourceError(`Resource Pool not found for ${this.resourceName}`);
+        }
+
+        if (this.isFlat) {
+            resources = resources[0];
+        }
+
+        return resources;
+    }
+}
+
+
 export class Provider {
 
-     static getFakeData(config) {
+    constructor(profile=null) {
+        this.profile = profile;
+    }
+
+    static getFakeData(config) {
         const fakeFunc = FakeData.getFakeMapper(config);
 
         let ret = null;
@@ -249,16 +304,25 @@ export class Provider {
         return ret;
     }
 
+    getResource(resource) {
+        const resourceProvider = new ResourceProvider(resource);
+        return resourceProvider.getResources(this.profile);
+    }
+
     generateData(config) {
 
         let dataBody = {};
+        const self = this;
 
         _.forEach(config, function(itemConfig, itemName) {
-           let value = Provider.getFakeData(itemConfig);
 
-           if (value) {
-               dataBody[itemName] = value;
-           }
+            const resource = _.get(itemConfig, constants.RESOURCE);
+
+            let value = resource ? self.getResource(resource) : Provider.getFakeData(itemConfig);
+
+            if (value) {
+                dataBody[itemName] = value;
+            }
         });
 
         return dataBody;
