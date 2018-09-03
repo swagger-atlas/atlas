@@ -11,6 +11,8 @@ from settings.conf import settings
 LIBS = {
     "lodash": "https://raw.githubusercontent.com/lodash/lodash/4.17.10-npm/lodash.js",
     "dynamicTemplate": "https://raw.githubusercontent.com/mikemaccana/dynamic-template/master/index.js",
+    "faker": "https://raw.githubusercontent.com/Marak/faker.js/master/build/build/faker.js",
+    "luxon": "https://moment.github.io/luxon/global/luxon.js",
 }
 
 
