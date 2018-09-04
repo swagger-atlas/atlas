@@ -24,29 +24,12 @@ class Task(models.Task):
         if self.data_body:
             body.append("const body_config = {config};".format(config=self.data_body))
 
-        query_params = []
-        path_params = []
+        query_str, path_str = self.parse_url_params_for_body()
 
-        param_map = {
-            "query": query_params,
-            "path": path_params
-        }
-        for key, value in self.url_params.items():
-            param_str = "'{name}': {config}".format(name=key, config=value[1])
-            param_map[value[0]].append(param_str)
-
-        query_str = "{}"
-        path_str = "{}"
         js_url = re.sub(PYTHON_TEMPLATE_PATTERN, JS_TEMPLATE_PATTERN, self.url)
         url_str = "let url = '{}';".format(js_url)
 
         body.append(url_str)
-
-        if query_params:
-            query_str = "{" + ", ".join(query_params) + "}"
-
-        if path_params:
-            path_str = "{" + ", ".join(path_params) + "}"
 
         if query_str != "{}" or path_str != "{}":
             # If one if present, we need to append both
@@ -138,7 +121,7 @@ class TaskSet(models.TaskSet):
             "function dynamicTemplate(string, vars) {",
             "const keys = Object.keys(vars);",
             "const values = Object.values(vars);",
-            "let func = new Function(...keys, `return \`${string}\`;`);",
+            r"let func = new Function(...keys, `return \`${string}\`;`);",
             "return func(...values);"
         ]
         join_string = "\n{w}".format(w=' ' * width * 4)

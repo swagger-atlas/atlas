@@ -114,6 +114,29 @@ class Task:
     def convert(self, width):
         raise NotImplementedError
 
+    def parse_url_params_for_body(self):
+        query_params = []
+        path_params = []
+
+        param_map = {
+            "query": query_params,
+            "path": path_params
+        }
+        for key, value in self.url_params.items():
+            param_str = "'{name}': {config}".format(name=key, config=value[1])
+            param_map[value[0]].append(param_str)
+
+        query_str = "{}"
+        path_str = "{}"
+
+        if query_params:
+            query_str = "{" + ", ".join(query_params) + "}"
+
+        if path_params:
+            path_str = "{" + ", ".join(path_params) + "}"
+
+        return query_str, path_str
+
 
 class TaskSet:
     """
