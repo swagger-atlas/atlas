@@ -10,9 +10,7 @@ from settings.conf import settings
 
 LIBS = {
     "lodash": "https://raw.githubusercontent.com/lodash/lodash/4.17.10-npm/lodash.js",
-    "dynamicTemplate": "https://raw.githubusercontent.com/mikemaccana/dynamic-template/master/index.js",
     "faker": "https://raw.githubusercontent.com/Marak/faker.js/master/build/build/faker.js",
-    "luxon": "https://moment.github.io/luxon/global/luxon.js",
     "yaml": "https://cdnjs.cloudflare.com/ajax/libs/yamljs/0.3.0/yaml.js",
 }
 
@@ -24,15 +22,18 @@ BOOL_MAP = {
 
 class K6Setup:
 
-    @property
-    def js_lib_path(self):
-        return os.path.join(settings.BASE_DIR, "js_libs")
+    def __init__(self):
+        self.js_lib_path = os.path.join(settings.BASE_DIR, "js_libs")
 
-    def js_libs(self):
+    def ensure_js_lib_dir(self):
+        if not os.path.exists(self.js_lib_path):
+            os.makedirs(self.js_lib_path)
+
+    def create_vendor_libraries(self):
         for key, value in LIBS.items():
             out_file = os.path.join(self.js_lib_path, "{}.js".format(key))
             resp = requests.get(value)
-            with open(out_file, "w") as out_stream:
+            with open(out_file, "w+") as out_stream:
                 out_stream.write(resp.text)
 
     @staticmethod
@@ -73,19 +74,20 @@ class K6Setup:
         out_file = os.path.join(self.js_lib_path, "constants.js")
         out_data = self.convert_python_vars_to_js_exports(dir(constants), constants)
 
-        with open(out_file, "w") as out_stream:
+        with open(out_file, "w+") as out_stream:
             out_stream.write("\n".join(out_data) + "\n")
 
     def settings_file(self):
         out_file = os.path.join(self.js_lib_path, "settings.js")
         out_data = self.convert_python_vars_to_js_exports(dir(settings), settings)
 
-        with open(out_file, "w") as out_stream:
+        with open(out_file, "w+") as out_stream:
             out_stream.write("\n".join(out_data) + "\n")
 
     def setup(self):
+        self.ensure_js_lib_dir()
+        self.create_vendor_libraries()
         self.constants_file()
-        self.js_libs()
         self.settings_file()
 
 

@@ -1,6 +1,5 @@
 import * as _ from 'js_libs/lodash.js';
 import * as faker from 'js_libs/faker.js'
-import { DateTime } from 'js_libs/luxon.js'
 import * as yaml from 'js_libs/yaml.js'
 
 import * as constants from 'js_libs/constants.js'
@@ -19,6 +18,7 @@ class EmptyResourceError extends Error {}
  */
 
 const LIMIT = Math.pow(10, 6);
+const MILLISECONDS_IN_YEAR = 86400 * 365.25 * 1000;     // Seconds in day * avg. number of days in years * ms in sec
 
 
 const FakeData = {
@@ -102,12 +102,12 @@ const FakeData = {
     },
 
     getDate: function(config) {
-        // https://moment.github.io/luxon/docs/manual/formatting.html#table-of-tokens
-        return FakeData.getRandomDateTime(config).toFormat("yyyy-MM-dd");
+        const date = FakeData.getRandomDateTime(config);
+        return `${date.getUTCFullYear()}-${("0" + (date.getUTCMonth() + 1)).slice(-2)}-${("0" + date.getUTCDate()).slice(-2)}`;
     },
 
     getDateTime: function(config) {
-        return FakeData.getRandomDateTime(config).toISO();
+        return FakeData.getRandomDateTime(config).toISOString();
     },
 
     getPassword: function(config) {
@@ -178,11 +178,11 @@ const FakeData = {
     },
 
     getRandomDateTime: function(config) {
-        // #Date time between 30 years in past to 30 years in future
-        const now = DateTime.utc();
-        const start = now.plus({years: -30}).toMillis();
-        const end = now.plus({years: 30}).toMillis();
-        return DateTime.fromMillis(start + Math.random() * (end - start), {zone: 'utc'});
+        // Date time between 30 years in past to 30 years in future (approx.)
+        const now = _.now();
+        const start = now - MILLISECONDS_IN_YEAR * 30;
+        const end = now + MILLISECONDS_IN_YEAR * 30;
+        return new Date(_.random(start, end));
     },
 
     getOptions: function(config) {

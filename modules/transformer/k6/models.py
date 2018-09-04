@@ -4,6 +4,9 @@ from modules import constants, utils
 from modules.transformer.base import models
 from modules.transformer.k6 import constants as k6_constants
 
+PYTHON_TEMPLATE_PATTERN = re.compile(r"{(.*?)}")
+JS_TEMPLATE_PATTERN = "${\\1}"
+
 
 class Task(models.Task):
     """
@@ -34,7 +37,8 @@ class Task(models.Task):
 
         query_str = "{}"
         path_str = "{}"
-        url_str = "let url = '{}';".format(self.url)
+        js_url = re.sub(PYTHON_TEMPLATE_PATTERN, JS_TEMPLATE_PATTERN, self.url)
+        url_str = "let url = '{}';".format(js_url)
 
         body.append(url_str)
 
@@ -117,7 +121,7 @@ class TaskSet(models.TaskSet):
     @staticmethod
     def format_url(width):
         statements = [
-            "function formatURL(self, url, queryConfig, pathConfig) {",
+            "function formatURL(url, queryConfig, pathConfig) {",
             "const pathParams = provider.generateData(pathConfig);",
             "url = dynamicTemplate(url, pathParams);",
             "const queryParams = provider.generateData(queryConfig);",
@@ -126,7 +130,19 @@ class TaskSet(models.TaskSet):
             "return url;"
         ]
         join_string = "\n{w}".format(w=' ' * width * 4)
-        return join_string.join(statements) + "}"
+        return join_string.join(statements) + "\n}"
+
+    @staticmethod
+    def dynamic_template(width):
+        statements = [
+            "function dynamicTemplate(string, vars) {",
+            "const keys = Object.keys(vars);",
+            "const values = Object.values(vars);",
+            "let func = new Function(...keys, `return \`${string}\`;`);",
+            "return func(...values);"
+        ]
+        join_string = "\n{w}".format(w=' ' * width * 4)
+        return join_string.join(statements) + "\n}"
 
     def task_calls(self, width):
         join_string = "\n{w}".format(w=' ' * width * 4)
@@ -137,6 +153,8 @@ class TaskSet(models.TaskSet):
             "export default function() {",
             "{w}{task_calls}".format(task_calls=self.task_calls(width), w=' ' * width * 4),
             "}",
+            "\n",
+            self.dynamic_template(width),
             "\n",
             self.format_url(width),
             "\n",
