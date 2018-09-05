@@ -4,6 +4,9 @@ from modules import constants, utils
 from modules.transformer.base import models
 from modules.transformer.k6 import constants as k6_constants
 
+PYTHON_TEMPLATE_PATTERN = re.compile(r"{(.*?)}")
+JS_TEMPLATE_PATTERN = "${\\1}"
+
 
 class Task(models.Task):
     """
@@ -21,28 +24,12 @@ class Task(models.Task):
         if self.data_body:
             body.append("const body_config = {config};".format(config=self.data_body))
 
-        query_params = []
-        path_params = []
+        query_str, path_str = self.parse_url_params_for_body()
 
-        param_map = {
-            "query": query_params,
-            "path": path_params
-        }
-        for key, value in self.url_params.items():
-            param_str = "'{name}': {config}".format(name=key, config=value[1])
-            param_map[value[0]].append(param_str)
-
-        query_str = "{}"
-        path_str = "{}"
-        url_str = "let url = '{}';".format(self.url)
+        js_url = re.sub(PYTHON_TEMPLATE_PATTERN, JS_TEMPLATE_PATTERN, self.url)
+        url_str = "let url = '{}';".format(js_url)
 
         body.append(url_str)
-
-        if query_params:
-            query_str = "{" + ", ".join(query_params) + "}"
-
-        if path_params:
-            path_str = "{" + ", ".join(path_params) + "}"
 
         if query_str != "{}" or path_str != "{}":
             # If one if present, we need to append both
@@ -117,7 +104,7 @@ class TaskSet(models.TaskSet):
     @staticmethod
     def format_url(width):
         statements = [
-            "function formatURL(self, url, queryConfig, pathConfig) {",
+            "function formatURL(url, queryConfig, pathConfig) {",
             "const pathParams = provider.generateData(pathConfig);",
             "url = dynamicTemplate(url, pathParams);",
             "const queryParams = provider.generateData(queryConfig);",
@@ -126,7 +113,19 @@ class TaskSet(models.TaskSet):
             "return url;"
         ]
         join_string = "\n{w}".format(w=' ' * width * 4)
-        return join_string.join(statements) + "}"
+        return join_string.join(statements) + "\n}"
+
+    @staticmethod
+    def dynamic_template(width):
+        statements = [
+            "function dynamicTemplate(string, vars) {",
+            "const keys = Object.keys(vars);",
+            "const values = Object.values(vars);",
+            r"let func = new Function(...keys, `return \`${string}\`;`);",
+            "return func(...values);"
+        ]
+        join_string = "\n{w}".format(w=' ' * width * 4)
+        return join_string.join(statements) + "\n}"
 
     def task_calls(self, width):
         join_string = "\n{w}".format(w=' ' * width * 4)
@@ -137,6 +136,8 @@ class TaskSet(models.TaskSet):
             "export default function() {",
             "{w}{task_calls}".format(task_calls=self.task_calls(width), w=' ' * width * 4),
             "}",
+            "\n",
+            self.dynamic_template(width),
             "\n",
             self.format_url(width),
             "\n",

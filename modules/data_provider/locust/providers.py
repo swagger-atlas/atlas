@@ -238,7 +238,7 @@ class FakeData:
 
 class Resource(mixins.ProfileMixin):
 
-    def __init__(self, resource_group_name, *args, items=1, flat_for_single=True, **kwargs):
+    def __init__(self, resource_group_name, items=1, flat_for_single=True):
         """
         :param resource_group_name:
         :param items: Number of resources to fetch
@@ -249,10 +249,6 @@ class Resource(mixins.ProfileMixin):
             For multiple resources:
                 It is always false
         """
-
-        # Args/kwargs are there to cover function call with spurious arguments
-        # Since Class could be instantiated on run-time with variable number of arguments
-        # We don't want to raise error to deal with extra arguments
 
         self.resource_name = resource_group_name
         self.items = items
