@@ -20,7 +20,8 @@ class Task:
         :param spec: Complete spec definition
         """
 
-        self.func_name = self.normalize_function_name(func_name)
+        self.swagger_operation_id = func_name
+        self.func_name = self.normalize_function_name()
         self.method = method
         self.url = url
 
@@ -33,8 +34,7 @@ class Task:
 
         self.parse_parameters(parameters or {})
 
-    @staticmethod
-    def normalize_function_name(func_name):
+    def normalize_function_name(self):
         raise NotImplementedError
 
     def parse_parameters(self, parameters):

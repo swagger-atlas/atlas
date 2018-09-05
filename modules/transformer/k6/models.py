@@ -13,9 +13,8 @@ class Task(models.Task):
     Define a function which is responsible for hitting single URL with single method
     """
 
-    @staticmethod
-    def normalize_function_name(func_name):
-        snake_case = re.sub("-", "_", func_name)
+    def normalize_function_name(self):
+        snake_case = re.sub("-", "_", self.swagger_operation_id)
         return "".join([x.title() if idx > 0 else x for idx, x in enumerate(snake_case.split("_"))])
 
     def body_definition(self):
@@ -55,11 +54,13 @@ class Task(models.Task):
 
         param_array = ["url"]
         if self.method != constants.GET:
-            body.append("let body = {};".format("provider.generateDate(bodyConfig)" if self.data_body else "{}"))
+            body.append("let body = {};".format("provider.generateData(bodyConfig)" if self.data_body else "{}"))
             param_array.append("body")
         param_array.append("requestParams")
 
-        body.append("let reqArgs = [{}];".format(", ".join(param_array)))
+        body.append("let reqArgs = hook.call('{op_id}', ...{args});".format(
+            op_id=self.swagger_operation_id, args="[{}]".format(", ".join(param_array))
+        ))
 
         return body
 
