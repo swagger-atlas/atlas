@@ -13,21 +13,20 @@ class Task(models.Task):
     Define a function which is responsible for hitting single URL with single method
     """
 
-    @staticmethod
-    def normalize_function_name(func_name):
-        snake_case = re.sub("-", "_", func_name)
+    def normalize_function_name(self):
+        snake_case = re.sub("-", "_", self.swagger_operation_id)
         return "".join([x.title() if idx > 0 else x for idx, x in enumerate(snake_case.split("_"))])
 
     def body_definition(self):
         body = list()
 
         if self.data_body:
-            body.append("const body_config = {config};".format(config=self.data_body))
+            body.append("const bodyConfig = {config};".format(config=self.data_body))
 
         query_str, path_str = self.parse_url_params_for_body()
 
         js_url = re.sub(PYTHON_TEMPLATE_PATTERN, JS_TEMPLATE_PATTERN, self.url)
-        url_str = "let url = '{}';".format(js_url)
+        url_str = "let url = baseURL + '{}';".format(js_url)
 
         body.append(url_str)
 
@@ -41,37 +40,36 @@ class Task(models.Task):
                 "url = formatURL(url, queryConfig, pathConfig);"
             )
 
+        body.append("let headers = _.cloneDeep(defaultHeaders);")
         if self.headers:
-            body.append("let headers = defaultHeaders;")
-            body.append("_.merge(headers, provider.generateData(header_config))")
-
-        return body
-
-    def get_http_method_parameters(self):
-
-        parameters = [
-            "baseURL + url"
-        ]
-
-        if self.method != constants.GET:
-            parameters.append("provider.generateData(body_config)" if self.data_body else "{}")
+            body.append("_.merge(headers, provider.generateData(header_config));")
 
         request_params = {
-            "headers": "headers" if self.headers else "defaultHeaders"
+            "headers": "headers"
         }
         request_param_str = ""
         for key, value in request_params.items():
             request_param_str += "'{name}': {config}".format(name=key, config=value)
-        parameters.append("{" + request_param_str + "}")
+        body.append("let requestParams = {{{}}};".format(request_param_str))
 
-        return ", ".join(parameters)
+        param_array = ["url"]
+        if self.method != constants.GET:
+            body.append("let body = {};".format("provider.generateData(bodyConfig)" if self.data_body else "{}"))
+            param_array.append("body")
+        param_array.append("requestParams")
+
+        body.append("let reqArgs = hook.call('{op_id}', ...{args});".format(
+            op_id=self.swagger_operation_id, args="[{}]".format(", ".join(param_array))
+        ))
+
+        return body
 
     def get_function_definition(self, width):
 
         body = self.body_definition()
 
-        body.append("let res = http.{method}({parameters});".format(
-            parameters=self.get_http_method_parameters(), method=k6_constants.K6_MAP.get(self.method, self.method)
+        body.append("let res = http.{method}(...reqArgs);".format(
+            method=k6_constants.K6_MAP.get(self.method, self.method)
         ))
 
         check_statement = "check(res, {'success_resp': (r) => (r.status >= 200 && r.status < 300) });"

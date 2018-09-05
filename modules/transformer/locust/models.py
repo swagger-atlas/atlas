@@ -12,12 +12,11 @@ class Task(models.Task):
     Define a single Task of Locust File
     """
 
-    @staticmethod
-    def normalize_function_name(func_name):
+    def normalize_function_name(self):
         """
         Convert - into _
         """
-        return re.sub("-", "_", func_name)
+        return re.sub("-", "_", self.swagger_operation_id)
 
     def get_http_method_parameters(self):
         """
