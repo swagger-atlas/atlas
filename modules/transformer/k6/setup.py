@@ -9,9 +9,9 @@ from settings.conf import settings
 
 
 LIBS = {
-    "lodash": "https://raw.githubusercontent.com/lodash/lodash/4.17.10-npm/lodash.js",
-    "faker": "https://raw.githubusercontent.com/Marak/faker.js/master/build/build/faker.js",
-    "yaml": "https://cdnjs.cloudflare.com/ajax/libs/yamljs/0.3.0/yaml.js",
+    "lodash": "https://raw.githubusercontent.com/lodash/lodash/4.17.10-npm/lodash.min.js",
+    "faker": "https://cdnjs.cloudflare.com/ajax/libs/Faker/3.1.0/faker.min.js",
+    "yaml": "https://cdnjs.cloudflare.com/ajax/libs/yamljs/0.3.0/yaml.min.js",
 }
 
 BOOL_MAP = {

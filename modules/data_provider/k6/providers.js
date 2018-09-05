@@ -1,6 +1,6 @@
-import * as _ from 'js_libs/lodash.js';
-import * as faker from 'js_libs/faker.js'
-import * as yaml from 'js_libs/yaml.js'
+import _ from 'js_libs/lodash.js';
+import faker from 'js_libs/faker.js'
+import Yaml from 'js_libs/yaml.js'
 
 import * as constants from 'js_libs/constants.js'
 import * as settings from 'js_libs/settings.js'
@@ -250,7 +250,7 @@ class ResourceProvider {
     }
 
     static readYAMLFile(relativePath) {
-        return yaml.load(relativePath);
+        return Yaml.load(relativePath);
     }
 
     resourceSet() {
