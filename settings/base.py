@@ -7,6 +7,7 @@ class Settings:
     BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
     PROJECT_FOLDER_NAME = "project"     # Name of top-level namespace where all projects are
+    APP_TEMPLATE_DIRECTORY = "app_template"
 
     INPUT_FOLDER = "input"
     OUTPUT_FOLDER = "output"
