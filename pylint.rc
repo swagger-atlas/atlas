@@ -2,6 +2,7 @@
 profile=no
 persistent=yes
 cache-size=500
+init-hook='import sys; sys.path.insert(0, os.path.abspath("atlas"))'
 
 [MESSAGES CONTROL]
 # C0111 Missing docstring
