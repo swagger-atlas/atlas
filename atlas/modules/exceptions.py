@@ -8,3 +8,9 @@ class ResourcesException(Exception):
     """
     To be raised if encountered any issues in resources
     """
+
+
+class ImproperInterfaceException(Exception):
+    """
+    To be raised if interface is used incorrectly
+    """
