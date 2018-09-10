@@ -5,7 +5,7 @@ from atlas.settings import Settings as baseSettings
 
 
 SETTINGS_MODULE = "ATLAS_SETTINGS_MODULE"
-SETTINGS_CLASS = "Settings"
+SETTINGS_CLASS = "SETTINGS_CLASS"
 
 empty = object()
 
@@ -82,7 +82,7 @@ class Settings:
         # Any user defined settings take higher priority than our base settings
         if settings_module:
             mod = importlib.import_module(settings_module)
-            user_settings = getattr(mod, os.environ.get(SETTINGS_CLASS))
+            user_settings = getattr(mod, os.environ.get(SETTINGS_CLASS, "Settings"))
             self.set_settings(user_settings)
 
 

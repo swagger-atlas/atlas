@@ -2,7 +2,6 @@ import os
 import re
 
 from atlas.modules import exceptions
-from atlas.conf import settings
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
@@ -68,7 +67,3 @@ def convert_to_snake_case(name):
 
 def get_project_path():
     return os.getcwd()
-
-
-def get_input_project_module():
-    return "{path}.{input_folder}".format(path=get_project_path(), input_folder=settings.INPUT_FOLDER)

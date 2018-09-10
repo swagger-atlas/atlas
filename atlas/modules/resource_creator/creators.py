@@ -128,9 +128,3 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         # Update Resource Mapping File
         auto_resource = {resource: "# Add your definition here" for resource in self.new_resources}
         self.write_file_to_output(settings.MAPPING_FILE, {**self.resources, **auto_resource}, append_mode=False)
-
-
-if __name__ == "__main__":
-    gen = AutoGenerator()
-    gen.parse()
-    gen.update()

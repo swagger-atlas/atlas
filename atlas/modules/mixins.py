@@ -48,7 +48,12 @@ class YAMLReadWriteMixin:
         return self.read_file(*args, **kwargs, project_sub_folder=sub_folder)
 
     def write_file(self, file_name, write_data, project_sub_folder=None, append_mode=True):
-        _file = os.path.join(self.get_project_folder(project_sub_folder), file_name)
+        _path = self.get_project_folder(project_sub_folder)
+
+        if not os.path.exists(_path):
+            os.makedirs(_path)
+
+        _file = os.path.join(_path, file_name)
 
         # If there is no data to write, no point opening a file
         # If you ever need to change this behaviour, take care that some write op who append to file may depend on this

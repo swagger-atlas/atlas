@@ -32,7 +32,7 @@ class Converter(BaseCommand):
     help = "Converts Swagger file to configuration file which could be fed into Load Tester"
 
     def add_arguments(self, parser):
-        parser.add_argument("type", "Load Tester Type which should be used. Valid types: {}".format(
+        parser.add_argument("type", help="Load Tester Type which should be used. Valid types: {}".format(
             self.VALID_CONVERTERS
         ))
 

@@ -1,7 +1,7 @@
 import importlib
 import os
 
-from atlas.modules import exceptions, utils, mixins
+from atlas.modules import exceptions, mixins
 from atlas.modules.resource_data_generator import constants as resource_constants
 from atlas.modules.resource_data_generator.database import client as db_client
 from atlas.conf import settings
@@ -124,7 +124,7 @@ class ResourceMap(mixins.ProfileMixin):
 
     @staticmethod
     def get_function_from_mapping_file(func_name):
-        map_hook_file = "{}.{}".format(utils.get_input_project_module(), settings.RES_MAPPING_HOOKS_FILE)[:-len(".py")]
+        map_hook_file = "{}.{}".format(settings.INPUT_FOLDER, settings.RES_MAPPING_HOOKS_FILE)[:-len(".py")]
         func = getattr(importlib.import_module(map_hook_file), func_name)
 
         if not func:
@@ -161,8 +161,3 @@ class ResourceMap(mixins.ProfileMixin):
             profiles = {key: val for key, val in profiles if key in profile_to_read}
 
         return profiles
-
-
-if __name__ == "__main__":
-    res_map = ResourceMap()
-    res_map.parse()
