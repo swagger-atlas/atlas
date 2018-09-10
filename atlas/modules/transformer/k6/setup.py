@@ -12,7 +12,7 @@ LIBS = {
     # Please do not change the names of keys as we have imported the packages in multiple locations with these names
     "lodash": "https://raw.githubusercontent.com/lodash/lodash/4.17.10-npm/lodash.min.js",
     "faker": "https://cdnjs.cloudflare.com/ajax/libs/Faker/3.1.0/faker.min.js",
-    "yaml": "https://cdnjs.cloudflare.com/ajax/libs/yamljs/0.3.0/yaml.min.js",
+    "yaml": "https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.12.0/js-yaml.js",
 }
 
 BOOL_MAP = {
@@ -61,6 +61,8 @@ class K6Setup:
                 js_val = list(value)
             elif isinstance(value, set):
                 js_val = "new Set({})".format(list(value))
+            elif hasattr(value, "__call__"):
+                continue        # It is a duck-typed function, and should not be copied over
             else:
                 # While this may not necessarily be an error, we do not convert it.
                 # This includes any Dict structure for now
@@ -90,8 +92,3 @@ class K6Setup:
         self.create_vendor_libraries()
         self.constants_file()
         self.settings_file()
-
-
-if __name__ == "__main__":
-    setup = K6Setup()
-    setup.setup()

@@ -24,7 +24,7 @@ class LazySettings:
     wrapped class.
 
     This is taken from django LazyObject and LazySettings
-    however, we removed several of functionality, and customized as per our own need
+    however, we simplified it greatly so that it just meet our needs
     """
 
     _wrapped = None

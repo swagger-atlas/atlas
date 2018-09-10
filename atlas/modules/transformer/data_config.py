@@ -31,7 +31,8 @@ class DataConfig:
                 if item_name == constants.REF:
                     data_body = ref_config  # This is top-level reference, so replace complete body
                 else:
-                    data_body[item_name] = ref_config  # This is field-level reference
+                    # This is field-level reference
+                    data_body[item_name] = {constants.TYPE: constants.OBJECT, constants.PROPERTIES: ref_config}
                 continue  # We generated the data already, move on to next once
 
             # Do not generate data for Read-only fields

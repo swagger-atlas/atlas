@@ -5,9 +5,9 @@ from atlas.modules import utils, project_setup
 from atlas.conf import settings
 
 
-class K6Build(project_setup.Setup):
+class K6Dist(project_setup.Setup):
 
-    def build(self):
+    def start(self):
         self.path = utils.get_project_path()
         self.create_folder(settings.DIST_FOLDER)
 
@@ -23,7 +23,7 @@ class K6Build(project_setup.Setup):
             os.path.join(self.path, settings.OUTPUT_FOLDER, settings.K6_FILE),
             os.path.join(self.path, settings.INPUT_FOLDER, settings.PROFILES_FILE),
             os.path.join(self.path, settings.INPUT_FOLDER, settings.K6_HOOK_FILE),
-            os.path.join(settings.BASE_DIR, "modules", "data_provider", "k6", "providers.js")
+            os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "k6", "providers.js")
         ]
 
         for _file in source_files:
@@ -33,7 +33,7 @@ class K6Build(project_setup.Setup):
 
         source_folders = [
             os.path.join(self.path, settings.OUTPUT_FOLDER, settings.RESOURCES_FOLDER),
-            os.path.join(settings.BASE_DIR, "js_libs")
+            os.path.join(self.path, "js_libs")
         ]
 
         for _folder in source_folders:
@@ -80,8 +80,3 @@ class K6Build(project_setup.Setup):
 
         for _file in source_files:
             subprocess.call(["sed", "-Ei", sed_command, _file])
-
-
-if __name__ == "__main__":
-    build = K6Build()
-    build.build()

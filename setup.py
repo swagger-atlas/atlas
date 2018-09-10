@@ -9,6 +9,7 @@ setup(
         "PyYAML==3.13",
         "peewee==3.6.4",
         "pymysql==0.9.2",
-        "psycopg2==2.7.5"
+        "psycopg2==2.7.5",
+        "requests==2.19.1"
     ]
 )

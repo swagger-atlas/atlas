@@ -28,7 +28,7 @@ const FakeData = {
         const itemType = _.get(config, constants.TYPE);
 
         if (!itemType) {
-            new InvalidDataOptionsError("Item type must be defined");
+            throw new InvalidDataOptionsError(`Item type must be defined - ${JSON.stringify(config)}`);
         }
 
         const itemFormat = _.get(config, constants.FORMAT);
@@ -134,7 +134,7 @@ const FakeData = {
         const itemConfig = _.get(config, constants.ITEMS);
 
         if (_.isEmpty(itemConfig)) {
-            new InvalidDataOptionsError(`Items should be defined for Array type - ${itemConfig}`)
+            throw new InvalidDataOptionsError(`Items should be defined for Array type - ${JSON.stringify(itemConfig)}`)
         }
 
         const fakeFunc = FakeData.getFakeMapper(itemConfig);
@@ -142,7 +142,7 @@ const FakeData = {
         const minItems = _.get(config, constants.MIN_ITEMS, 0);
         const maxItems = _.get(config, constants.MAX_ITEMS, Math.max(10, minItems + 1));
 
-        let fakeItems = _.range(_.random(minItems, maxItems)).map(_ => fakeFunc(itemConfig));
+        let fakeItems = _.range(_.random(minItems, maxItems)).map(() => fakeFunc(itemConfig));
 
         if (_.get(config, constants.UNIQUE_ITEMS, false)) {
             fakeItems = new Set(fakeItems);
@@ -162,7 +162,7 @@ const FakeData = {
         const properties = _.get(config, constants.PROPERTIES, {});
 
         if(_.isEmpty(properties)) {
-            new InvalidDataOptionsError(`"Properties should be defined for Object - ${config}`)
+            throw new InvalidDataOptionsError(`"Properties should be defined for Object - ${JSON.stringify(config)}`)
         }
 
         let fakeObject = {};
@@ -224,7 +224,7 @@ const FakeData = {
         }
 
         if (minimum > maximum) {
-            new InvalidDataOptionsError("Minimum cannot be lower than maximum");
+            throw new InvalidDataOptionsError(`Minimum cannot be lower than maximum - ${JSON.stringify(config)}`);
         }
 
         return [minimum, maximum];
@@ -257,8 +257,8 @@ class ResourceProvider {
         // Several Lodash arguments work only on arrays, so converting here if set
         let resourceSet = [..._.get(this.resources, this.resourceName, [])];
 
-        if (resourceSet.length > self.items) {
-            resourceSet = _.sampleSize(resourceSet, self.items);
+        if (resourceSet.length > this.items) {
+            resourceSet = _.sampleSize(resourceSet, this.items);
         }
 
         return resourceSet;
@@ -274,7 +274,7 @@ class ResourceProvider {
         let resources = this.resourceSet();
 
         if (_.isEmpty(resources)) {
-            new EmptyResourceError(`Resource Pool not found for ${this.resourceName}`);
+            throw new EmptyResourceError(`Resource Pool not found for ${this.resourceName}`);
         }
 
         if (this.isFlat) {
