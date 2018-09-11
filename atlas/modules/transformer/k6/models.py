@@ -3,6 +3,7 @@ import re
 from atlas.modules import constants, utils
 from atlas.modules.transformer.base import models
 from atlas.modules.transformer.k6 import constants as k6_constants
+from atlas.conf import settings
 
 PYTHON_TEMPLATE_PATTERN = re.compile(r"{(.*?)}")
 JS_TEMPLATE_PATTERN = "${\\1}"
@@ -23,7 +24,7 @@ class Task(models.Task):
         if self.data_body:
             body.append("const bodyConfig = {config};".format(config=self.data_body))
 
-        if self.open_api_op.tags:
+        if self.open_api_op.tags and settings.ONLY_TAG_API:
             body.append("const tags = [{}];".format(", ".join(["'{}'".format(tag) for tag in self.open_api_op.tags])))
             body.append("if (_.isEmpty(_.intersection(tags, hook.tags))){")
             body.append("{}return;".format(" "*4))

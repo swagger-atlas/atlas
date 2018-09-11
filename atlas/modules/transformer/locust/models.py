@@ -3,6 +3,7 @@ import re
 
 from atlas.modules import utils
 from atlas.modules.transformer.base import models
+from atlas.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ class Task(models.Task):
         if self.data_body:
             body_definition.append("body_config = {config}".format(config=self.data_body))
 
-        if self.open_api_op.tags:
+        if self.open_api_op.tags and settings.ONLY_TAG_API:
             body_definition.append("tags = [{}]".format(
                 ", ".join(["'{}'".format(tag) for tag in self.open_api_op.tags])
             ))
