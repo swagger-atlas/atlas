@@ -19,7 +19,7 @@ class K6FileConfig(transformer.FileConfig):
                 path=os.path.join(utils.get_project_path(), settings.INPUT_FOLDER, settings.K6_HOOK_FILE)
             ),
             "import {{ Provider }} from '{path}'".format(
-                path=os.path.join("modules", "data_provider", "k6", "providers.js")
+                path=os.path.join("atlas", "modules", "data_provider", "k6", "providers.js")
             )
         ]
         return "\n".join(imports)

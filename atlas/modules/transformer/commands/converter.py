@@ -44,10 +44,13 @@ class Converter(BaseCommand):
         if not load_conf:
             raise CommandError("Invalid Load Testing Type. Valid types are: {}".format(self.VALID_CONVERTERS))
 
-        spec = open_api_models.OpenAPISpec(open_api_reader.SpecsFile().file_load())
-        spec.get_tasks(load_conf[TASK])
+        spec = open_api_reader.SpecsFile().file_load()
+        open_api = open_api_models.OpenAPISpec(spec)
+        open_api.get_interfaces()
 
-        _task_set = load_conf[TASK_SET](tasks=spec.tasks, tag="User")
+        tasks = [load_conf[TASK](interface, spec) for interface in open_api.interfaces]
+
+        _task_set = load_conf[TASK_SET](tasks=tasks, tag="User")
 
         config = load_conf[FILE_CONFIG](_task_set)
         config.write_to_file()

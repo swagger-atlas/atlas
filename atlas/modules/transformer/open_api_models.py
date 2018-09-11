@@ -5,6 +5,7 @@ from atlas.modules import (
     constants as swagger_constants,
     exceptions
 )
+from atlas.modules.transformer import interface
 from atlas.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -15,20 +16,10 @@ class Operation:
     Define an OpenAPI Specific Operation
     """
 
-    def __init__(self, url, method, config, spec=None):
+    def __init__(self, config):
 
-        self.url = url
-        self.method = method
         self.config = config
-
-        # Complete Swagger Spec Model
-        self.spec = spec or {}
-
         self.parameters = OrderedDict()
-
-    def validate_method(self):
-        if self.method not in swagger_constants.VALID_METHODS:
-            raise exceptions.ImproperSwaggerException("Invalid Method {} for {}".format(self.method, self.url))
 
     def add_parameters(self, parameters):
 
@@ -45,14 +36,12 @@ class Operation:
 
             self.parameters[name] = parameter
 
-    def get_task(self, transformer_task_model):
+    def add_to_interface(self, op_interface):
 
-        func_name = self.config.get(swagger_constants.OPERATION)
+        op_interface.func_name = self.config.get(swagger_constants.OPERATION)
         self.add_parameters(self.config.get(swagger_constants.PARAMETERS, []))
-
-        return transformer_task_model(
-            func_name=func_name, parameters=self.parameters, url=self.url, method=self.method, spec=self.spec
-        )
+        op_interface.parameters = self.parameters
+        return op_interface
 
 
 class OpenAPISpec:
@@ -61,9 +50,9 @@ class OpenAPISpec:
         self.spec = spec
 
         self.paths = OrderedDict()
-        self.tasks = []
+        self.interfaces = []
 
-    def get_tasks(self, transformer_task_model):
+    def get_interfaces(self):
 
         paths = self.spec.get(swagger_constants.PATHS, {})
 
@@ -76,10 +65,10 @@ class OpenAPISpec:
             common_parameters = config.pop(swagger_constants.PARAMETERS, [])
 
             for method, method_config in config.items():
+                op_interface = interface.OpenAPITaskInterface()
+                op_interface.method = method
+                op_interface.url = path
 
-                if method in swagger_constants.VALID_METHODS:
-                    operation = Operation(url=path, method=method, config=method_config, spec=self.spec)
-                    operation.add_parameters(common_parameters)
-                    self.tasks.append(operation.get_task(transformer_task_model))
-                else:
-                    logger.warning("Incorrect method - %s %s", method, method_config)
+                operation = Operation(config=method_config)
+                operation.add_parameters(common_parameters)
+                self.interfaces.append(operation.add_to_interface(op_interface))

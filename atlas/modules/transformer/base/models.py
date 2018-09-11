@@ -2,7 +2,7 @@ import random
 import string
 
 from atlas.modules import constants, exceptions
-from atlas.modules.transformer import data_config
+from atlas.modules.transformer import data_config, interface
 from atlas.conf import settings
 
 
@@ -11,19 +11,16 @@ class Task:
     A single task corresponds to single URL/Method combination function
     """
 
-    def __init__(self, func_name, method, url, parameters=None, spec=None):
+    def __init__(self, open_api_interface: interface.OpenAPITaskInterface, spec=None):
         """
-        :param func_name: Function name to be defined in Locust Config File
-        :param method: Request Method
-        :param url: URL to which this method corresponds
-        :param parameters: OpenAPI Parameters
+        :param open_api_interface: OpenAPI interface for this task
         :param spec: Complete spec definition
         """
 
-        self.swagger_operation_id = func_name
+        self.swagger_operation_id = open_api_interface.func_name
         self.func_name = self.normalize_function_name()
-        self.method = method
-        self.url = url
+        self.method = open_api_interface.method
+        self.url = open_api_interface.url
 
         self.data_config = data_config.DataConfig(spec or {})
 
@@ -32,7 +29,7 @@ class Task:
 
         self.headers = []
 
-        self.parse_parameters(parameters or {})
+        self.parse_parameters(open_api_interface.parameters or {})
 
     def normalize_function_name(self):
         raise NotImplementedError
