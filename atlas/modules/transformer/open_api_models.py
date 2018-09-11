@@ -41,6 +41,7 @@ class Operation:
         op_interface.func_name = self.config.get(swagger_constants.OPERATION)
         self.add_parameters(self.config.get(swagger_constants.PARAMETERS, []))
         op_interface.parameters = self.parameters
+        op_interface.tags = self.config.get(swagger_constants.TAGS, [])
         return op_interface
 
 

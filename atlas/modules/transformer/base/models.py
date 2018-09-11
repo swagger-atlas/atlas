@@ -17,10 +17,8 @@ class Task:
         :param spec: Complete spec definition
         """
 
-        self.swagger_operation_id = open_api_interface.func_name
+        self.open_api_op = open_api_interface
         self.func_name = self.normalize_function_name()
-        self.method = open_api_interface.method
-        self.url = open_api_interface.url
 
         self.data_config = data_config.DataConfig(spec or {})
 
