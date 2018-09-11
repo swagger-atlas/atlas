@@ -4,6 +4,7 @@
 PATHS = "paths"
 
 OPERATION = "operationId"
+TAGS = "tags"
 
 # Parameter Constants
 PARAMETERS = "parameters"

@@ -1,18 +1,14 @@
-from atlas.modules.commands.base import BaseCommand, CommandError
+from atlas.modules.commands.base import CommandError
+from atlas.modules.transformer.commands.base import TransformerBaseCommand
 from atlas.modules.transformer.k6.setup import K6Setup
 
 
 VALID_TYPES = {"k6"}
 
 
-class Setup(BaseCommand):
+class Setup(TransformerBaseCommand):
     VALID_CONVERTERS = ", ".join(VALID_TYPES)
     help = "Setup the configuration for a specific type"
-
-    def add_arguments(self, parser):
-        parser.add_argument("type", help="Load Tester Type which should be used. Valid types: {}".format(
-            self.VALID_CONVERTERS
-        ))
 
     def handle(self, **options):
         load_conf_type = options.pop("type")

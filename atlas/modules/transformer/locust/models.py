@@ -3,6 +3,7 @@ import re
 
 from atlas.modules import utils
 from atlas.modules.transformer.base import models
+from atlas.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ class Task(models.Task):
         """
         Convert - into _
         """
-        return re.sub("-", "_", self.swagger_operation_id)
+        return re.sub("-", "_", self.open_api_op.func_name)
 
     def get_http_method_parameters(self):
         """
@@ -37,8 +38,15 @@ class Task(models.Task):
         if self.data_body:
             body_definition.append("body_config = {config}".format(config=self.data_body))
 
+        if self.open_api_op.tags and settings.ONLY_TAG_API:
+            body_definition.append("tags = [{}]".format(
+                ", ".join(["'{}'".format(tag) for tag in self.open_api_op.tags])
+            ))
+            body_definition.append("if not(tags).isdisjoint(self.hook.tags):")
+            body_definition.append(" "*4 + "return")
+
         query_str, path_str = self.parse_url_params_for_body()
-        url_str = "url = '{}'".format(self.url)
+        url_str = "url = '{}'".format(self.open_api_op.url)
         body_definition.append(url_str)
 
         if query_str != "{}" or path_str != "{}":
@@ -61,7 +69,7 @@ class Task(models.Task):
         body_definition = self.body_definition()
 
         body_definition.append("self.client.{method}({params})".format_map(
-            utils.StringDict(method=self.method, params=self.get_http_method_parameters())
+            utils.StringDict(method=self.open_api_op.method, params=self.get_http_method_parameters())
         ))
 
         join_str = "\n{w}".format(w=' ' * width * 4)

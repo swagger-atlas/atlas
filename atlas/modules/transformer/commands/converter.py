@@ -1,4 +1,5 @@
-from atlas.modules.commands.base import BaseCommand, CommandError
+from atlas.modules.commands.base import CommandError
+from atlas.modules.transformer.commands.base import TransformerBaseCommand
 from atlas.modules.transformer.k6 import models as k6_models, transformer as k6_transformer
 from atlas.modules.transformer.locust import models as locust_models, transformer as locust_transformer
 from atlas.modules.transformer import open_api_models, open_api_reader
@@ -22,7 +23,7 @@ CONVERTER_MAP = {
 }
 
 
-class Converter(BaseCommand):
+class Converter(TransformerBaseCommand):
     """
     Convert Swagger file to configuration file
     """
@@ -30,11 +31,6 @@ class Converter(BaseCommand):
     VALID_CONVERTERS = ", ".join(CONVERTER_MAP.keys())
 
     help = "Converts Swagger file to configuration file which could be fed into Load Tester"
-
-    def add_arguments(self, parser):
-        parser.add_argument("type", help="Load Tester Type which should be used. Valid types: {}".format(
-            self.VALID_CONVERTERS
-        ))
 
     def handle(self, **options):
         load_conf_type = options.pop("type")

@@ -3,6 +3,7 @@ export class K6Hook {
     constructor() {
         this.profile = "<your code>";
         this.auth = "<your code>";
+        this.tags = "[<your tags>]";
         this.hooks = {};
     }
 
