@@ -3,6 +3,7 @@ class LocustHook:
 
     profile = None
     auth = None
+    tags = None
 
     def login(self, client):
         # This is main function

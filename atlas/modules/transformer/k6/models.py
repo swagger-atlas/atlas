@@ -25,6 +25,9 @@ class Task(models.Task):
 
         if self.open_api_op.tags:
             body.append("const tags = [{}];".format(", ".join(["'{}'".format(tag) for tag in self.open_api_op.tags])))
+            body.append("if (_.isEmpty(_.intersection(tags, hook.tags))){")
+            body.append("{}return;".format(" "*4))
+            body.append("}")
 
         query_str, path_str = self.parse_url_params_for_body()
 

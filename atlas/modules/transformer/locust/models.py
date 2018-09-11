@@ -41,6 +41,8 @@ class Task(models.Task):
             body_definition.append("tags = [{}]".format(
                 ", ".join(["'{}'".format(tag) for tag in self.open_api_op.tags])
             ))
+            body_definition.append("if not(tags).isdisjoint(self.hook.tags):")
+            body_definition.append(" "*4 + "return")
 
         query_str, path_str = self.parse_url_params_for_body()
         url_str = "url = '{}'".format(self.open_api_op.url)
