@@ -14,6 +14,25 @@ class Task(models.Task):
     Define a function which is responsible for hitting single URL with single method
     """
 
+    @staticmethod
+    def error_template_list(try_statements: list) -> list:
+        """
+        :param try_statements: All the try statements in an array
+        """
+        statements = [
+            "try {",
+        ]
+        statements.extend(["{}{}".format(" "*4, try_statement) for try_statement in try_statements])
+        statements.append("} catch (ex) {")
+        catch_statements = [
+            "console.error(ex.message);",
+            "check(ex, {'providerCheck': () => false});",
+            "return;"
+        ]
+        statements.extend(["{}{}".format(" " * 4, statement) for statement in catch_statements])
+        statements.append("}")
+        return statements
+
     def normalize_function_name(self):
         snake_case = re.sub("-", "_", self.open_api_op.func_name)
         return "".join([x.title() if idx > 0 else x for idx, x in enumerate(snake_case.split("_"))])
@@ -43,13 +62,13 @@ class Task(models.Task):
             body.append("const pathConfig = {p};".format_map(utils.StringDict(p=path_str)))
 
             # Also get Path Parameters
-            body.append(
-                "url = formatURL(url, queryConfig, pathConfig);"
-            )
+            body.extend(self.error_template_list(
+                ["url = formatURL(url, queryConfig, pathConfig);"]
+            ))
 
         body.append("let headers = _.cloneDeep(defaultHeaders);")
         if self.headers:
-            body.append("_.merge(headers, provider.generateData(header_config));")
+            body.extend(self.error_template_list(["_.merge(headers, provider.generateData(header_config));"]))
 
         request_params = {
             "headers": "headers"
@@ -61,7 +80,9 @@ class Task(models.Task):
 
         param_array = ["url"]
         if self.open_api_op.method != constants.GET:
-            body.append("let body = {};".format("provider.generateData(bodyConfig)" if self.data_body else "{}"))
+            body.append("let body = {};")       # We need body to be part of Function scope, and not try/catch scope
+            if self.data_body:
+                body.extend(self.error_template_list(["body = provider.generateData(bodyConfig);"]))
             param_array.append("body")
         param_array.append("requestParams")
 
@@ -79,7 +100,7 @@ class Task(models.Task):
             method=k6_constants.K6_MAP.get(self.open_api_op.method, self.open_api_op.method)
         ))
 
-        check_statement = "check(res, {'success_resp': (r) => (r.status >= 200 && r.status < 300) });"
+        check_statement = "check(res, {'resp is 2xx': (r) => (r.status >= 200 && r.status < 300) });"
 
         body.append(check_statement)
         return "\n{w}".format(w=' ' * width * 4).join(body)
