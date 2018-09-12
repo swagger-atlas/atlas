@@ -1,9 +1,8 @@
 import _ from 'js_libs/lodash.js';
 import faker from 'js_libs/faker.js'
-import Yaml from 'js_libs/yaml.js'
 
 import * as constants from 'js_libs/constants.js'
-import * as settings from 'js_libs/settings.js'
+import { resources as Resources } from './resources.js'
 
 /*
         Custom Exception Definitions
@@ -240,17 +239,6 @@ class ResourceProvider {
         this.isFlat = this.items === 1 ? isFlatForSingle : false;
 
         this.resources = {};
-
-        this.profiles = ResourceProvider.readYAMLFile(settings.PROFILES_FILE);
-        this.activeProfile = null;
-    }
-
-    get profileResource() {
-        return _.get(_.get(this.profiles, this.activeProfile, {}), "resource_file", this.activeProfile + ".yaml")
-    }
-
-    static readYAMLFile(relativePath) {
-        return Yaml.load(relativePath);
     }
 
     resourceSet() {
@@ -265,11 +253,8 @@ class ResourceProvider {
     }
 
     getResources(profile) {
-        this.activeProfile = profile;
 
-        // Not able to find a short and good module in JS which can work with any OS
-        // So this will only work with OS which use / as path separator
-        this.resources = ResourceProvider.readYAMLFile(settings.RESOURCES_FOLDER + "/" + this.profileResource);
+        this.resources = _.get(Resources, profile, {});
 
         let resources = this.resourceSet();
 
