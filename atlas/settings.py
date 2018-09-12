@@ -23,3 +23,8 @@ class Settings:
     PROFILES_FILE = "profiles.yaml"
     RESOURCES_FOLDER = "resources"
     DIST_FOLDER = "dist"
+
+    # Generated Output files for K6
+    # Do not change these names, as they are imported as it is in JS
+    K6_PROFILES = "profiles.js"
+    K6_RESOURCES = "resources.js"
