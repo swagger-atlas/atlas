@@ -45,7 +45,7 @@ class Task(models.Task):
 
         if self.open_api_op.tags and settings.ONLY_TAG_API:
             body.append("const tags = [{}];".format(", ".join(["'{}'".format(tag) for tag in self.open_api_op.tags])))
-            body.append("if (_.isEmpty(_.intersection(tags, profile.tags))){")
+            body.append("if (_.isEmpty(_.intersection(tags, profile.profile.tags || []))){")
             body.append("{}return;".format(" "*4))
             body.append("}")
 
