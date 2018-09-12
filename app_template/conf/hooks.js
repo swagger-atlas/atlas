@@ -1,36 +1,16 @@
-export class K6Hook {
+import { K6Hook } from "./hookSetup.js";    // This will be corrected at dist. time, so no need to change it
+import { Profile } from "./profile.js";
 
-    constructor() {
-        this.profile = "<your code>";
-        this.auth = "<your code>";
-        this.tags = "[<your tags>]";
-        this.hooks = {};
-    }
+// Do NOT change these definitions or namings
+export let profile = new Profile("<yourProfile>");      // This gives you an profile object as defined in profiles.yaml
+export const hook = new K6Hook();
 
-    defaultHeaders() {
-        // Overwrite this if you need to change default Headers
-        return {'Authorization': 'Token ' + this.auth}
-    }
-
-    register(operationID, funcName) {
-        if (!this.hooks[operationID]) {
-            this.hooks[operationID] = [];
-        }
-        this.hooks[operationID].push(funcName);
-    }
-
-    call(operationID, ...args) {
-        if (this.hooks[operationID]) {
-            for (let hook of this.hooks[operationID]) {
-                args = hook(...args);
-            }
-        }
-        return args;
-    }
+function setHeaders() {
+    // You can change this as needed
+    profile.headers = {'Authorization': 'Token ' + profile.profile.token};
 }
 
-export const hook = new K6Hook();
-export const defaultHeaders = hook.defaultHeaders();
+profile.register(setHeaders);
 
 /*
 Define your functions and register them in hooks here.
@@ -44,4 +24,8 @@ hook.register("operationId", testHook);
 
 Each hook thus defined must take ...args and must return args.
 Number and order of arguments in return must not change
+
+You can also define functions and register which you want to execute at start of testing cycle for each user
+These are much simpler and are registered as:
+`profile.register(funcName)` where funcName is your function
  */
