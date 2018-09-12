@@ -1,6 +1,6 @@
 from atlas.modules.commands.base import CommandError
 from atlas.modules.transformer.commands.base import TransformerBaseCommand
-from atlas.modules.transformer.k6 import models as k6_models, transformer as k6_transformer
+from atlas.modules.transformer.k6 import models as k6_models, transformer as k6_transformer, yaml_to_js
 from atlas.modules.transformer.locust import models as locust_models, transformer as locust_transformer
 from atlas.modules.transformer import open_api_models, open_api_reader
 
@@ -50,3 +50,7 @@ class Converter(TransformerBaseCommand):
 
         config = load_conf[FILE_CONFIG](_task_set)
         config.write_to_file()
+
+        if load_conf_type == "k6":
+            js_converter = yaml_to_js.Converter()
+            js_converter.convert()

@@ -21,7 +21,8 @@ class K6Dist(project_setup.Setup):
 
         source_files = [
             os.path.join(self.path, settings.OUTPUT_FOLDER, settings.K6_FILE),
-            os.path.join(self.path, settings.INPUT_FOLDER, settings.PROFILES_FILE),
+            os.path.join(self.path, settings.OUTPUT_FOLDER, settings.K6_PROFILES),
+            os.path.join(self.path, settings.OUTPUT_FOLDER, settings.K6_RESOURCES),
             os.path.join(self.path, settings.INPUT_FOLDER, settings.K6_HOOK_FILE),
             os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "k6", "providers.js")
         ]
@@ -32,7 +33,6 @@ class K6Dist(project_setup.Setup):
     def copy_folders(self):
 
         source_folders = [
-            os.path.join(self.path, settings.OUTPUT_FOLDER, settings.RESOURCES_FOLDER),
             os.path.join(self.path, "js_libs")
         ]
 
