@@ -1,5 +1,7 @@
 from collections import deque
 
+from atlas.modules import exceptions
+
 
 class Node:
 
@@ -49,8 +51,7 @@ class DirectedGraph:
         node_2 = self.nodes.get(node_2_key, self.add_node(node_2_key))
         self.add_edge_by_node(node_1, node_2, weight)
 
-    @staticmethod
-    def add_edge_by_node(node_1, node_2, weight=0):
+    def add_edge_by_node(self, node_1, node_2, weight=0):
         node_1.add_neighbour(node_2, weight)
 
     def get_vertices(self):
@@ -87,13 +88,18 @@ class DAG(DirectedGraph):
     GREY = 2
     BLACK = 3
 
+    def add_edge_by_node(self, node_1, node_2, weight=0):
+        # Avoid easy self-referential node cycles
+        if node_1 != node_2:
+            super().add_edge_by_node(node_1, node_2, weight)
+
     def top_sort_helper(self, node_key, visited, order):
 
         if visited[node_key] == self.BLACK:
             return
 
         if visited[node_key] == self.GREY:
-            raise Exception("Cycle detected in graph")
+            raise exceptions.OrderingException("Cycle detected in the graph. Please report it to Project Maintainer")
 
         visited[node_key] = self.GREY
 

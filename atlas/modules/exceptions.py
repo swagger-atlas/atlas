@@ -14,3 +14,9 @@ class ImproperInterfaceException(Exception):
     """
     To be raised if interface is used incorrectly
     """
+
+
+class OrderingException(Exception):
+    """
+    To be raised if there is an issue while trying to order the graph
+    """

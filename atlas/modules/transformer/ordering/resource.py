@@ -22,9 +22,16 @@ class Resource(Node):
         self.other_operations = set()
 
     def add_consumer(self, operation_id: str):
-        self.consumers.add(operation_id)
+        # If operation is both consuming and producing the same resource
+        # Assume that it is its producer, and not consumer
+        if operation_id not in self.producers:
+            self.consumers.add(operation_id)
 
     def add_producer(self, operation_id: str):
+        # If operation is both consuming and producing the same resource
+        # Assume that it is its producer, and not consumer
+        if operation_id in self.consumers:
+            self.consumers.remove(operation_id)
         self.producers.add(operation_id)
 
 
@@ -53,6 +60,7 @@ class ResourceGraph(DAG):
                 ref = config.get(constants.REF)
                 if ref:
                     source_key = utils.get_ref_name(ref)
+                    # Note the edge - Source is required for resource
                     self.add_edge(source_key, resource_key)
 
     def update_resource_operation(self, config, update_func, operation_id):
@@ -72,4 +80,4 @@ class ResourceGraph(DAG):
                 if in_ == constants.BODY_PARAM:
                     self.update_resource_operation(parameter, "add_consumer", op_id)
             for response in operation.responses.values():
-                self.update_resource_operation(response, "update_producer", op_id)
+                self.update_resource_operation(response, "add_producer", op_id)

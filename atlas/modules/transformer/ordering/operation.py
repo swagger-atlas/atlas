@@ -1,4 +1,4 @@
-from atlas.modules import constants
+from atlas.modules import constants, exceptions
 from atlas.modules.transformer.ordering.base import Node, DAG
 
 
@@ -14,6 +14,16 @@ class OperationGraph(DAG):
         for config in paths.values():
             for method_config in config.values():
                 self.add_node(method_config.get(constants.OPERATION))
+
+    def add_cartesian_edges(self, parent_keys: set, child_keys: set):
+        """
+        Add multiple edges in Cartesian cross-multiplication style between set of parent and child nodes
+        Both sets contain keys required to add nodes
+        """
+
+        for parent in parent_keys:
+            for child in child_keys:
+                self.add_edge(parent, child)
 
     def transform_dfs(self, resource_key, parent_consumers, parent_producers, visited, resource_graph):
         """
@@ -36,30 +46,16 @@ class OperationGraph(DAG):
             self.add_node(dummy_key)
             node_producers = {dummy_key}
 
-        for producer in node_producers:
-            for consumer in node_consumers:
-                op_node_1 = self.get_node(producer)
-                op_node_2 = self.get_node(consumer)
-                self.add_edge_by_node(op_node_1, op_node_2)
-
-        for producer in node_producers:
-            for parent_producer in parent_producers:
-                op_node_1 = self.get_node(parent_producer)
-                op_node_2 = self.get_node(producer)
-                self.add_edge_by_node(op_node_1, op_node_2)
-
-        for consumer in node_consumers:
-            for parent_consumer in parent_consumers:
-                op_node_1 = self.get_node(parent_consumer)
-                op_node_2 = self.get_node(consumer)
-                self.add_edge_by_node(op_node_1, op_node_2)
+        self.add_cartesian_edges(node_producers, node_consumers)
+        self.add_cartesian_edges(parent_producers, node_producers)
+        self.add_cartesian_edges(parent_consumers, node_consumers)
 
         if visited[resource_key] == self.BLACK:
             return
 
         # Cycle Detected
         if visited[resource_key] == self.GREY:
-            raise Exception("Cycle Detected")
+            raise exceptions.OrderingException("Cycle Detected! Please report this to Project Maintainer")
 
         visited[resource_key] = self.GREY
 
