@@ -5,9 +5,6 @@ from atlas.modules.transformer.base import models
 from atlas.modules.transformer.k6 import constants as k6_constants
 from atlas.conf import settings
 
-PYTHON_TEMPLATE_PATTERN = re.compile(r"{(.*?)}")
-JS_TEMPLATE_PATTERN = "${\\1}"
-
 
 class Task(models.Task):
     """
@@ -51,8 +48,7 @@ class Task(models.Task):
 
         query_str, path_str = self.parse_url_params_for_body()
 
-        js_url = re.sub(PYTHON_TEMPLATE_PATTERN, JS_TEMPLATE_PATTERN, self.open_api_op.url)
-        url_str = "let url = baseURL + '{}';".format(js_url)
+        url_str = "let url = baseURL + '{}';".format(self.open_api_op.url)
 
         body.append(url_str)
 
@@ -134,7 +130,7 @@ class TaskSet(models.TaskSet):
             "const pathParams = provider.generateData(pathConfig);",
             "url = dynamicTemplate(url, pathParams);",
             "const queryParams = provider.generateData(queryConfig);",
-            "const queryString = Object.keys(queryParams).map(key => key + '=' + params[key]).join('&');",
+            "const queryString = Object.keys(queryParams).map(key => key + '=' + queryParams[key]).join('&');",
             "url = queryString? url + '?' + queryString : url;",
             "return url;"
         ]
@@ -145,10 +141,10 @@ class TaskSet(models.TaskSet):
     def dynamic_template(width):
         statements = [
             "function dynamicTemplate(string, vars) {",
-            "const keys = Object.keys(vars);",
-            "const values = Object.values(vars);",
-            r"let func = new Function(...keys, `return \`${string}\`;`);",
-            "return func(...values);"
+            "_.forIn(vars, function (value, key) {",
+            "{w}string = string.replace(new RegExp('({{' + key + '}})', 'gi'), value);".format(w=' ' * width * 4),
+            "});",
+            "return string;"
         ]
         join_string = "\n{w}".format(w=' ' * width * 4)
         return join_string.join(statements) + "\n}"

@@ -34,6 +34,28 @@ class StringDict(dict):
         return "{" + key + "}"
 
 
+def get_ref_path_array(ref_definition: str):
+    """
+    Find the reference path through its definition
+    """
+
+    # Find out which reference it is:
+    if ref_definition.startswith("#/"):
+        ref = ref_definition[2:].split("/")  # Ignore #/ and split the rest of string by /
+
+    else:
+        raise exceptions.ImproperSwaggerException("We only support Local references")
+
+    return ref
+
+
+def get_ref_name(ref_definition: str):
+    """
+    Find the reference name
+    """
+    return get_ref_path_array(ref_definition)[-1]
+
+
 def resolve_reference(spec, ref_definition):
     """
     Resolve Reference for Swagger and return the referred part
@@ -42,14 +64,7 @@ def resolve_reference(spec, ref_definition):
     :return: Reference object
     """
 
-    # Find out which reference it is:
-    if ref_definition.startswith("#/"):
-        ref = ref_definition[2:].split("/")     # Ignore #/ and split the rest of string by /
-
-    else:
-        raise exceptions.ImproperSwaggerException("We only support Local references")
-
-    for ref_element in ref:
+    for ref_element in get_ref_path_array(ref_definition):
         spec = spec.get(ref_element)
 
         if not spec:
