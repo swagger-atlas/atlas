@@ -21,8 +21,11 @@ class Resource(Node):
         self.consumers = set()
         self.other_operations = set()
 
-    def add_consumer(self, operation_id):
+    def add_consumer(self, operation_id: str):
         self.consumers.add(operation_id)
+
+    def add_producer(self, operation_id: str):
+        self.producers.add(operation_id)
 
 
 class ResourceGraph(DAG):
@@ -52,6 +55,14 @@ class ResourceGraph(DAG):
                     source_key = utils.get_ref_name(ref)
                     self.add_edge(source_key, resource_key)
 
+    def update_resource_operation(self, config, update_func, operation_id):
+        ref = config.get(constants.SCHEMA, {}).get(constants.REF)
+        if ref:
+            ref_name = utils.get_ref_name(ref)
+            resource = self.nodes.get(ref_name)
+            if resource:
+                getattr(resource, update_func)(operation_id)
+
     def parse_paths(self, interfaces):
 
         for operation in interfaces:
@@ -59,9 +70,6 @@ class ResourceGraph(DAG):
             for parameter in operation.parameters.values():
                 in_ = parameter[constants.IN_]
                 if in_ == constants.BODY_PARAM:
-                    ref = parameter.get(constants.SCHEMA, {}).get(constants.REF)
-                    if ref:
-                        ref_name = utils.get_ref_name(ref)
-                        resource = self.nodes.get(ref_name)
-                        if resource:
-                            resource.add_consumer(op_id)
+                    self.update_resource_operation(parameter, "add_consumer", op_id)
+            for response in operation.responses.values():
+                self.update_resource_operation(response, "update_producer", op_id)

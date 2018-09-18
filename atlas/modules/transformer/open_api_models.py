@@ -42,6 +42,10 @@ class Operation:
         self.add_parameters(self.config.get(swagger_constants.PARAMETERS, []))
         op_interface.parameters = self.parameters
         op_interface.tags = self.config.get(swagger_constants.TAGS, [])
+        responses = self.config.get(swagger_constants.RESPONSES, {})
+        op_interface.responses = {
+            key: value for key, value in responses.items() if key in swagger_constants.VALID_RESPONSES
+        }
         return op_interface
 
 

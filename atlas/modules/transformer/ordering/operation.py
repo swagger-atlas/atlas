@@ -15,7 +15,7 @@ class OperationGraph(DAG):
             for method_config in config.values():
                 self.add_node(method_config.get(constants.OPERATION))
 
-    def transform_dfs(self, resource_key, parent_consumers, visited, resource_graph):
+    def transform_dfs(self, resource_key, parent_consumers, parent_producers, visited, resource_graph):
         """
         Transform Reference Graph to Operation Graph.
         Takes a resource key and perform a DFS Operation taking that node as root node.
@@ -24,11 +24,29 @@ class OperationGraph(DAG):
         resource = resource_graph.get_node(resource_key)
 
         node_consumers = resource.consumers
+        node_producers = resource.producers
 
         if not node_consumers:
-            dummy_key = "${}".format(resource_key)
+            dummy_key = "${}-CONSUMER".format(resource_key)
             self.add_node(dummy_key)
             node_consumers = {dummy_key}
+
+        if not node_producers:
+            dummy_key = "${}-PRODUCER".format(resource_key)
+            self.add_node(dummy_key)
+            node_producers = {dummy_key}
+
+        for producer in node_producers:
+            for consumer in node_consumers:
+                op_node_1 = self.get_node(producer)
+                op_node_2 = self.get_node(consumer)
+                self.add_edge_by_node(op_node_1, op_node_2)
+
+        for producer in node_producers:
+            for parent_producer in parent_producers:
+                op_node_1 = self.get_node(parent_producer)
+                op_node_2 = self.get_node(producer)
+                self.add_edge_by_node(op_node_1, op_node_2)
 
         for consumer in node_consumers:
             for parent_consumer in parent_consumers:
@@ -46,7 +64,7 @@ class OperationGraph(DAG):
         visited[resource_key] = self.GREY
 
         for adj_resource in resource.get_connections():
-            self.transform_dfs(adj_resource.get_id(), node_consumers, visited, resource_graph)
+            self.transform_dfs(adj_resource.get_id(), node_consumers, node_producers, visited, resource_graph)
 
         visited[resource_key] = self.BLACK
 
@@ -63,4 +81,4 @@ class OperationGraph(DAG):
 
         for node in resource_graph.get_vertices():
             if visited[node] == self.WHITE:
-                self.transform_dfs(node, set(), visited, resource_graph)
+                self.transform_dfs(node, set(), set(), visited, resource_graph)
