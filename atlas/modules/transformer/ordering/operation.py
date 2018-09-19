@@ -1,4 +1,4 @@
-from atlas.modules import exceptions
+from atlas.modules import constants, exceptions
 from atlas.modules.transformer.ordering.base import Node, DAG
 
 
@@ -87,9 +87,21 @@ class OperationGraph(DAG):
         """
         Over-ride to do:
             1. Remove any dummy operations
-            2. Make sure that delete operations are handled at end
+            2. Make sure that delete operations are ordered at end
             3. We are returning the list of interfaces rather than Operation Names
         """
 
         order = super().topological_sort()
-        return[self.operations[op_name] for op_name in order if op_name in self.operations]
+
+        interface_order = []
+        delete_order = []
+
+        for op_name in order:
+            interface = self.operations.get(op_name)
+            if interface:
+                if interface.method == constants.DELETE:
+                    delete_order.append(interface)
+                else:
+                    interface_order.append(interface)
+
+        return interface_order + delete_order
