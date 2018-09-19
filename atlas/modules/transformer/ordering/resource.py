@@ -24,16 +24,9 @@ class Resource(Node):
         self.other_operations = set()
 
     def add_consumer(self, operation_id: str):
-        # If operation is both consuming and producing the same resource
-        # Assume that it is its producer, and not consumer
-        if operation_id not in self.producers:
-            self.consumers.add(operation_id)
+        self.consumers.add(operation_id)
 
     def add_producer(self, operation_id: str):
-        # If operation is both consuming and producing the same resource
-        # Assume that it is its producer, and not consumer
-        if operation_id in self.consumers:
-            self.consumers.remove(operation_id)
         self.producers.add(operation_id)
 
 
@@ -65,33 +58,42 @@ class ResourceGraph(DAG):
                     # Note the edge - Source is required for resource
                     self.add_edge(source_key, resource_key)
 
-    def update_resource_operation(self, config, update_func, operation_id):
+    @staticmethod
+    def get_ref_name(config):
         schema = config.get(constants.SCHEMA, {})
 
         # Search in simple direct ref or array ref
         ref = schema.get(constants.REF) or schema.get(constants.ITEMS, {}).get(constants.REF)
-        ref_name = ""
-
-        if ref:
-            ref_name = utils.get_ref_name(ref)
-        else:
-            # Try to see if it it has any resource that can match ref
-            resource = config.get(constants.RESOURCE)
-            if resource:
-                # Convert it to CamelCase for matching purposes
-                snake_case = re.sub("-", "_", resource)
-                ref_name = "".join([x.title() for x in snake_case.split("_")])
-
-        if ref_name:
-            ref_node = self.nodes.get(ref_name)
-            if ref_node:
-                getattr(ref_node, update_func)(operation_id)
+        return utils.get_ref_name(ref) if ref else None
 
     def parse_paths(self, interfaces):
 
         for operation in interfaces:
             op_id = operation.func_name
-            for parameter in operation.parameters.values():
-                self.update_resource_operation(parameter, "add_consumer", op_id)
+            ref_graph = {}
             for response in operation.responses.values():
-                self.update_resource_operation(response, "add_producer", op_id)
+                ref = self.get_ref_name(response)
+                if ref:
+                    ref_graph[ref] = "producer"
+            for parameter in operation.parameters.values():
+                ref = self.get_ref_name(parameter)
+                # If it is already claimed as producer, then respect that
+                if ref and ref not in ref_graph:
+                    ref_graph[ref] = "consumer"
+
+                # Try to find if it is Path Params Resource
+                if not ref:
+                    resource = parameter.get(constants.RESOURCE)
+                    if resource:
+                        # Convert it to CamelCase for matching purposes
+                        snake_case = re.sub("-", "_", resource)
+                        ref = "".join([x.title() for x in snake_case.split("_")])
+
+                        # This time, it is Path Params, so we are sure that is is consumer
+                        ref_graph[ref] = "consumer"
+
+            for ref, ref_op in ref_graph.items():
+                ref_node = self.nodes.get(ref)
+                ref_op = "add_consumer" if ref_op == "consumer" else "add_producer"
+                if ref_node:
+                    getattr(ref_node, ref_op)(op_id)
