@@ -64,7 +64,11 @@ class ResourceGraph(DAG):
                     self.add_edge(source_key, resource_key)
 
     def update_resource_operation(self, config, update_func, operation_id):
-        ref = config.get(constants.SCHEMA, {}).get(constants.REF)
+        schema = config.get(constants.SCHEMA, {})
+
+        # Search in simple direct ref or array ref
+        ref = schema.get(constants.REF) or schema.get(constants.ITEMS, {}).get(constants.REF)
+
         if ref:
             ref_name = utils.get_ref_name(ref)
             resource = self.nodes.get(ref_name)

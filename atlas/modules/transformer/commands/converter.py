@@ -3,6 +3,7 @@ from atlas.modules.transformer.commands.base import TransformerBaseCommand
 from atlas.modules.transformer.k6 import models as k6_models, transformer as k6_transformer, yaml_to_js
 from atlas.modules.transformer.locust import models as locust_models, transformer as locust_transformer
 from atlas.modules.transformer import open_api_models, open_api_reader
+from atlas.modules.transformer.ordering import ordering
 
 
 TASK = "task"
@@ -44,7 +45,10 @@ class Converter(TransformerBaseCommand):
         open_api = open_api_models.OpenAPISpec(spec)
         open_api.get_interfaces()
 
-        tasks = [load_conf[TASK](interface, spec) for interface in open_api.interfaces]
+        order = ordering.Ordering(spec, open_api.interfaces)
+        sorted_interfaces = order.order()
+
+        tasks = [load_conf[TASK](interface, spec) for interface in sorted_interfaces]
 
         _task_set = load_conf[TASK_SET](tasks=tasks, tag="User")
 

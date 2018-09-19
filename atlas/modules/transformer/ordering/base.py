@@ -93,7 +93,7 @@ class DAG(DirectedGraph):
         if node_1 != node_2:
             super().add_edge_by_node(node_1, node_2, weight)
 
-    def top_sort_helper(self, node_key, visited, order):
+    def sort_helper(self, node_key, visited, order):
 
         if visited[node_key] == self.BLACK:
             return
@@ -104,12 +104,12 @@ class DAG(DirectedGraph):
         visited[node_key] = self.GREY
 
         for neighbour in self.get_node(node_key).get_connections():
-            self.top_sort_helper(neighbour.get_id(), visited, order)
+            self.sort_helper(neighbour.get_id(), visited, order)
 
         visited[node_key] = self.BLACK
         order.appendleft(node_key)
 
-    def top_sort(self):
+    def topological_sort(self):
         """
         Topologically sort the graph
         """
@@ -119,6 +119,6 @@ class DAG(DirectedGraph):
 
         for node in self.get_vertices():
             if visited[node] == self.WHITE:
-                self.top_sort_helper(node, visited, order)
+                self.sort_helper(node, visited, order)
 
         return order

@@ -1,4 +1,4 @@
-from atlas.modules import constants, exceptions
+from atlas.modules import exceptions
 from atlas.modules.transformer.ordering.base import Node, DAG
 
 
@@ -10,10 +10,14 @@ class Operation(Node):
 
 class OperationGraph(DAG):
 
-    def new_graph(self, paths):
-        for config in paths.values():
-            for method_config in config.values():
-                self.add_node(method_config.get(constants.OPERATION))
+    def __init__(self):
+        super().__init__()
+        self.operations = {}
+
+    def new_graph(self, interfaces):
+        for op_interface in interfaces:
+            self.add_node(op_interface.func_name)
+            self.operations[op_interface.func_name] = op_interface
 
     def add_cartesian_edges(self, parent_keys: set, child_keys: set):
         """
@@ -78,3 +82,14 @@ class OperationGraph(DAG):
         for node in resource_graph.get_vertices():
             if visited[node] == self.WHITE:
                 self.transform_dfs(node, set(), set(), visited, resource_graph)
+
+    def topological_sort(self):
+        """
+        Over-ride to do:
+            1. Remove any dummy operations
+            2. Make sure that delete operations are handled at end
+            3. We are returning the list of interfaces rather than Operation Names
+        """
+
+        order = super().topological_sort()
+        return[self.operations[op_name] for op_name in order if op_name in self.operations]
