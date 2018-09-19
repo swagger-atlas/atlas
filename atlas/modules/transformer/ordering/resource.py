@@ -1,3 +1,5 @@
+import re
+
 from atlas.modules import constants, utils
 from atlas.modules.transformer.ordering.base import Node, DAG
 
@@ -68,20 +70,28 @@ class ResourceGraph(DAG):
 
         # Search in simple direct ref or array ref
         ref = schema.get(constants.REF) or schema.get(constants.ITEMS, {}).get(constants.REF)
+        ref_name = ""
 
         if ref:
             ref_name = utils.get_ref_name(ref)
-            resource = self.nodes.get(ref_name)
+        else:
+            # Try to see if it it has any resource that can match ref
+            resource = config.get(constants.RESOURCE)
             if resource:
-                getattr(resource, update_func)(operation_id)
+                # Convert it to CamelCase for matching purposes
+                snake_case = re.sub("-", "_", resource)
+                ref_name = "".join([x.title() for x in snake_case.split("_")])
+
+        if ref_name:
+            ref_node = self.nodes.get(ref_name)
+            if ref_node:
+                getattr(ref_node, update_func)(operation_id)
 
     def parse_paths(self, interfaces):
 
         for operation in interfaces:
             op_id = operation.func_name
             for parameter in operation.parameters.values():
-                in_ = parameter[constants.IN_]
-                if in_ == constants.BODY_PARAM:
-                    self.update_resource_operation(parameter, "add_consumer", op_id)
+                self.update_resource_operation(parameter, "add_consumer", op_id)
             for response in operation.responses.values():
                 self.update_resource_operation(response, "add_producer", op_id)

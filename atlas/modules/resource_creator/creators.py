@@ -1,3 +1,5 @@
+import re
+
 from atlas.conf import settings
 from atlas.modules import (
     constants as swagger_constants,
@@ -24,6 +26,28 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
     def add_resource(self, resource):
         if resource and resource not in self.resources:
             self.new_resources.add(resource)
+
+    def add_reference_definition(self, reference, fields):
+        """
+        Add a virtual reference for every resource in Swagger definition
+        """
+        definitions = self.specs.get(swagger_constants.DEFINITIONS)
+
+        # Change reference name to CamelCase
+        snake_case = re.sub("-", "_", reference)
+        reference = "".join([x.title() for x in snake_case.split("_")])
+
+        if reference in definitions:
+            return  # We already have reference with same name, so do nothing
+
+        definitions[reference] = {
+            swagger_constants.TYPE: swagger_constants.OBJECT,
+            # Without dict initialization, it is copying some auto-generated IDs also.
+            # When have time, investigate!
+            swagger_constants.PROPERTIES: {
+                fields[swagger_constants.PARAMETER_NAME]: dict(fields)
+            }
+        }
 
     @staticmethod
     def extract_resource_name_from_param(param_name):
@@ -68,6 +92,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                     if resource:
                         param[swagger_constants.RESOURCE] = resource
                         self.add_resource(resource)
+                        self.add_reference_definition(resource, param)
 
             elif param_type == swagger_constants.BODY_PARAM:
                 self.resolve_body_param(param)
