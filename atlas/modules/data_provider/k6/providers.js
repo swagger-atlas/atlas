@@ -2,7 +2,7 @@ import _ from 'js_libs/lodash.js';
 import faker from 'js_libs/faker.js'
 
 import * as constants from 'js_libs/constants.js'
-import { resources as Resources } from './resources.js'
+import { Resource } from './resources.js'
 
 /*
         Custom Exception Definitions
@@ -233,12 +233,13 @@ const FakeData = {
 
 
 class ResourceProvider {
-    constructor(resourceName, items, isFlatForSingle) {
+    constructor(resourceName, resourceInstance, items, isFlatForSingle) {
         this.resourceName = resourceName;
         this.items = items || 1;
         this.isFlat = this.items === 1 ? isFlatForSingle : false;
 
         this.resources = {};
+        this.resourceInstance = resourceInstance;
     }
 
     resourceSet() {
@@ -254,7 +255,7 @@ class ResourceProvider {
 
     getResources(profile) {
 
-        this.resources = _.get(Resources, profile, {});
+        this.resources = _.get(this.resourceInstance.resources, profile, {});
 
         let resources = this.resourceSet();
 
@@ -268,6 +269,12 @@ class ResourceProvider {
 
         return resources;
     }
+
+    addResources(profile, resourceValues) {
+        const resources = _.get(this.resourceInstance.resources, profile, {});
+        const resourceValue = new Set([...resources[this.resourceName], ...resourceValues]);
+        this.resourceInstance.updateResource(profile, this.resourceName, resourceValue);
+    }
 }
 
 
@@ -275,6 +282,9 @@ export class Provider {
 
     constructor(profile=null) {
         this.profile = profile;
+        // Ideally, Resource class should be singleton
+        // But here we know that Provider would be initialized only once
+        this.resourceInstance = new Resource();
     }
 
     static getFakeData(config) {
@@ -290,7 +300,7 @@ export class Provider {
     }
 
     getResource(resource) {
-        const resourceProvider = new ResourceProvider(resource);
+        const resourceProvider = new ResourceProvider(resource, this.resourceInstance);
         return resourceProvider.getResources(this.profile);
     }
 
@@ -311,5 +321,42 @@ export class Provider {
         });
 
         return dataBody;
+    }
+
+    addData(config, resourceKey, resourceField) {
+
+        let self = this;
+
+        let newResources = new Set();
+        if (_.isArray(config)) {
+            _.forEach(config, function (elementConfig) {
+                const extractedData = self.extractData(elementConfig, resourceField);
+                if (extractedData) {
+                    newResources = [...newResources, ...extractedData];
+                }
+            });
+        } else {
+            newResources = self.extractData(config, resourceKey, resourceField)
+        }
+
+        if (!_.isEmpty(newResources)) {
+            new ResourceProvider(resourceKey, self.resourceInstance).addResources(self.profile, newResources);
+        }
+
+        return true;
+    }
+
+    extractData(config, resourceField) {
+        let ret = new Set();
+        _.forEach(config, function (itemConfig, itemName) {
+            if (itemName === resourceField) {
+                if (_.isArray(itemConfig)) {
+                    ret = new Set(itemConfig)
+                } else {
+                    ret.add(itemConfig)
+                }
+            }
+        });
+        return ret;
     }
 }

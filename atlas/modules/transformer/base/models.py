@@ -1,7 +1,7 @@
 import random
 import string
 
-from atlas.modules import constants, exceptions
+from atlas.modules import constants, exceptions, utils
 from atlas.modules.transformer import data_config, interface
 from atlas.conf import settings
 
@@ -26,6 +26,8 @@ class Task:
         self.url_params = dict()
 
         self.headers = []
+
+        self.post_check_tasks = []
 
         self.parse_parameters(open_api_interface.parameters or {})
 
@@ -131,6 +133,30 @@ class Task:
             path_str = "{" + ", ".join(path_params) + "}"
 
         return query_str, path_str
+
+    def parse_responses(self, responses):
+        """
+        We could have data_config resolve all references recursively,
+        but we are only interested in top-level resources
+
+        So, this quickly extracts it and move on
+        """
+        resources = []
+        for response in responses.values():
+            schema = response.get(constants.SCHEMA, {})
+            ref = schema.get(constants.REF) or schema.get(constants.ITEMS, {}).get(constants.REF)
+            if ref:
+                ref_name = utils.get_ref_name(ref)
+                ref_definition = self.data_config.spec.get(constants.DEFINITIONS, {}).get(ref_name, {})
+                for field, config in ref_definition.get(constants.PROPERTIES, {}).items():
+                    resource = config.get(constants.RESOURCE)
+                    if resource:
+                        resources.append((field, resource))
+
+        if len(resources) > 1:
+            raise exceptions.ImproperSwaggerException("Multiple Swagger resources at top level - {}".format(responses))
+
+        return resources[0] if resources else ()
 
 
 class TaskSet:
