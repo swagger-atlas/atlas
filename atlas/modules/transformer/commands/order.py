@@ -7,4 +7,5 @@ class Order(BaseCommand):
 
     def handle(self, **options):
         order = ordering.Ordering()
-        return ", ".join(order.order()) + "\n"
+        order.order()
+        return "Ordered Successfully\n"

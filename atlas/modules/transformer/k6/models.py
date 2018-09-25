@@ -1,3 +1,4 @@
+import json
 import re
 
 from atlas.modules import constants, utils
@@ -38,7 +39,7 @@ class Task(models.Task):
         body = list()
 
         if self.data_body:
-            body.append("const bodyConfig = {config};".format(config=self.data_body))
+            body.append("const bodyConfig = {config};".format(config=json.dumps(self.data_body)))
 
         if self.open_api_op.tags and settings.ONLY_TAG_API:
             body.append("const tags = [{}];".format(", ".join(["'{}'".format(tag) for tag in self.open_api_op.tags])))

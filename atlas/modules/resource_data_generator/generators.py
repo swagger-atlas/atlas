@@ -51,17 +51,21 @@ class ResourceMap(mixins.ProfileMixin):
 
             config = self.inherit_resources(config)
 
-            source = config.get(resource_constants.SOURCE, resource_constants.DB_TABLE)
-
-            if source == resource_constants.DB_TABLE:
-                result = self.parse_db_source(config, global_settings)
-            elif source == resource_constants.SCRIPT:
-                result = self.parse_python_source(config)
+            dummy_resource = config.get(resource_constants.DUMMY_DEF)
+            if dummy_resource:
+                result = []
             else:
-                raise exceptions.ResourcesException("Incorrect source defined for {}".format(resource))
+                source = config.get(resource_constants.SOURCE, resource_constants.DB_TABLE)
 
-            if not isinstance(result, (list, tuple, set)):
-                raise exceptions.ResourcesException("Result for {} must be Built-in iterable".format(resource))
+                if source == resource_constants.DB_TABLE:
+                    result = self.parse_db_source(config, global_settings)
+                elif source == resource_constants.SCRIPT:
+                    result = self.parse_python_source(config)
+                else:
+                    raise exceptions.ResourcesException("Incorrect source defined for {}".format(resource))
+
+                if not isinstance(result, (list, tuple, set)):
+                    raise exceptions.ResourcesException("Result for {} must be Built-in iterable".format(resource))
 
             resources[resource] = set(result)
 

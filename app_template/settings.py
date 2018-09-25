@@ -9,7 +9,7 @@ class Settings:
     }
 
     # This API would not be hit during load test
-    LOGOUT_API_URL = "/logout/"
+    EXCLUDE_URLS = ["/logout/"]
 
     HOST_URL = ""
 
@@ -23,4 +23,4 @@ class Settings:
     HIT_ALL_QUERY_PARAMS = False
 
     # Only hit APIs which match Tags
-    ONLY_TAG_API = True
+    ONLY_TAG_API = False

@@ -17,13 +17,8 @@ class Client:
 
     @staticmethod
     def connect_to_db():
-        return constants.DATABASE_MAP.get(settings.DATABASE[constants.ENGINE])(
-            settings.DATABASE[constants.NAME],
-            user=settings.DATABASE[constants.USER],
-            password=settings.DATABASE[constants.PASSWORD],
-            host=settings.DATABASE[constants.HOST],
-            port=settings.DATABASE[constants.PORT]
-        )
+        engine = constants.DATABASE_MAP.get(settings.DATABASE[constants.ENGINE])
+        return engine["engine"](settings.DATABASE[constants.NAME], **engine["args"])
 
     def execute_sql(self, sql):
         """

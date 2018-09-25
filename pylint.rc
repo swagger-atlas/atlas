@@ -21,7 +21,7 @@ include-ids=yes
 no-docstring-rgx=__.*__|_.*
 class-rgx=[A-Z][a-zA-Z0-9]+$
 const-rgx=(([A-Z_][A-Z0-9_]+)|([a-z_][a-z0-9_]+)|(__.*__)|logger)$
-good-names=_,setUp,tearDown
+good-names=_,db,setUp,tearDown
 
 
 [TYPECHECK]

@@ -59,11 +59,12 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
         resource_name = None
 
-        if param_name.endswith("_id"):
-            resource_name = param_name[:-len("_id")]
+        identifier_suffixes = ["_id", "Id", "_slug", "Slug"]
 
-        elif param_name.endswith("Id"):
-            resource_name = param_name[:-len("Id")]
+        for suffix in identifier_suffixes:
+            if param_name.endswith(suffix):
+                resource_name = param_name[:-len(suffix)]
+                break
 
         return resource_name
 

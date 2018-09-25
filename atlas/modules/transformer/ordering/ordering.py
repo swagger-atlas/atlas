@@ -8,7 +8,13 @@ class Ordering:
 
     def __init__(self, specs=None, interfaces=None):
         self.specs = specs or SpecsFile().file_load()
-        self.interfaces = interfaces or open_api_models.OpenAPISpec(self.specs).get_interfaces()
+
+        if not interfaces:
+            open_api = open_api_models.OpenAPISpec(self.specs)
+            open_api.get_interfaces()
+            interfaces = open_api.interfaces
+
+        self.interfaces = interfaces
 
     def get_resource_graph(self):
         resource_definitions = self.specs.get(constants.DEFINITIONS)
