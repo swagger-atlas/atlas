@@ -87,6 +87,12 @@ class Task(models.Task):
             op_id=self.open_api_op.func_name, args="[{}]".format(", ".join(param_array))
         ))
 
+        # TODO: Get the MIME from Operation MIME
+        mime = "json"
+        if mime == "json" and "body" in param_array:
+            body.append("reqArgs[1] = JSON.stringify(reqArgs[1]);")
+            body.append("reqArgs[2].headers['Content-Type'] = 'application/json';")
+
         response = self.parse_responses(self.open_api_op.responses)
         if response:
             body.append("let responseResource = '{}';".format(response[1]))
