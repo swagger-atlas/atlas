@@ -122,7 +122,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         for key, value in properties.items():
             if swagger_constants.REF in value:
                 self.get_ref_name_and_config(value[swagger_constants.REF])
-            elif key == "id":
+            elif key in ["id", "slug"]:
                 resource = value.get(swagger_constants.RESOURCE, utils.convert_to_snake_case(ref_name))
 
                 if resource:

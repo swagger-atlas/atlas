@@ -71,6 +71,8 @@ BYTE = "byte"
 BINARY = "binary"
 EMAIL = "email"
 UUID = "uuid"
+URI = "uri"
+SLUG = "slug"
 
 # Array Options
 MIN_ITEMS = "minItems"

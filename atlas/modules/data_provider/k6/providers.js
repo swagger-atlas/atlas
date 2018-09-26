@@ -16,7 +16,7 @@ class EmptyResourceError extends Error {}
     End Exceptions Definition
  */
 
-const LIMIT = Math.pow(10, 6);
+const LIMIT = Math.pow(10, 2);
 const MILLISECONDS_IN_YEAR = 86400 * 365.25 * 1000;     // Seconds in day * avg. number of days in years * ms in sec
 
 
@@ -57,6 +57,8 @@ const FakeData = {
         MAP[[constants.STRING, constants.PASSWORD]] = FakeData.getPassword;
         MAP[[constants.STRING, constants.BYTE]] = FakeData.getBase64;
         MAP[[constants.STRING, constants.EMAIL]] = FakeData.getEmail;
+        MAP[[constants.STRING, constants.URI]] = FakeData.getURI;
+        MAP[[constants.STRING, constants.SLUG]] = FakeData.getSlug;
         MAP[[constants.STRING, constants.UUID]] = FakeData.getUUID;
         MAP[[constants.BOOLEAN, null]] = FakeData.getBoolean;
         MAP[[constants.ARRAY, null]] = FakeData.getArray;
@@ -97,7 +99,7 @@ const FakeData = {
 
     getString: function(config) {
         return FakeData.getEnum(config) ||
-            faker.lorem.text(FakeData.getOptions(config)["maximum"])
+            faker.lorem.text().slice(0, [FakeData.getOptions(config)["maximum"]])
     },
 
     getDate: function(config) {
@@ -107,6 +109,14 @@ const FakeData = {
 
     getDateTime: function(config) {
         return FakeData.getRandomDateTime(config).toISOString();
+    },
+
+    getURI: function(config) {
+        return faker.internet.avatar();
+    },
+
+    getSlug: function(config) {
+        return faker.helpers.slugify(faker.internet.userName());
     },
 
     getPassword: function(config) {
@@ -177,10 +187,10 @@ const FakeData = {
     },
 
     getRandomDateTime: function(config) {
-        // Date time between 30 years in past to 30 years in future (approx.)
+        // Date time between now to 1 year in future (approx.)
         const now = _.now();
-        const start = now - MILLISECONDS_IN_YEAR * 30;
-        const end = now + MILLISECONDS_IN_YEAR * 30;
+        const start = now;
+        const end = now + MILLISECONDS_IN_YEAR;
         return new Date(_.random(start, end));
     },
 
@@ -211,7 +221,7 @@ const FakeData = {
     },
 
     getRange: function(config) {
-        let minimum = _.get(config, constants.MINIMUM, -LIMIT);
+        let minimum = _.get(config, constants.MINIMUM, 0);
         let maximum = _.get(config, constants.MAXIMUM, LIMIT);
 
         if (_.get(config, constants.MIN_EXCLUDE, false)) {
@@ -336,7 +346,7 @@ export class Provider {
                 }
             });
         } else {
-            newResources = self.extractData(config, resourceKey, resourceField)
+            newResources = self.extractData(config, resourceField);
         }
 
         if (!_.isEmpty(newResources)) {
@@ -351,9 +361,13 @@ export class Provider {
         _.forEach(config, function (itemConfig, itemName) {
             if (itemName === resourceField) {
                 if (_.isArray(itemConfig)) {
-                    ret = new Set(itemConfig)
+                    if (!_.isEmpty(itemConfig)) {
+                        ret = new Set(itemConfig)
+                    }
                 } else {
-                    ret.add(itemConfig)
+                    if (itemConfig) {
+                        ret.add(itemConfig);
+                    }
                 }
             }
         });
