@@ -2,7 +2,7 @@ import { K6Hook } from "./hookSetup.js";    // This will be corrected at dist. t
 import { Profile } from "./profile.js";
 
 // Do NOT change these definitions or namings
-export let profile = new Profile("<yourProfile>");      // This gives you an profile object as defined in profiles.yaml
+export let profile = new Profile("default");      // This gives you an profile object as defined in profiles.yaml
 export const hook = new K6Hook();
 
 function setHeaders() {
