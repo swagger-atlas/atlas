@@ -28,10 +28,10 @@ Running the Project
 Please go through [ATLAS Docs](https://code.jtg.tools/jtg/atlas/README.md) for detailed run-down and options.
 
 Quick K6 Run include:
-- One Time setup: `python manage.py setup k6`
 - Install k6 (https://docs.k6.io/docs/installation)
-- Build, distribute and test:
-    - `python manage.py build k6`
+- Setup JS Libraries as needed: `python manage.py setup k6`
+- Convert Swagger to K6 JS File: `python manage.py build k6`
+- Distribute and load test:
     - `python manage.py dist k6`
     - `k6 run dist/k6.js -u <number_of_users> -i <number_of_iterations>` [See: https://docs.k6.io/docs/options]
 
