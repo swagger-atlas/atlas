@@ -9,10 +9,12 @@ class DataConfig:
     def resolve_item_config(self, item_config):
         item_data = {}
         for key, value in item_config.items():
-            if key in constants.EXTRA_KEYS:
-                continue
             if isinstance(value, dict):
-                item_data[key] = self.generate({key: value})
+                item_data.update(self.generate({key: value}))
+            elif key in constants.EXTRA_KEYS:
+                # This should be else of previous Condition
+                # Since nested references can use this as property
+                continue
             else:
                 item_data[key] = value
         return item_data

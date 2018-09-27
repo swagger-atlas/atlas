@@ -4,12 +4,29 @@ import os
 import yaml
 
 from atlas.conf import settings
+from atlas.modules import utils
 
 
 BOOL_MAP = {
     False: "false",
     True: "true"
 }
+
+
+TEMPLATE = """
+export class Resource {{
+
+    constructor() {{
+        this.resources = {{
+            {resource}
+        }};
+    }}
+
+    updateResource(profile, resourceKey, resourceValues) {{
+        this.resources[profile][resourceKey] = resourceValues;
+    }}
+}}
+"""
 
 
 class Converter:
@@ -20,9 +37,8 @@ class Converter:
     """
 
     def __init__(self):
-        self.path = "/home/ubuntu/Desktop/Projects/atlas_test"
         self.profiles = []
-        # self.path = utils.get_project_path()
+        self.path = utils.get_project_path()
 
     def convert_profiles(self):
         _file = os.path.join(self.path, settings.INPUT_FOLDER, settings.PROFILES_FILE)
@@ -47,13 +63,16 @@ class Converter:
             with open(_file) as yaml_file:
                 data = yaml.safe_load(yaml_file)
 
-            indent = " "*4
-            profile_data.append("{indent}{key}: {{\n{value}\n{indent}}}".format(
-                key=profile, value=self.serialize_resources(data), indent=indent
+            indent_width = 3
+
+            indent = " "*4*indent_width
+            profile_data.append("{key}: {{\n{value}\n{indent}}}".format(
+                key=profile, value=self.serialize_resources(data, indent_width+1), indent=indent
             ))
 
         profile_str = ",\n".join(profile_data)
-        out_data = "export const resources = {{\n{}\n}};\n".format(profile_str)
+        # out_data = "export const resources = {{\n{}\n}};\n".format(profile_str)
+        out_data = TEMPLATE.format(resource=profile_str)
 
         out_file = os.path.join(self.path, settings.OUTPUT_FOLDER, settings.K6_RESOURCES)
 
@@ -61,14 +80,14 @@ class Converter:
             js_file.write(out_data)
 
     @staticmethod
-    def serialize_resources(data):
+    def serialize_resources(data, indent_width):
         """
         Serialize the Resource to JS conventions
         Assumption being that Resources are a single level dict, with each value being set
         We cannot simply use JSON, since it is not YAML dict
         """
 
-        indent = ' '*4*2
+        indent = ' '*4*indent_width
         out_data = ["{}{}: new Set({})".format(indent, key, list(value)) for key, value in data.items()]
         return ",\n".join(out_data)
 

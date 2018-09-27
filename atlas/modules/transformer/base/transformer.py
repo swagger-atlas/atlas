@@ -9,7 +9,7 @@ class FileConfig:
 
     OUT_FILE = None
 
-    def __init__(self, task_set, specs_file=None):
+    def __init__(self, task_set):
         self.task_set = task_set
 
     @staticmethod

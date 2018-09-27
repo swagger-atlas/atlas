@@ -1,3 +1,5 @@
+import re
+
 from atlas.conf import settings
 from atlas.modules import (
     constants as swagger_constants,
@@ -25,6 +27,28 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         if resource and resource not in self.resources:
             self.new_resources.add(resource)
 
+    def add_reference_definition(self, reference, fields):
+        """
+        Add a virtual reference for every resource in Swagger definition
+        """
+        definitions = self.specs.get(swagger_constants.DEFINITIONS)
+
+        # Change reference name to CamelCase
+        snake_case = re.sub("-", "_", reference)
+        reference = "".join([x.title() for x in snake_case.split("_")])
+
+        if reference in definitions:
+            return  # We already have reference with same name, so do nothing
+
+        definitions[reference] = {
+            swagger_constants.TYPE: swagger_constants.OBJECT,
+            # Without dict initialization, it is copying some auto-generated IDs also.
+            # When have time, investigate!
+            swagger_constants.PROPERTIES: {
+                fields[swagger_constants.PARAMETER_NAME]: dict(fields)
+            }
+        }
+
     @staticmethod
     def extract_resource_name_from_param(param_name):
         """
@@ -35,11 +59,12 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
         resource_name = None
 
-        if param_name.endswith("_id"):
-            resource_name = param_name[:-len("_id")]
+        identifier_suffixes = ["_id", "Id", "_slug", "Slug"]
 
-        elif param_name.endswith("Id"):
-            resource_name = param_name[:-len("Id")]
+        for suffix in identifier_suffixes:
+            if param_name.endswith(suffix):
+                resource_name = param_name[:-len(suffix)]
+                break
 
         return resource_name
 
@@ -68,6 +93,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                     if resource:
                         param[swagger_constants.RESOURCE] = resource
                         self.add_resource(resource)
+                        self.add_reference_definition(resource, param)
 
             elif param_type == swagger_constants.BODY_PARAM:
                 self.resolve_body_param(param)
@@ -96,7 +122,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         for key, value in properties.items():
             if swagger_constants.REF in value:
                 self.get_ref_name_and_config(value[swagger_constants.REF])
-            elif key == "id":
+            elif key in ["id", "slug"]:
                 resource = value.get(swagger_constants.RESOURCE, utils.convert_to_snake_case(ref_name))
 
                 if resource:

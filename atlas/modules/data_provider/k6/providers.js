@@ -2,7 +2,7 @@ import _ from 'js_libs/lodash.js';
 import faker from 'js_libs/faker.js'
 
 import * as constants from 'js_libs/constants.js'
-import { resources as Resources } from './resources.js'
+import { Resource } from './resources.js'
 
 /*
         Custom Exception Definitions
@@ -16,7 +16,7 @@ class EmptyResourceError extends Error {}
     End Exceptions Definition
  */
 
-const LIMIT = Math.pow(10, 6);
+const LIMIT = Math.pow(10, 2);
 const MILLISECONDS_IN_YEAR = 86400 * 365.25 * 1000;     // Seconds in day * avg. number of days in years * ms in sec
 
 
@@ -57,6 +57,8 @@ const FakeData = {
         MAP[[constants.STRING, constants.PASSWORD]] = FakeData.getPassword;
         MAP[[constants.STRING, constants.BYTE]] = FakeData.getBase64;
         MAP[[constants.STRING, constants.EMAIL]] = FakeData.getEmail;
+        MAP[[constants.STRING, constants.URI]] = FakeData.getURI;
+        MAP[[constants.STRING, constants.SLUG]] = FakeData.getSlug;
         MAP[[constants.STRING, constants.UUID]] = FakeData.getUUID;
         MAP[[constants.BOOLEAN, null]] = FakeData.getBoolean;
         MAP[[constants.ARRAY, null]] = FakeData.getArray;
@@ -97,7 +99,7 @@ const FakeData = {
 
     getString: function(config) {
         return FakeData.getEnum(config) ||
-            faker.lorem.text(FakeData.getOptions(config)["maximum"])
+            faker.lorem.text().slice(0, [FakeData.getOptions(config)["maximum"]])
     },
 
     getDate: function(config) {
@@ -107,6 +109,14 @@ const FakeData = {
 
     getDateTime: function(config) {
         return FakeData.getRandomDateTime(config).toISOString();
+    },
+
+    getURI: function(config) {
+        return faker.internet.avatar();
+    },
+
+    getSlug: function(config) {
+        return faker.helpers.slugify(faker.internet.userName());
     },
 
     getPassword: function(config) {
@@ -177,10 +187,10 @@ const FakeData = {
     },
 
     getRandomDateTime: function(config) {
-        // Date time between 30 years in past to 30 years in future (approx.)
+        // Date time between now to 1 year in future (approx.)
         const now = _.now();
-        const start = now - MILLISECONDS_IN_YEAR * 30;
-        const end = now + MILLISECONDS_IN_YEAR * 30;
+        const start = now;
+        const end = now + MILLISECONDS_IN_YEAR;
         return new Date(_.random(start, end));
     },
 
@@ -211,7 +221,7 @@ const FakeData = {
     },
 
     getRange: function(config) {
-        let minimum = _.get(config, constants.MINIMUM, -LIMIT);
+        let minimum = _.get(config, constants.MINIMUM, 0);
         let maximum = _.get(config, constants.MAXIMUM, LIMIT);
 
         if (_.get(config, constants.MIN_EXCLUDE, false)) {
@@ -233,12 +243,13 @@ const FakeData = {
 
 
 class ResourceProvider {
-    constructor(resourceName, items, isFlatForSingle) {
+    constructor(resourceName, resourceInstance, items, isFlatForSingle) {
         this.resourceName = resourceName;
         this.items = items || 1;
         this.isFlat = this.items === 1 ? isFlatForSingle : false;
 
         this.resources = {};
+        this.resourceInstance = resourceInstance;
     }
 
     resourceSet() {
@@ -254,7 +265,7 @@ class ResourceProvider {
 
     getResources(profile) {
 
-        this.resources = _.get(Resources, profile, {});
+        this.resources = _.get(this.resourceInstance.resources, profile, {});
 
         let resources = this.resourceSet();
 
@@ -268,6 +279,12 @@ class ResourceProvider {
 
         return resources;
     }
+
+    addResources(profile, resourceValues) {
+        const resources = _.get(this.resourceInstance.resources, profile, {});
+        const resourceValue = new Set([...resources[this.resourceName], ...resourceValues]);
+        this.resourceInstance.updateResource(profile, this.resourceName, resourceValue);
+    }
 }
 
 
@@ -275,6 +292,9 @@ export class Provider {
 
     constructor(profile=null) {
         this.profile = profile;
+        // Ideally, Resource class should be singleton
+        // But here we know that Provider would be initialized only once
+        this.resourceInstance = new Resource();
     }
 
     static getFakeData(config) {
@@ -290,7 +310,7 @@ export class Provider {
     }
 
     getResource(resource) {
-        const resourceProvider = new ResourceProvider(resource);
+        const resourceProvider = new ResourceProvider(resource, this.resourceInstance);
         return resourceProvider.getResources(this.profile);
     }
 
@@ -311,5 +331,46 @@ export class Provider {
         });
 
         return dataBody;
+    }
+
+    addData(config, resourceKey, resourceField) {
+
+        let self = this;
+
+        let newResources = new Set();
+        if (_.isArray(config)) {
+            _.forEach(config, function (elementConfig) {
+                const extractedData = self.extractData(elementConfig, resourceField);
+                if (extractedData) {
+                    newResources = [...newResources, ...extractedData];
+                }
+            });
+        } else {
+            newResources = self.extractData(config, resourceField);
+        }
+
+        if (!_.isEmpty(newResources)) {
+            new ResourceProvider(resourceKey, self.resourceInstance).addResources(self.profile, newResources);
+        }
+
+        return true;
+    }
+
+    extractData(config, resourceField) {
+        let ret = new Set();
+        _.forEach(config, function (itemConfig, itemName) {
+            if (itemName === resourceField) {
+                if (_.isArray(itemConfig)) {
+                    if (!_.isEmpty(itemConfig)) {
+                        ret = new Set(itemConfig)
+                    }
+                } else {
+                    if (itemConfig) {
+                        ret.add(itemConfig);
+                    }
+                }
+            }
+        });
+        return ret;
     }
 }
