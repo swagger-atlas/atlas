@@ -282,7 +282,12 @@ class ResourceProvider {
 
     addResources(profile, resourceValues) {
         const resources = _.get(this.resourceInstance.resources, profile, {});
-        const resourceValue = new Set([...resources[this.resourceName], ...resourceValues]);
+        let resourceValue;
+        if (resources[this.resourceName] && !_.isEmpty(resources[this.resourceName])) {
+            resourceValue = new Set([...resources[this.resourceName], ...resourceValues]);
+        } else {
+            resourceValue = resourceValues;
+        }
         this.resourceInstance.updateResource(profile, this.resourceName, resourceValue);
     }
 }
