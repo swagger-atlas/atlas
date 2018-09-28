@@ -16,6 +16,8 @@ Quick Start
 - Switch to new directory
 - Copy your swagger definition and Profiles in Conf directory
 - Run `python manage.py generate`
+- Fill up your resource mapping as needed
+- Run `python manage.py fetch_data`
 
 
 K6 Load Test Basics

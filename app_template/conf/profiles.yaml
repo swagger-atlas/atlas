@@ -1,2 +1,5 @@
 default:
-  key: value
+  token: dummy
+  tags:
+    - tag1
+    - tag2
