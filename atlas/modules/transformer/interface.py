@@ -11,11 +11,12 @@ class OpenAPITaskInterface:
 
     def __init__(self):
 
-        self._parameters = []
+        self._parameters = {}
         self._func_name = ""
         self._method = ""
         self._url = ""
         self._tags = []
+        self._responses = {}
 
     @property
     def parameters(self):
@@ -60,3 +61,11 @@ class OpenAPITaskInterface:
         if not isinstance(value, list):
             raise exceptions.ImproperSwaggerException("Tags must be Array - Op ID {}".format(self.func_name))
         self._tags = value
+
+    @property
+    def responses(self):
+        return self._responses
+
+    @responses.setter
+    def responses(self, value):
+        self._responses = value

@@ -18,7 +18,7 @@ class K6FileConfig(transformer.FileConfig):
             "import {{ hook, profile }} from '{path}'".format(
                 path=os.path.join(utils.get_project_path(), settings.INPUT_FOLDER, settings.K6_HOOK_FILE)
             ),
-            "import {{ Provider, EmptyResourceError }} from '{path}'".format(
+            "import {{ Provider }} from '{path}'".format(
                 path=os.path.join("atlas", "modules", "data_provider", "k6", "providers.js")
             )
         ]

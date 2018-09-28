@@ -1,3 +1,4 @@
+import json
 import re
 
 from atlas.modules import constants, utils
@@ -38,7 +39,7 @@ class Task(models.Task):
         body = list()
 
         if self.data_body:
-            body.append("const bodyConfig = {config};".format(config=self.data_body))
+            body.append("const bodyConfig = {config};".format(config=json.dumps(self.data_body)))
 
         if self.open_api_op.tags and settings.ONLY_TAG_API:
             body.append("const tags = [{}];".format(", ".join(["'{}'".format(tag) for tag in self.open_api_op.tags])))
@@ -86,6 +87,18 @@ class Task(models.Task):
             op_id=self.open_api_op.func_name, args="[{}]".format(", ".join(param_array))
         ))
 
+        # TODO: Get the MIME from Operation MIME
+        mime = "json"
+        if mime == "json" and "body" in param_array:
+            body.append("reqArgs[1] = JSON.stringify(reqArgs[1]);")
+            body.append("reqArgs[2].headers['Content-Type'] = 'application/json';")
+
+        response = self.parse_responses(self.open_api_op.responses)
+        if response:
+            body.append("let responseResource = '{}';".format(response[1]))
+            body.append("let responseField = '{}';".format(response[0]))
+            self.post_check_tasks.append("provider.addData(res.json(), responseResource, responseField)")
+
         return body
 
     def get_function_definition(self, width):
@@ -96,7 +109,11 @@ class Task(models.Task):
             method=k6_constants.K6_MAP.get(self.open_api_op.method, self.open_api_op.method)
         ))
 
-        check_statement = "check(res, {'resp is 2xx': (r) => (r.status >= 200 && r.status < 300) });"
+        post_check_statements = " && ".join(self.post_check_tasks) if self.post_check_tasks else ""
+
+        check_statement = "check(res, {{'resp is 2xx': (r) => (r.status >= 200 && r.status < 300) {}}});".format(
+            "&& " + post_check_statements if post_check_statements else ""
+        )
 
         body.append(check_statement)
         return "\n{w}".format(w=' ' * width * 4).join(body)

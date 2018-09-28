@@ -11,7 +11,8 @@ COMMANDS = {
     "generate": "atlas.modules.resource_creator.commands.generate.Generate",
     "fetch_data": "atlas.modules.resource_data_generator.commands.generate.Generate",
     "setup": "atlas.modules.transformer.commands.setup.Setup",
-    "dist": "atlas.modules.transformer.commands.dist.Dist"
+    "dist": "atlas.modules.transformer.commands.dist.Dist",
+    "order": "atlas.modules.transformer.commands.order.Order"
 }
 
 
