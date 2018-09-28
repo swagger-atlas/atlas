@@ -10,15 +10,17 @@ class Client:
 
     def __init__(self):
         self.db = self.connect_to_db()
-        self.db.connect(reuse_if_open=True)
+        if self.db:
+            self.db.connect(reuse_if_open=True)
 
     def __del__(self):
-        self.db.close()
+        if self.db:
+            self.db.close()
 
     @staticmethod
     def connect_to_db():
         engine = constants.DATABASE_MAP.get(settings.DATABASE[constants.ENGINE])
-        return engine["engine"](settings.DATABASE[constants.NAME], **engine["args"])
+        return engine["engine"](settings.DATABASE[constants.NAME], **engine["args"]) if engine else None
 
     def execute_sql(self, sql):
         """

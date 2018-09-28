@@ -11,7 +11,7 @@ from atlas.conf import settings
 LIBS = {
     # Please do not change the names of keys as we have imported the packages in multiple locations with these names
     "lodash": "https://raw.githubusercontent.com/lodash/lodash/4.17.10-npm/lodash.min.js",
-    "faker": "https://github.com/JoshLabs/faker.js/blob/master/build/build/faker.min.js"
+    "faker": "https://raw.githubusercontent.com/JoshLabs/faker.js/master/build/build/faker.min.js"
 }
 
 BOOL_MAP = {
