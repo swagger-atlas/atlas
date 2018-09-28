@@ -299,7 +299,7 @@ export class Provider {
         this.profile = profile;
         // Ideally, Resource class should be singleton
         // But here we know that Provider would be initialized only once
-        this.resourceInstance = new Resource();
+        this.resourceInstance = Resource.instance;
     }
 
     static getFakeData(config) {
