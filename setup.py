@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="atlas",
-    version="0.5",
+    version="0.6",
     packages=["atlas"],
     install_requires=[
         "six==1.11.0",
@@ -10,6 +10,7 @@ setup(
         "peewee==3.6.4",
         "pymysql==0.9.2",
         "psycopg2==2.7.5",
-        "requests==2.19.1"
+        "requests==2.19.1",
+        "inflection==0.3.1"
     ]
 )

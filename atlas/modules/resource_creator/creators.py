@@ -1,5 +1,7 @@
 import re
 
+import inflection
+
 from atlas.conf import settings
 from atlas.modules import (
     constants as swagger_constants,
@@ -50,7 +52,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         }
 
     @staticmethod
-    def extract_resource_name_from_param(param_name):
+    def extract_resource_name_from_param(param_name, url_path):
         """
         Extract Resource Name from parameter name
         Names could be either snake case (foo_id) or camelCase (fooId)
@@ -59,16 +61,26 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
         resource_name = None
 
-        identifier_suffixes = ["_id", "Id", "_slug", "Slug"]
+        identifier_suffixes = {"_id", "Id", "_slug", "Slug", "pk"}
 
         for suffix in identifier_suffixes:
             if param_name.endswith(suffix):
                 resource_name = param_name[:-len(suffix)]
                 break
 
+        # Resource Name not found by simple means.
+        # Now, assume that resource could be available after the resource
+        # For example: pets/{id} -- here most likely id refers to pet
+        if not resource_name and param_name in {"id", "slug", "pk"}:
+            url_array = url_path.split("/")
+            resource_index = url_array.index(f'{{{param_name}}}') - 1
+            if resource_index >= 0:
+                # Singularize the resource
+                resource_name = inflection.singularize(url_array[resource_index])
+
         return resource_name
 
-    def parse_params(self, params):
+    def parse_params(self, params, url):
 
         for param in params:
             param_type = param.get(swagger_constants.IN_)
@@ -89,7 +101,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 if resource is not None:    # Empty strings should be respected
                     self.add_resource(resource)
                 elif not resource:          # If resource is explicitly empty string, we should not generate them
-                    resource = self.extract_resource_name_from_param(name)
+                    resource = self.extract_resource_name_from_param(name, url)
                     if resource:
                         param[swagger_constants.RESOURCE] = resource
                         self.add_resource(resource)
@@ -131,20 +143,20 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
     def parse(self):
 
-        for path in self.specs.get(swagger_constants.PATHS, {}).values():
+        for url, path_config in self.specs.get(swagger_constants.PATHS, {}).items():
 
-            parameters = path.get(swagger_constants.PARAMETERS)
+            parameters = path_config.get(swagger_constants.PARAMETERS)
 
             if parameters:
-                self.parse_params(parameters)
+                self.parse_params(parameters, url)
 
-            for method, method_config in path.items():
+            for method, method_config in path_config.items():
 
                 if method in swagger_constants.VALID_METHODS:
                     parameters = method_config.get(swagger_constants.PARAMETERS)
 
                     if parameters:
-                        self.parse_params(parameters)
+                        self.parse_params(parameters, url)
 
     def update(self):
 
