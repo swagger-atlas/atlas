@@ -14,12 +14,28 @@ BOOL_MAP = {
 
 
 TEMPLATE = """
-export class Resource {{
+const singleton = Symbol();
+const singletonEnforcer = Symbol();
 
-    constructor() {{
+export class Resource {{
+    // Resource class is singleton
+    // You have to use resource.instance to get resource, and not new Resource()
+
+    constructor(enforcer) {{
+        if(enforcer !== singletonEnforcer) {{
+            throw "Cannot construct Singleton";
+        }}
+
         this.resources = {{
             {resource}
         }};
+    }}
+
+    static get instance() {{
+        if(!this[singleton]) {{
+            this[singleton] = new Resource(singletonEnforcer);
+        }}
+        return this[singleton];
     }}
 
     updateResource(profile, resourceKey, resourceValues) {{
