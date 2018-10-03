@@ -28,6 +28,9 @@ PROPERTIES = "properties"
 READ_ONLY = "readOnly"
 TITLE = "title"
 DESCRIPTION = "description"
+ALL_OF = "allOf"
+ADDITIONAL_PROPERTIES = "additionalProperties"
+MIN_PROPERTIES = "minProperties"
 
 # Open API Supported Methods
 GET = "get"

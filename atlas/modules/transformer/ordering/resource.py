@@ -39,6 +39,12 @@ class ResourceGraph(DAG):
         self.resources = dict()
         self.references = [Reference(key, config) for key, config in references.items()]
 
+    def add_ref_edge(self, ref, dependent_key):
+        if ref:
+            source_key = utils.get_ref_name(ref)
+            # Note the edge - Source is required for resource
+            self.add_edge(source_key, dependent_key)
+
     def construct_graph(self):
 
         # Add all nodes first
@@ -53,10 +59,11 @@ class ResourceGraph(DAG):
                 if _type == constants.ARRAY:
                     config = config.get(constants.ITEMS, {})
                 ref = config.get(constants.REF)
-                if ref:
-                    source_key = utils.get_ref_name(ref)
-                    # Note the edge - Source is required for resource
-                    self.add_edge(source_key, resource_key)
+                self.add_ref_edge(ref, resource_key)
+
+            # Now look through Additional properties to see if there is any ref there
+            ref = resource_config.get(constants.ADDITIONAL_PROPERTIES, {}).get(constants.REF)
+            self.add_ref_edge(ref, resource_key)
 
     @staticmethod
     def get_ref_name(config):
