@@ -27,6 +27,9 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         self.resource_keys = self.format_references(self.resources.keys())
         self.new_resources = set()
 
+        # Keep list of refs which are already processed to avoid duplicate processing
+        self.processed_refs = set()
+
     @staticmethod
     def format_references(references) -> set:
         """
@@ -60,10 +63,10 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         """
         Add a virtual reference for every resource in Swagger definition
         """
-        definitions = self.specs.get(swagger_constants.DEFINITIONS)
+        definitions = self.specs.get(swagger_constants.DEFINITIONS, {})
 
-        if reference in self.spec_definitions:
-            return  # We already have reference with same name, so do nothing
+        if reference in self.spec_definitions or reference in self.processed_refs:
+            return  # We already have reference with same name, or have processed it earlier, so do nothing
 
         definitions[reference] = {
             swagger_constants.TYPE: swagger_constants.OBJECT,
@@ -73,6 +76,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 fields[swagger_constants.PARAMETER_NAME]: dict(fields)
             }
         }
+        self.processed_refs.add(reference)
 
     @staticmethod
     def extract_resource_name_from_param(param_name, url_path):
@@ -153,6 +157,9 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
     def parse_reference(self, ref_name, ref_config):
 
+        if ref_name in self.processed_refs:
+            return      # This has already been processed, so need to do it again
+
         for element in ref_config.get(swagger_constants.ALL_OF, []):
             self.resolve_schema(element)
 
@@ -167,6 +174,8 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 if resource:
                     resource = self.add_resource(resource)
                     value[swagger_constants.RESOURCE] = resource
+
+        self.processed_refs.add(ref_name)
 
     def parse(self):
 
@@ -184,6 +193,9 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
                     if parameters:
                         self.parse_params(parameters, url)
+
+        for ref_name, ref_config in self.specs.get(swagger_constants.DEFINITIONS, {}).items():
+            self.parse_reference(ref_name, ref_config)
 
     def update(self):
 
