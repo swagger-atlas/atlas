@@ -110,14 +110,18 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
             elif param_type == swagger_constants.BODY_PARAM:
                 self.resolve_body_param(param)
 
-    def resolve_body_param(self, param_config):
-        schema = param_config.get(swagger_constants.SCHEMA, {})
+    def resolve_body_param(self, body_config):
+        schema = body_config.get(swagger_constants.SCHEMA, {})
+        self.resolve_schema(schema)
 
+    def resolve_schema(self, schema):
+        """
+        We can only associate Complete references, and not in-line definitions
+        """
         ref = schema.get(swagger_constants.REF)
 
         if ref:
             self.get_ref_name_and_config(ref)
-        # We have no way to map in-line obj def. to a resource
 
     def get_ref_name_and_config(self, ref):
         ref_config = utils.resolve_reference(self.specs, ref)
@@ -125,6 +129,9 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         self.parse_reference(ref_name, ref_config)
 
     def parse_reference(self, ref_name, ref_config):
+
+        for element in ref_config.get(swagger_constants.ALL_OF, []):
+            self.resolve_schema(element)
 
         properties = ref_config.get(swagger_constants.PROPERTIES)
 

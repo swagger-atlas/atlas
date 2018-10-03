@@ -45,6 +45,33 @@ class ResourceGraph(DAG):
             # Note the edge - Source is required for resource
             self.add_edge(source_key, dependent_key)
 
+    def process_resource_for_refs(self, resource_config: dict) -> set:
+        """
+        Process a single resource and return set of all references from it
+        """
+        refs = set()
+
+        # Check if there is reference
+        # This is needed when this is called recursively via All of mechanism
+        refs.add(resource_config.get(constants.REF))
+
+        # Recursively process ALL OF sub-schemas
+        for schema in resource_config.get(constants.ALL_OF, []):
+            refs.update(self.process_resource_for_refs(schema))
+
+        # Look through properties
+        for config in resource_config.get(constants.PROPERTIES, {}).values():
+            _type = config.get(constants.TYPE)
+            if _type == constants.ARRAY:
+                config = config.get(constants.ITEMS, {})
+            ref = config.get(constants.REF)
+            refs.add(ref)
+
+        # Now look through Additional properties to see if there is any ref there
+        refs.add(resource_config.get(constants.ADDITIONAL_PROPERTIES, {}).get(constants.REF))
+
+        return refs
+
     def construct_graph(self):
 
         # Add all nodes first
@@ -54,16 +81,9 @@ class ResourceGraph(DAG):
 
         # Now add edges between the nodes
         for resource_key, resource_config in self.resources.items():
-            for config in resource_config.get(constants.PROPERTIES, {}).values():
-                _type = config.get(constants.TYPE)
-                if _type == constants.ARRAY:
-                    config = config.get(constants.ITEMS, {})
-                ref = config.get(constants.REF)
+            refs = self.process_resource_for_refs(resource_config)
+            for ref in refs:
                 self.add_ref_edge(ref, resource_key)
-
-            # Now look through Additional properties to see if there is any ref there
-            ref = resource_config.get(constants.ADDITIONAL_PROPERTIES, {}).get(constants.REF)
-            self.add_ref_edge(ref, resource_key)
 
     @staticmethod
     def get_ref_name(config):

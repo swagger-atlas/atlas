@@ -41,6 +41,22 @@ class DataConfig:
         return data_body
 
     def generate(self, config):
+        """
+        Generates the schema for Load testing file
+        Runs as following:
+            1. First check for ALL OF. If yes, recursively parse each sub-schema
+            2. Then, check for Additional Properties, and add free fields
+            3. Go through Properties, and make sure that references are parsed correctly as needed
+        """
+
+        data_body = {}
+        all_of_config = config.get(constants.ALL_OF, [])
+
+        for element in all_of_config:
+            data_body.update(self.generate(element))
+
+        if all_of_config:
+            return data_body
 
         data_body = self.process_additional_properties(config)
 
