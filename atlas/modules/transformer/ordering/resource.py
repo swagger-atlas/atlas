@@ -82,15 +82,12 @@ class ResourceGraph(DAG):
                     ref_graph[ref] = "consumer"
 
                 # Try to find if it is Path Params Resource
+                # This should over-write any previous value
                 if not ref:
                     resource = parameter.get(constants.RESOURCE)
                     if resource:
-                        # Convert it to CamelCase for matching purposes
-                        snake_case = re.sub("-", "_", resource)
-                        ref = "".join([x.title() for x in snake_case.split("_")])
-
                         # This time, it is Path Params, so we are sure that is is consumer
-                        ref_graph[ref] = "consumer"
+                        ref_graph[resource] = "consumer"
 
             for ref, ref_op in ref_graph.items():
                 ref_node = self.nodes.get(ref)
