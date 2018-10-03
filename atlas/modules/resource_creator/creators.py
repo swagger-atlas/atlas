@@ -21,13 +21,40 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
         self.swagger_file = swagger_file or settings.SWAGGER_FILE
         self.specs = self.read_file_from_input(self.swagger_file, {})
+        self.spec_definitions = self.format_references(self.specs.get(swagger_constants.DEFINITIONS, {}).keys())
 
         self.resources = self.read_file_from_input(settings.MAPPING_FILE, {})
+        self.resource_keys = self.format_references(self.resources.keys())
         self.new_resources = set()
 
+    @staticmethod
+    def format_references(references) -> set:
+        """
+        Convert all resource keys to uniform format
+        Uniformity is ensured by:
+            - Making sure everything is in lower case
+            - removing _, - from strings
+
+        This does mean that abc_d, and ab_cd refers to same keys
+        However, we estimate that this has lower probability
+            than users writing Swagger correctly to adhere to correct casing in their references
+
+        :return: Set of all Resource Keys
+        """
+        return {"".join([x.lower() for x in re.sub("-", "_", key).split("_")]) for key in references}
+
     def add_resource(self, resource):
-        if resource and resource not in self.resources:
+
+        if not resource:
+            return ""
+
+        resource = "".join([x.lower() for x in re.sub("-", "_", resource).split("_")])
+
+        if resource not in self.resource_keys:
             self.new_resources.add(resource)
+            self.resource_keys.add(resource)
+
+        return resource
 
     def add_reference_definition(self, reference, fields):
         """
@@ -35,11 +62,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         """
         definitions = self.specs.get(swagger_constants.DEFINITIONS)
 
-        # Change reference name to CamelCase
-        snake_case = re.sub("-", "_", reference)
-        reference = "".join([x.title() for x in snake_case.split("_")])
-
-        if reference in definitions:
+        if reference in self.spec_definitions:
             return  # We already have reference with same name, so do nothing
 
         definitions[reference] = {
@@ -103,8 +126,8 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 elif not resource:          # If resource is explicitly empty string, we should not generate them
                     resource = self.extract_resource_name_from_param(name, url)
                     if resource:
+                        resource = self.add_resource(resource)
                         param[swagger_constants.RESOURCE] = resource
-                        self.add_resource(resource)
                         self.add_reference_definition(resource, param)
 
             elif param_type == swagger_constants.BODY_PARAM:
@@ -138,8 +161,8 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 resource = value.get(swagger_constants.RESOURCE, utils.convert_to_snake_case(ref_name))
 
                 if resource:
+                    resource = self.add_resource(resource)
                     value[swagger_constants.RESOURCE] = resource
-                    self.add_resource(resource)
 
     def parse(self):
 
