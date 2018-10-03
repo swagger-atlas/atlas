@@ -133,13 +133,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         for element in ref_config.get(swagger_constants.ALL_OF, []):
             self.resolve_schema(element)
 
-        properties = ref_config.get(swagger_constants.PROPERTIES)
-
-        # We check for additional properties, though we would not create a reference for it
-        additional_properties = ref_config.get(swagger_constants.ADDITIONAL_PROPERTIES)
-
-        if properties is None and additional_properties is None:   # Properties can be empty dictionary, which is fine
-            raise exceptions.ImproperSwaggerException("Properties must be defined for {}".format(ref_name))
+        properties = ref_config.get(swagger_constants.PROPERTIES, {})
 
         for key, value in properties.items():
             if swagger_constants.REF in value:
