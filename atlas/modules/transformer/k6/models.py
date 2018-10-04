@@ -99,6 +99,13 @@ class Task(models.Task):
             body.append("let responseField = '{}';".format(response[0]))
             self.post_check_tasks.append("provider.addData(res.json(), responseResource, responseField)")
 
+        if self.open_api_op.method == constants.DELETE:
+            delete_resource = self.get_delete_resource()
+            if delete_resource:
+                body.append(f"let deleteResource = '{delete_resource}';")
+                body.append(f"let deleteValue = '';")       # TODO: Figure this out
+                self.post_check_tasks.append("provider.deleteData(deleteResource, deleteValue)")
+
         return body
 
     def get_function_definition(self, width):
