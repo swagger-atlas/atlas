@@ -230,7 +230,7 @@ const FakeData = {
     },
 
     getRange: function(config) {
-        let minimum = _.get(config, constants.MINIMUM, 0);
+        let minimum = _.get(config, constants.MINIMUM, 1);
         let maximum = _.get(config, constants.MAXIMUM, LIMIT);
 
         if (_.get(config, constants.MIN_EXCLUDE, false)) {
@@ -339,7 +339,7 @@ export class Provider {
 
             let value = resource ? self.getResource(resource) : Provider.getFakeData(itemConfig);
 
-            if (value) {
+            if (!_.isNull(value)) {
                 dataBody[itemName] = value;
             }
         });
