@@ -27,6 +27,9 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         self.resource_keys = self.format_references(self.resources.keys())
         self.new_resources = set()
 
+        # Keep list of refs which are already processed to avoid duplicate processing
+        self.processed_refs = set()
+
     @staticmethod
     def format_references(references) -> set:
         """
@@ -60,10 +63,10 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         """
         Add a virtual reference for every resource in Swagger definition
         """
-        definitions = self.specs.get(swagger_constants.DEFINITIONS)
+        definitions = self.specs.get(swagger_constants.DEFINITIONS, {})
 
-        if reference in self.spec_definitions:
-            return  # We already have reference with same name, so do nothing
+        if reference in self.spec_definitions or reference in self.processed_refs:
+            return  # We already have reference with same name, or have processed it earlier, so do nothing
 
         definitions[reference] = {
             swagger_constants.TYPE: swagger_constants.OBJECT,
@@ -73,6 +76,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 fields[swagger_constants.PARAMETER_NAME]: dict(fields)
             }
         }
+        self.processed_refs.add(reference)
 
     @staticmethod
     def extract_resource_name_from_param(param_name, url_path):
@@ -133,14 +137,18 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
             elif param_type == swagger_constants.BODY_PARAM:
                 self.resolve_body_param(param)
 
-    def resolve_body_param(self, param_config):
-        schema = param_config.get(swagger_constants.SCHEMA, {})
+    def resolve_body_param(self, body_config):
+        schema = body_config.get(swagger_constants.SCHEMA, {})
+        self.resolve_schema(schema)
 
+    def resolve_schema(self, schema):
+        """
+        We can only associate Complete references, and not in-line definitions
+        """
         ref = schema.get(swagger_constants.REF)
 
         if ref:
             self.get_ref_name_and_config(ref)
-        # We have no way to map in-line obj def. to a resource
 
     def get_ref_name_and_config(self, ref):
         ref_config = utils.resolve_reference(self.specs, ref)
@@ -149,10 +157,13 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
     def parse_reference(self, ref_name, ref_config):
 
-        properties = ref_config.get(swagger_constants.PROPERTIES)
+        if ref_name in self.processed_refs:
+            return      # This has already been processed, so need to do it again
 
-        if properties is None:      # Properties can be empty dictionary, which is fine
-            raise exceptions.ImproperSwaggerException("Properties must be defined for {}".format(ref_name))
+        for element in ref_config.get(swagger_constants.ALL_OF, []):
+            self.resolve_schema(element)
+
+        properties = ref_config.get(swagger_constants.PROPERTIES, {})
 
         for key, value in properties.items():
             if swagger_constants.REF in value:
@@ -163,6 +174,8 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 if resource:
                     resource = self.add_resource(resource)
                     value[swagger_constants.RESOURCE] = resource
+
+        self.processed_refs.add(ref_name)
 
     def parse(self):
 
@@ -180,6 +193,9 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
                     if parameters:
                         self.parse_params(parameters, url)
+
+        for ref_name, ref_config in self.specs.get(swagger_constants.DEFINITIONS, {}).items():
+            self.parse_reference(ref_name, ref_config)
 
     def update(self):
 
