@@ -167,15 +167,14 @@ class Task:
         """
 
         url_paths = self.open_api_op.url.split("/")
-        resource = ""
+        param = ""
 
         for component in reversed(url_paths):
             if component.startswith("{") and component.endswith("}"):
                 param = component[1:-1]     # Strip leading and trailing curly braces
-                resource = self.url_params.get(param, {}).get(constants.RESOURCE, "")
                 break
 
-        return resource
+        return param
 
 
 class TaskSet:

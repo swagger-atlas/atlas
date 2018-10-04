@@ -49,18 +49,21 @@ class Task(models.Task):
 
         query_str, path_str = self.parse_url_params_for_body()
 
-        url_str = "let url = baseURL + '{}';".format(self.open_api_op.url)
-
-        body.append(url_str)
+        body.append(f"let url = baseURL + '{self.open_api_op.url}';")
 
         if query_str != "{}" or path_str != "{}":
+            body.append("let urlConfig = [];")
+
             # If one if present, we need to append both
             body.append("const queryConfig = {q};".format_map(utils.StringDict(q=query_str)))
             body.append("const pathConfig = {p};".format_map(utils.StringDict(p=path_str)))
 
             # Also get Path Parameters
             body.extend(self.error_template_list(
-                ["url = formatURL(url, queryConfig, pathConfig);"]
+                [
+                    "urlConfig = formatURL(url, queryConfig, pathConfig);",
+                    "url = urlConfig[0];",
+                ]
             ))
 
         body.append("let headers = _.cloneDeep(defaultHeaders);")
@@ -93,6 +96,13 @@ class Task(models.Task):
             body.append("reqArgs[1] = JSON.stringify(reqArgs[1]);")
             body.append("reqArgs[2].headers['Content-Type'] = 'application/json';")
 
+        return self.cache_operation_tasks(body)
+
+    def cache_operation_tasks(self, body):
+        """
+        Define the definition for tasks which are responsible for updating the cached data
+        """
+
         response = self.parse_responses(self.open_api_op.responses)
         if response:
             body.append("let responseResource = '{}';".format(response[1]))
@@ -102,10 +112,10 @@ class Task(models.Task):
         if self.open_api_op.method == constants.DELETE:
             delete_resource = self.get_delete_resource()
             if delete_resource:
-                body.append(f"let deleteResource = '{delete_resource}';")
-                body.append(f"let deleteValue = '';")       # TODO: Figure this out
-                self.post_check_tasks.append("provider.deleteData(deleteResource, deleteValue)")
-
+                body.append(f"let deleteField = '{delete_resource}';")
+                self.post_check_tasks.append(
+                    "provider.deleteData(pathConfig[deleteField].resource, urlConfig[1][deleteField])"
+                )
         return body
 
     def get_function_definition(self, width):
@@ -156,7 +166,7 @@ class TaskSet(models.TaskSet):
             "const queryParams = provider.generateData(queryConfig);",
             "const queryString = Object.keys(queryParams).map(key => key + '=' + queryParams[key]).join('&');",
             "url = queryString? url + '?' + queryString : url;",
-            "return url;"
+            "return [url, _.assign(pathParams, queryParams)];"
         ]
         join_string = "\n{w}".format(w=' ' * width * 4)
         return join_string.join(statements) + "\n}"
