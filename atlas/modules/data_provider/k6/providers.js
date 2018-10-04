@@ -299,6 +299,17 @@ class ResourceProvider {
         }
         this.resourceInstance.updateResource(profile, this.resourceName, resourceValue);
     }
+
+    deleteResource(profile, resourceValue) {
+        const resources = _.get(this.resourceInstance.resources, profile, {});
+        let resourceValues = resources[this.resourceName];
+
+        // We try deleting value both as string and number.
+        resourceValues.delete(resourceValue);
+        resourceValues.delete(+resourceValue);
+
+        this.resourceInstance.updateResource(profile, this.resourceName, resourceValues);
+    }
 }
 
 
@@ -367,6 +378,11 @@ export class Provider {
             new ResourceProvider(resourceKey, self.resourceInstance).addResources(self.profile, newResources);
         }
 
+        return true;
+    }
+
+    deleteData(resourceKey, resourceValue) {
+        new ResourceProvider(resourceKey, this.resourceInstance).deleteResource(this.profile, resourceValue);
         return true;
     }
 
