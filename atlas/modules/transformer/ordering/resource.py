@@ -43,19 +43,24 @@ class ResourceGraph(DAG):
             # Note the edge - Source is required for resource
             self.add_edge(source_key, dependent_key)
 
-    def process_resource_for_refs(self, resource_config: dict) -> set:
+    @staticmethod
+    def process_resource_for_refs(resource_config: dict) -> set:
         """
         Process a single resource and return set of all references from it
         """
         refs = set()
 
-        # Check if there is reference
-        # This is needed when this is called recursively via All of mechanism
-        refs.add(resource_config.get(constants.REF))
+        # ########## --  Ignore ALL OF, since adding these relations gave us several cycles -- ####
 
-        # Recursively process ALL OF sub-schemas
-        for schema in resource_config.get(constants.ALL_OF, []):
-            refs.update(self.process_resource_for_refs(schema))
+        # # Check if there is reference
+        # # This is needed when this is called recursively via All of mechanism
+        # refs.add(resource_config.get(constants.REF))
+
+        # # Recursively process ALL OF sub-schemas
+        # for schema in resource_config.get(constants.ALL_OF, []):
+        #     refs.update(self.process_resource_for_refs(schema))
+
+        # ####### -- Rest of code starts here ------- ###################
 
         # Look through properties
         for config in resource_config.get(constants.PROPERTIES, {}).values():
