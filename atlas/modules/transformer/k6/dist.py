@@ -1,12 +1,13 @@
 from collections import namedtuple
 import os
+import shutil
 import subprocess
 
 from atlas.modules import utils, project_setup
 from atlas.conf import settings
 
 
-PySed = namedtuple('pysed_tuple', ['pattern', 'replace_text'])
+PySed = namedtuple('py_sed_tuple', ['pattern', 'replace_text'])
 
 
 class K6Dist(project_setup.Setup):
@@ -34,16 +35,24 @@ class K6Dist(project_setup.Setup):
         ]
 
         for _file in source_files:
-            subprocess.call("cp {} {}".format(_file, os.path.join(self.path, settings.DIST_FOLDER)).split())
+            shutil.copy(_file, os.path.join(self.path, settings.DIST_FOLDER))
 
     def copy_folders(self):
 
-        source_folders = [
-            os.path.join(self.path, "js_libs")
+        CopyFolder = namedtuple("copy_folder", ["source_path", "destination_path"])
+
+        folders = [
+            CopyFolder(os.path.join(self.path, "js_libs"), os.path.join(self.path, settings.DIST_FOLDER, "js_libs"))
         ]
 
-        for _folder in source_folders:
-            subprocess.call("cp -R {} {}".format(_folder, os.path.join(self.path, settings.DIST_FOLDER)).split())
+        # Remove destination folder(s) if already exists
+        for _folder in folders:
+            if os.path.exists(_folder.destination_path):
+                shutil.rmtree(_folder.destination_path)
+
+        # Now copy all source folders to destination folders
+        for _folder in folders:
+            shutil.copytree(_folder.source_path, _folder.destination_path)
 
     @staticmethod
     def change_project_imports():
