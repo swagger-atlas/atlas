@@ -1,8 +1,12 @@
+from collections import namedtuple
 import os
 import subprocess
 
 from atlas.modules import utils, project_setup
 from atlas.conf import settings
+
+
+PySed = namedtuple('pysed_tuple', ['pattern', 'replace_text'])
 
 
 class K6Dist(project_setup.Setup):
@@ -56,15 +60,14 @@ class K6Dist(project_setup.Setup):
 
         sed_commands = []
 
-        # Create a sed command to replace imports with simple naming schema
+        # Create a sed command to replace imports
+        # We actually use PYSED library than bash sed to ensure wider OS compatibility
         for _file in import_files:
-            sed_commands.append(
-                "s:(^import .* from )'.*{file_name}':\\1'./{file_name}':".format(file_name=_file)
-            )
+            sed_commands.append(PySed(f"(^import .* from )'.*{_file}'", f"\\1'./{_file}'"))
 
         for _file in source_files:
             for sed_command in sed_commands:
-                subprocess.call(["sed", "-Ei", sed_command, _file])
+                subprocess.call(["pysed", "-r", sed_command.pattern, sed_command.replace_text, _file, "--write"])
 
     @staticmethod
     def change_vendor_imports():
@@ -81,7 +84,7 @@ class K6Dist(project_setup.Setup):
             os.path.join(utils.get_project_path(), settings.DIST_FOLDER, settings.K6_FILE),
         ]
 
-        sed_command = "s:(^import .* from )'js_libs(.*)':\\1'./js_libs\\2':"
+        sed_command = PySed(pattern=f"(^import .* from )'js_libs(.*)'", replace_text=f"\\1'./js_libs\\2'")
 
         for _file in source_files:
-            subprocess.call(["sed", "-Ei", sed_command, _file])
+            subprocess.call(["pysed", "-r", sed_command.pattern, sed_command.replace_text, _file, "--write"])

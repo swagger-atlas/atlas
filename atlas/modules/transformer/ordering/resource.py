@@ -1,5 +1,3 @@
-import re
-
 from atlas.modules import constants, utils
 from atlas.modules.transformer.ordering.base import Node, DAG
 
