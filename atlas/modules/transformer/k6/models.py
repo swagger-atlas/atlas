@@ -35,6 +35,12 @@ class Task(models.Task):
         snake_case = re.sub("-", "_", self.open_api_op.func_name)
         return "".join([x.title() if idx > 0 else x for idx, x in enumerate(snake_case.split("_"))])
 
+    def get_format_url_params(self):
+        params = ['url', 'queryConfig', 'pathConfig']
+        if self.open_api_op.method == constants.DELETE:
+            params.append("'deleteData'")
+        return ", ".join(params)
+
     def body_definition(self):
         body = list()
 
@@ -61,7 +67,7 @@ class Task(models.Task):
             # Also get Path Parameters
             body.extend(self.error_template_list(
                 [
-                    "urlConfig = formatURL(url, queryConfig, pathConfig);",
+                    f"urlConfig = formatURL({self.get_format_url_params()});",
                     "url = urlConfig[0];",
                 ]
             ))
@@ -160,8 +166,8 @@ class TaskSet(models.TaskSet):
     @staticmethod
     def format_url(width):
         statements = [
-            "function formatURL(url, queryConfig, pathConfig) {",
-            "const pathParams = provider.generateData(pathConfig);",
+            "function formatURL(url, queryConfig, pathConfig, pathResourceCallback) {",
+            "const pathParams = provider.generateData(pathConfig, pathResourceCallback);",
             "url = dynamicTemplate(url, pathParams);",
             "const queryParams = provider.generateData(queryConfig);",
             "const queryString = Object.keys(queryParams).map(key => key + '=' + queryParams[key]).join('&');",

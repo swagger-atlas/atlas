@@ -48,7 +48,7 @@ export class Resource {{
     getResource(profile, resourceKey) {{
         let resp = http.post(this.db_url, "smembers/" + Resource.getKey(profile, resourceKey));
         const values = resp.json().smembers;
-        return new Set(_.isEmpty(values) ? []: values[0]);
+        return new Set(_.isEmpty(values) ? []: values);
     }}
 
     updateResource(profile, resourceKey, resourceValues) {{

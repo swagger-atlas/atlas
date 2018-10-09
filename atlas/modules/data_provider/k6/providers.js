@@ -310,12 +310,18 @@ export class Provider {
         return ret;
     }
 
-    getResource(resource) {
+    getResource(resource, resourceCallBack) {
         const resourceProvider = new ResourceProvider(resource, this.resourceInstance);
-        return resourceProvider.getResources(this.profile);
+        const value = resourceProvider.getResources(this.profile);
+
+        // Resource CallBack is assumed to take ResourceKey and ResourceValue as inputs
+        if (resourceCallBack && this[resourceCallBack]) {
+            this[resourceCallBack](resource, value);
+        }
+        return value;
     }
 
-    generateData(config) {
+    generateData(config, resourceCallBack) {
 
         let dataBody = {};
         const self = this;
@@ -324,7 +330,7 @@ export class Provider {
 
             const resource = _.get(itemConfig, constants.RESOURCE);
 
-            let value = resource ? self.getResource(resource) : Provider.getFakeData(itemConfig);
+            let value = resource ? self.getResource(resource, resourceCallBack) : Provider.getFakeData(itemConfig);
 
             if (!_.isNull(value)) {
                 dataBody[itemName] = value;
