@@ -33,11 +33,17 @@ Resource Setup
 See [Resources](https://code.jtg.tools/jtg/atlas/docs/resources.md) for details
 
 Quick K6 Run:
+
+- Install and Run Redis Server: https://redis.io/download
+- Install and run Webdis server: https://github.com/nicolasff/webdis
+
 - Install k6 (https://docs.k6.io/docs/installation)
 - Setup JS Libraries as needed: `python manage.py setup k6`
 - Convert Swagger to K6 JS File: `python manage.py build k6`
 - Distribute and load test:
     - `python manage.py dist k6`
     - `k6 run dist/k6.js -u <number_of_users> -i <number_of_iterations>` [See: https://docs.k6.io/docs/options]
+
+Before Each K6 Run, make sure Redis DB is flushed.
 
 You would need to see [K6 Guide](https://code.jtg.tools/jtg/atlas/docs/k6.md) for details.
