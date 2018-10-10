@@ -14,6 +14,9 @@ BOOL_MAP = {
 
 
 TEMPLATE = """
+import http from 'k6/http'
+import _ from 'js_libs/lodash.js'
+
 const singleton = Symbol();
 const singletonEnforcer = Symbol();
 
@@ -26,9 +29,9 @@ export class Resource {{
             throw "Cannot construct Singleton";
         }}
 
-        this.resources = {{
-            {resource}
-        }};
+        this.db_url = 'http://localhost:7379';
+
+        {initial_resources}
     }}
 
     static get instance() {{
@@ -38,8 +41,22 @@ export class Resource {{
         return this[singleton];
     }}
 
+    static getKey(profile, resourceKey) {{
+        return profile + ":" + resourceKey;
+    }}
+
+    getResource(profile, resourceKey) {{
+        let resp = http.post(this.db_url, "smembers/" + Resource.getKey(profile, resourceKey));
+        const values = resp.json().smembers;
+        return new Set(_.isEmpty(values) ? []: values);
+    }}
+
     updateResource(profile, resourceKey, resourceValues) {{
-        this.resources[profile][resourceKey] = resourceValues;
+        http.post(this.db_url, "sadd/" + Resource.getKey(profile, resourceKey) + "/" + _.join([...resourceValues], '/'));
+    }}
+
+    deleteResource(profile, resourceKey, resourceValue) {{
+        http.post(this.db_url, "srem/" + Resource.getKey(profile, resourceKey) + "/" + resourceValue);
     }}
 }}
 """
@@ -79,16 +96,11 @@ class Converter:
             with open(_file) as yaml_file:
                 data = yaml.safe_load(yaml_file)
 
-            indent_width = 3
+            indent_width = 2
+            profile_data.append(self.redis_statements(profile, data, indent_width))
 
-            indent = " "*4*indent_width
-            profile_data.append("{key}: {{\n{value}\n{indent}}}".format(
-                key=profile, value=self.serialize_resources(data, indent_width+1), indent=indent
-            ))
-
-        profile_str = ",\n".join(profile_data)
-        # out_data = "export const resources = {{\n{}\n}};\n".format(profile_str)
-        out_data = TEMPLATE.format(resource=profile_str)
+        profile_str = "\n".join(profile_data)
+        out_data = TEMPLATE.format(initial_resources=profile_str)
 
         out_file = os.path.join(self.path, settings.OUTPUT_FOLDER, settings.K6_RESOURCES)
 
@@ -96,16 +108,16 @@ class Converter:
             js_file.write(out_data)
 
     @staticmethod
-    def serialize_resources(data, indent_width):
+    def redis_statements(profile, data, indent_width):
         """
-        Serialize the Resource to JS conventions
+        Convert the resources into Redis Statements
         Assumption being that Resources are a single level dict, with each value being set
-        We cannot simply use JSON, since it is not YAML dict
         """
-
-        indent = ' '*4*indent_width
-        out_data = ["{}{}: new Set({})".format(indent, key, list(value)) for key, value in data.items()]
-        return ",\n".join(out_data)
+        indent = ' ' * 4 * indent_width
+        out_data = [
+            f"this.updateResource('{profile}', '{key}', new Set({list(value)}));" for key, value in data.items()
+        ]
+        return f"\n{indent}".join(out_data)
 
     def convert(self):
         self.convert_profiles()

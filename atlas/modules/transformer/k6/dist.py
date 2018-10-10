@@ -91,6 +91,7 @@ class K6Dist(project_setup.Setup):
             os.path.join(utils.get_project_path(), settings.DIST_FOLDER, "hookSetup.js"),
             os.path.join(utils.get_project_path(), settings.DIST_FOLDER, "profile.js"),
             os.path.join(utils.get_project_path(), settings.DIST_FOLDER, settings.K6_FILE),
+            os.path.join(utils.get_project_path(), settings.DIST_FOLDER, "resources.js"),
         ]
 
         sed_command = PySed(pattern=f"(^import .* from )'js_libs(.*)'", replace_text=f"\\1'./js_libs\\2'")

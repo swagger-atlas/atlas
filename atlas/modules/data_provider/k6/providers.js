@@ -257,13 +257,12 @@ class ResourceProvider {
         this.items = items || 1;
         this.isFlat = this.items === 1 ? isFlatForSingle : false;
 
-        this.resources = {};
         this.resourceInstance = resourceInstance;
     }
 
-    resourceSet() {
+    resourceSet(profile) {
         // Several Lodash arguments work only on arrays, so converting here if set
-        let resourceSet = [..._.get(this.resources, this.resourceName, [])];
+        let resourceSet = [...this.resourceInstance.getResource(profile, this.resourceName)];
 
         if (resourceSet.length > this.items) {
             resourceSet = _.sampleSize(resourceSet, this.items);
@@ -274,9 +273,7 @@ class ResourceProvider {
 
     getResources(profile) {
 
-        this.resources = _.get(this.resourceInstance.resources, profile, {});
-
-        let resources = this.resourceSet();
+        let resources = this.resourceSet(profile);
 
         if (_.isEmpty(resources)) {
             throw new EmptyResourceError(`Resource Pool not found for ${this.resourceName}`);
@@ -289,27 +286,6 @@ class ResourceProvider {
         return resources;
     }
 
-    addResources(profile, resourceValues) {
-        const resources = _.get(this.resourceInstance.resources, profile, {});
-        let resourceValue;
-        if (resources[this.resourceName] && !_.isEmpty(resources[this.resourceName])) {
-            resourceValue = new Set([...resources[this.resourceName], ...resourceValues]);
-        } else {
-            resourceValue = resourceValues;
-        }
-        this.resourceInstance.updateResource(profile, this.resourceName, resourceValue);
-    }
-
-    deleteResource(profile, resourceValue) {
-        const resources = _.get(this.resourceInstance.resources, profile, {});
-        let resourceValues = resources[this.resourceName];
-
-        // We try deleting value both as string and number.
-        resourceValues.delete(resourceValue);
-        resourceValues.delete(+resourceValue);
-
-        this.resourceInstance.updateResource(profile, this.resourceName, resourceValues);
-    }
 }
 
 
@@ -334,12 +310,18 @@ export class Provider {
         return ret;
     }
 
-    getResource(resource) {
+    getResource(resource, resourceCallBack) {
         const resourceProvider = new ResourceProvider(resource, this.resourceInstance);
-        return resourceProvider.getResources(this.profile);
+        const value = resourceProvider.getResources(this.profile);
+
+        // Resource CallBack is assumed to take ResourceKey and ResourceValue as inputs
+        if (resourceCallBack && this[resourceCallBack]) {
+            this[resourceCallBack](resource, value);
+        }
+        return value;
     }
 
-    generateData(config) {
+    generateData(config, resourceCallBack) {
 
         let dataBody = {};
         const self = this;
@@ -348,7 +330,7 @@ export class Provider {
 
             const resource = _.get(itemConfig, constants.RESOURCE);
 
-            let value = resource ? self.getResource(resource) : Provider.getFakeData(itemConfig);
+            let value = resource ? self.getResource(resource, resourceCallBack) : Provider.getFakeData(itemConfig);
 
             if (!_.isNull(value)) {
                 dataBody[itemName] = value;
@@ -375,14 +357,14 @@ export class Provider {
         }
 
         if (!_.isEmpty(newResources)) {
-            new ResourceProvider(resourceKey, self.resourceInstance).addResources(self.profile, newResources);
+            this.resourceInstance.updateResource(self.profile, resourceKey, newResources);
         }
 
         return true;
     }
 
     deleteData(resourceKey, resourceValue) {
-        new ResourceProvider(resourceKey, this.resourceInstance).deleteResource(this.profile, resourceValue);
+        this.resourceInstance.deleteResource(this.profile, resourceKey, resourceValue);
         return true;
     }
 
