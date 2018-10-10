@@ -60,8 +60,8 @@ class DataConfig:
 
         data_body = self.process_additional_properties(config)
 
-        properties = config.get(constants.PROPERTIES, {})
-        if properties:
+        properties = config.get(constants.PROPERTIES)   # Do not add default blank dict here, since it is checked
+        if properties or properties == {}:      # Properties could be blank dict, which is perfectly fine
             config = properties
 
         for item_name, item_config in config.items():
