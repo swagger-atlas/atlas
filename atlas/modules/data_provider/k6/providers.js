@@ -168,11 +168,21 @@ const FakeData = {
     },
 
     getObject: function(config) {
-        const properties = _.get(config, constants.PROPERTIES, {});
-        const additionalProperties = _.get(config, constants.ADDITIONAL_PROPERTIES, {});
 
-        if(_.isEmpty(properties) && _.isEmpty(additionalProperties)) {
+        // We want to respect empty properties and additional properties
+        let properties = config[constants.PROPERTIES];
+        let additionalProperties = config[constants.ADDITIONAL_PROPERTIES];
+
+        if(!properties && !additionalProperties) {
             throw new InvalidDataOptionsError(`"Properties should be defined for Object - ${JSON.stringify(config)}`)
+        }
+
+        if (!properties) {
+            properties = {};
+        }
+
+        if (!additionalProperties) {
+            additionalProperties = {};
         }
 
         let fakeObject = {};
@@ -184,13 +194,15 @@ const FakeData = {
             }
         });
 
-        const addPropMapper = FakeData.getFakeMapper(additionalProperties);
-        if (addPropMapper) {
-            // Generate minimum possible additional properties
-            _.forEach(_.range(_.get(additionalProperties, constants.MIN_PROPERTIES, 0)), function(index) {
-                fakeObject["k6_load_test_" + index] = addPropMapper;
-            });
-        }
+        if (!_.isEmpty(additionalProperties)) {
+            const addPropMapper = FakeData.getFakeMapper(additionalProperties);
+            if (addPropMapper) {
+                // Generate minimum possible additional properties
+                _.forEach(_.range(_.get(additionalProperties, constants.MIN_PROPERTIES, 0)), function (index) {
+                    fakeObject["k6_load_test_" + index] = addPropMapper;
+                });
+            }
+        }   
 
         return fakeObject
     },
