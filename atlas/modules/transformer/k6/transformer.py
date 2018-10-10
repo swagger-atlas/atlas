@@ -20,7 +20,8 @@ class K6FileConfig(transformer.FileConfig):
             ),
             "import {{ Provider }} from '{path}'".format(
                 path=os.path.join("atlas", "modules", "data_provider", "k6", "providers.js")
-            )
+            ),
+            "import * as settings from 'js_libs/settings.js'"
         ]
         return "\n".join(imports)
 
@@ -37,7 +38,7 @@ class K6FileConfig(transformer.FileConfig):
         setup_template = [
             "export function setup() {",
             "{w}new Provider(profile.profileName);".format(w=" "*4),
-            "{w}http.get('http://localhost:7379/flushdb');".format(w=" "*4),
+            "{w}http.get(settings.REDIS_SERVER_URL + '/flushdb');".format(w=" "*4),
             "}"
         ]
 

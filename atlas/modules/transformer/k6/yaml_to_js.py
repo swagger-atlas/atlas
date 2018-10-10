@@ -16,6 +16,7 @@ BOOL_MAP = {
 TEMPLATE = """
 import http from 'k6/http'
 import _ from 'js_libs/lodash.js'
+import * as settings from 'js_libs/settings.js'
 
 const singleton = Symbol();
 const singletonEnforcer = Symbol();
@@ -29,7 +30,7 @@ export class Resource {{
             throw "Cannot construct Singleton";
         }}
 
-        this.db_url = 'http://localhost:7379';
+        this.db_url = settings.REDIS_SERVER_URL;
 
         {initial_resources}
     }}
