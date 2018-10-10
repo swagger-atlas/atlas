@@ -38,7 +38,7 @@ class Task(models.Task):
     def get_format_url_params(self):
         params = ['url', 'queryConfig', 'pathConfig']
         if self.open_api_op.method == constants.DELETE:
-            params.append("'deleteData'")
+            params.append("{'delete': true}")
         return ", ".join(params)
 
     def body_definition(self):
@@ -115,13 +115,6 @@ class Task(models.Task):
             body.append("let responseField = '{}';".format(response[0]))
             self.post_check_tasks.append("provider.addData(res.json(), responseResource, responseField)")
 
-        if self.open_api_op.method == constants.DELETE:
-            delete_resource = self.get_delete_resource()
-            if delete_resource:
-                body.append(f"let deleteField = '{delete_resource}';")
-                self.post_check_tasks.append(
-                    "provider.deleteData(pathConfig[deleteField].resource, urlConfig[1][deleteField])"
-                )
         return body
 
     def get_function_definition(self, width):
@@ -196,6 +189,7 @@ class TaskSet(models.TaskSet):
     def convert(self, width):
         statements = [
             "export default function() {",
+            "{w}provider = new Provider(profile.profileName);".format(w=' ' * width * 4),
             "{w}{task_calls}".format(task_calls=self.task_calls(width), w=' ' * width * 4),
             "}",
             "\n",
