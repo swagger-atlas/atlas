@@ -45,9 +45,26 @@ export class Resource {{
         return profile + ":" + resourceKey;
     }}
 
-    getResource(profile, resourceKey) {{
-        let resp = http.post(this.db_url, "smembers/" + Resource.getKey(profile, resourceKey));
-        const values = resp.json().smembers;
+    getResource(profile, resourceKey, options) {{
+
+        let command = "smembers";
+        let isSingle = false;
+
+        if (options.delete) {{
+            command = "spop";
+            isSingle = true;
+        }} else if (options.items === 1) {{
+            command = "srandmember";
+            isSingle = true;
+        }}
+
+        let resp = http.post(this.db_url, command + "/" + Resource.getKey(profile, resourceKey));
+        let values = resp.json()[command];
+
+        if (isSingle) {{
+            values = _.isNil(values) ? [] : [values];
+        }}
+
         return new Set(_.isEmpty(values) ? []: values);
     }}
 

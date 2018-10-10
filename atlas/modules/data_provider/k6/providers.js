@@ -252,38 +252,54 @@ const FakeData = {
 
 
 class ResourceProvider {
-    constructor(resourceName, resourceInstance, items, isFlatForSingle) {
+    constructor(resourceName, resourceInstance) {
         this.resourceName = resourceName;
-        this.items = items || 1;
-        this.isFlat = this.items === 1 ? isFlatForSingle : false;
-
         this.resourceInstance = resourceInstance;
     }
 
-    resourceSet(profile) {
-        // Several Lodash arguments work only on arrays, so converting here if set
-        let resourceSet = [...this.resourceInstance.getResource(profile, this.resourceName)];
+    /*
+    Options Available are:
+        - delete: Whether to delete this resource while fetching. Default: false
+        - items: Number of items to fetch. default: 1. Is always 1 for delete: true
+        - first: If number of items are 1, return primitive instead of array. Default: true
+    */
+    static getOptions(options) {
 
-        if (resourceSet.length > this.items) {
-            resourceSet = _.sampleSize(resourceSet, this.items);
+        if(_.isNil(options)) {
+            options = {};
         }
 
-        return resourceSet;
+        if (_.isNil(options.items)) {
+            options.items = 1;
+        }
+
+        if (_.isNil(options.delete)) {
+            options.delete = false;
+        }
+
+        if (options.delete) {
+            options.items = 1;
+        }
+
+        if (_.isNil(options.flatForSingle)) {
+            options.flatForSingle = options.items === 1;
+        }
+
+        return options;
     }
 
-    getResources(profile) {
+    getResources(profile, options) {
 
-        let resources = this.resourceSet(profile);
+        options = ResourceProvider.getOptions(options);
+
+        // Several Lodash arguments work only on arrays, so converting here if set
+        let resources = [...this.resourceInstance.getResource(profile, this.resourceName, options)];
 
         if (_.isEmpty(resources)) {
             throw new EmptyResourceError(`Resource Pool not found for ${this.resourceName}`);
         }
 
-        if (this.isFlat) {
-            resources = resources[0];
-        }
-
-        return resources;
+        return options.flatForSingle ? resources[0] : resources;
     }
 
 }
@@ -310,18 +326,12 @@ export class Provider {
         return ret;
     }
 
-    getResource(resource, resourceCallBack) {
+    getResource(resource, options) {
         const resourceProvider = new ResourceProvider(resource, this.resourceInstance);
-        const value = resourceProvider.getResources(this.profile);
-
-        // Resource CallBack is assumed to take ResourceKey and ResourceValue as inputs
-        if (resourceCallBack && this[resourceCallBack]) {
-            this[resourceCallBack](resource, value);
-        }
-        return value;
+        return resourceProvider.getResources(this.profile, options);
     }
 
-    generateData(config, resourceCallBack) {
+    generateData(config, options) {
 
         let dataBody = {};
         const self = this;
@@ -330,7 +340,7 @@ export class Provider {
 
             const resource = _.get(itemConfig, constants.RESOURCE);
 
-            let value = resource ? self.getResource(resource, resourceCallBack) : Provider.getFakeData(itemConfig);
+            let value = resource ? self.getResource(resource, options) : Provider.getFakeData(itemConfig);
 
             if (!_.isNull(value)) {
                 dataBody[itemName] = value;

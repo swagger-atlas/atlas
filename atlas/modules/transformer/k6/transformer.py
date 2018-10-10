@@ -26,10 +26,25 @@ class K6FileConfig(transformer.FileConfig):
 
     @staticmethod
     def get_global_vars():
-        statements = [
-            "const baseURL = '{}';".format(settings.HOST_URL),
+
+        global_statements = [
+            f"const baseURL = '{settings.HOST_URL}';",
             "profile.setUp();",
-            "const provider = new Provider(profile.profileName);",
-            "const defaultHeaders = profile.headers;"
+            "let provider;",
+            "let defaultHeaders = profile.headers;"
         ]
+
+        setup_template = [
+            "export function setup() {",
+            "{w}new Provider(profile.profileName);".format(w=" "*4),
+            "{w}http.get('http://localhost:7379/flushdb');".format(w=" "*4),
+            "}"
+        ]
+
+        statements = [
+            "\n".join(global_statements),
+            "\n",
+            "\n".join(setup_template),
+        ]
+
         return "\n".join(statements)
