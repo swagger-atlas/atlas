@@ -12,8 +12,7 @@ class Task(models.Task):
     Define a function which is responsible for hitting single URL with single method
     """
 
-    @staticmethod
-    def error_template_list(try_statements: list) -> list:
+    def error_template_list(self, try_statements: list) -> list:
         """
         :param try_statements: All the try statements in an array
         """
@@ -23,7 +22,7 @@ class Task(models.Task):
         statements.extend(["{}{}".format(" "*4, try_statement) for try_statement in try_statements])
         statements.append("} catch (ex) {")
         catch_statements = [
-            "console.error(ex.message);",
+            "console.error(ex.message + ' failed for ' + '{}');".format(self.func_name),
             "check(ex, {'providerCheck': () => false});",
             "return;"
         ]
@@ -38,7 +37,7 @@ class Task(models.Task):
     def get_format_url_params(self):
         params = ['url', 'queryConfig', 'pathConfig']
         if self.open_api_op.method == constants.DELETE:
-            params.append("'deleteData'")
+            params.append("{'delete': true}")
         return ", ".join(params)
 
     def body_definition(self):
@@ -115,13 +114,6 @@ class Task(models.Task):
             body.append("let responseField = '{}';".format(response[0]))
             self.post_check_tasks.append("provider.addData(res.json(), responseResource, responseField)")
 
-        if self.open_api_op.method == constants.DELETE:
-            delete_resource = self.get_delete_resource()
-            if delete_resource:
-                body.append(f"let deleteField = '{delete_resource}';")
-                self.post_check_tasks.append(
-                    "provider.deleteData(pathConfig[deleteField].resource, urlConfig[1][deleteField])"
-                )
         return body
 
     def get_function_definition(self, width):
@@ -196,6 +188,7 @@ class TaskSet(models.TaskSet):
     def convert(self, width):
         statements = [
             "export default function() {",
+            "{w}provider = new Provider(profile.profileName);".format(w=' ' * width * 4),
             "{w}{task_calls}".format(task_calls=self.task_calls(width), w=' ' * width * 4),
             "}",
             "\n",

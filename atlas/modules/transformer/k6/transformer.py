@@ -20,16 +20,32 @@ class K6FileConfig(transformer.FileConfig):
             ),
             "import {{ Provider }} from '{path}'".format(
                 path=os.path.join("atlas", "modules", "data_provider", "k6", "providers.js")
-            )
+            ),
+            "import * as settings from 'js_libs/settings.js'"
         ]
         return "\n".join(imports)
 
     @staticmethod
     def get_global_vars():
-        statements = [
-            "const baseURL = '{}';".format(settings.HOST_URL),
+
+        global_statements = [
+            f"const baseURL = '{settings.HOST_URL}';",
             "profile.setUp();",
-            "const provider = new Provider(profile.profileName);",
-            "const defaultHeaders = profile.headers;"
+            "let provider;",
+            "let defaultHeaders = profile.headers;"
         ]
+
+        setup_template = [
+            "export function setup() {",
+            "{w}http.get(settings.REDIS_SERVER_URL + '/flushdb');".format(w=" " * 4),
+            "{w}new Provider(profile.profileName);".format(w=" "*4),
+            "}"
+        ]
+
+        statements = [
+            "\n".join(global_statements),
+            "\n",
+            "\n".join(setup_template),
+        ]
+
         return "\n".join(statements)

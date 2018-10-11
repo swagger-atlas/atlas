@@ -16,6 +16,7 @@ BOOL_MAP = {
 TEMPLATE = """
 import http from 'k6/http'
 import _ from 'js_libs/lodash.js'
+import * as settings from 'js_libs/settings.js'
 
 const singleton = Symbol();
 const singletonEnforcer = Symbol();
@@ -29,7 +30,7 @@ export class Resource {{
             throw "Cannot construct Singleton";
         }}
 
-        this.db_url = 'http://localhost:7379';
+        this.db_url = settings.REDIS_SERVER_URL;
 
         {initial_resources}
     }}
@@ -45,14 +46,33 @@ export class Resource {{
         return profile + ":" + resourceKey;
     }}
 
-    getResource(profile, resourceKey) {{
-        let resp = http.post(this.db_url, "smembers/" + Resource.getKey(profile, resourceKey));
-        const values = resp.json().smembers;
+    getResource(profile, resourceKey, options) {{
+
+        let command = "smembers";
+        let isSingle = false;
+
+        if (options.delete) {{
+            command = "spop";
+            isSingle = true;
+        }} else if (options.items === 1) {{
+            command = "srandmember";
+            isSingle = true;
+        }}
+
+        let resp = http.post(this.db_url, command + "/" + Resource.getKey(profile, resourceKey));
+        let values = resp.json()[command];
+
+        if (isSingle) {{
+            values = _.isNil(values)  || values === "" ? [] : [values];
+        }}
+
         return new Set(_.isEmpty(values) ? []: values);
     }}
 
     updateResource(profile, resourceKey, resourceValues) {{
-        http.post(this.db_url, "sadd/" + Resource.getKey(profile, resourceKey) + "/" + _.join([...resourceValues], '/'));
+        if (!_.isEmpty(resourceValues)) {{
+            http.post(this.db_url, "sadd/" + Resource.getKey(profile, resourceKey) + "/" + _.join([...resourceValues], '/'));
+        }}
     }}
 
     deleteResource(profile, resourceKey, resourceValue) {{
