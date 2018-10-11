@@ -37,8 +37,8 @@ class K6FileConfig(transformer.FileConfig):
 
         setup_template = [
             "export function setup() {",
+            "{w}http.get(settings.REDIS_SERVER_URL + '/flushdb');".format(w=" " * 4),
             "{w}new Provider(profile.profileName);".format(w=" "*4),
-            "{w}http.get(settings.REDIS_SERVER_URL + '/flushdb');".format(w=" "*4),
             "}"
         ]
 

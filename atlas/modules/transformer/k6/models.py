@@ -12,8 +12,7 @@ class Task(models.Task):
     Define a function which is responsible for hitting single URL with single method
     """
 
-    @staticmethod
-    def error_template_list(try_statements: list) -> list:
+    def error_template_list(self, try_statements: list) -> list:
         """
         :param try_statements: All the try statements in an array
         """
@@ -23,7 +22,7 @@ class Task(models.Task):
         statements.extend(["{}{}".format(" "*4, try_statement) for try_statement in try_statements])
         statements.append("} catch (ex) {")
         catch_statements = [
-            "console.error(ex.message);",
+            "console.error(ex.message + ' failed for ' + '{}');".format(self.func_name),
             "check(ex, {'providerCheck': () => false});",
             "return;"
         ]

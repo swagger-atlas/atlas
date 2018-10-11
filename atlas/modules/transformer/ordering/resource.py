@@ -35,7 +35,7 @@ class ResourceGraph(DAG):
     def __init__(self, references: dict):
         super(ResourceGraph, self).__init__()
         self.resources = dict()
-        self.references = [Reference(key, config) for key, config in references.items()]
+        self.references = [Reference(key.lower(), config) for key, config in references.items()]
 
     def add_ref_edge(self, ref, dependent_key):
         if ref:
@@ -94,7 +94,7 @@ class ResourceGraph(DAG):
 
         # Search in simple direct ref or array ref
         ref = schema.get(constants.REF) or schema.get(constants.ITEMS, {}).get(constants.REF)
-        return utils.get_ref_name(ref) if ref else None
+        return utils.get_ref_name(ref).lower() if ref else None
 
     def parse_paths(self, interfaces):
 
@@ -106,18 +106,17 @@ class ResourceGraph(DAG):
                 if ref:
                     ref_graph[ref] = "producer"
             for parameter in operation.parameters.values():
-                ref = self.get_ref_name(parameter)
-                # If it is already claimed as producer, then respect that
-                if ref and ref not in ref_graph:
-                    ref_graph[ref] = "consumer"
-
                 # Try to find if it is Path Params Resource
                 # This should over-write any previous value
-                if not ref:
-                    resource = parameter.get(constants.RESOURCE)
-                    if resource:
-                        # This time, it is Path Params, so we are sure that is is consumer
-                        ref_graph[resource] = "consumer"
+                resource = parameter.get(constants.RESOURCE)
+                if resource:
+                    # This time, it is Path Params, so we are sure that is is consumer
+                    ref_graph[resource] = "consumer"
+
+                ref = self.get_ref_name(parameter)
+                # If it is already claimed as producer/consumer, then respect that
+                if ref and ref not in ref_graph:
+                    ref_graph[ref] = "consumer"
 
             for ref, ref_op in ref_graph.items():
                 ref_node = self.nodes.get(ref)
