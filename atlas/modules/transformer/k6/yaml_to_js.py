@@ -63,14 +63,16 @@ export class Resource {{
         let values = resp.json()[command];
 
         if (isSingle) {{
-            values = _.isNil(values) ? [] : [values];
+            values = _.isNil(values)  || values === "" ? [] : [values];
         }}
 
         return new Set(_.isEmpty(values) ? []: values);
     }}
 
     updateResource(profile, resourceKey, resourceValues) {{
-        http.post(this.db_url, "sadd/" + Resource.getKey(profile, resourceKey) + "/" + _.join([...resourceValues], '/'));
+        if (!_.isEmpty(resourceValues)) {{
+            http.post(this.db_url, "sadd/" + Resource.getKey(profile, resourceKey) + "/" + _.join([...resourceValues], '/'));
+        }}
     }}
 
     deleteResource(profile, resourceKey, resourceValue) {{
