@@ -174,7 +174,13 @@ const FakeData = {
         let additionalProperties = config[constants.ADDITIONAL_PROPERTIES];
 
         if(!properties && !additionalProperties) {
-            throw new InvalidDataOptionsError(`"Properties should be defined for Object - ${JSON.stringify(config)}`)
+            // This may be manual, so try treating whole object as properties
+            properties = {};
+            _.forEach(config, function(value, key) {
+                if (typeof value === "object") {
+                    properties[key] = value;
+                }
+            })
         }
 
         if (!properties) {
