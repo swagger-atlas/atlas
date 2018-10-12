@@ -8,7 +8,8 @@ class Settings:
         "port": ""
     }
 
-    # This API would not be hit during load test
+    # These APIs would not be hit during load test
+    # Strings are matched via Regex Mechanism
     EXCLUDE_URLS = ["/logout/"]
 
     SERVER_URL = {
