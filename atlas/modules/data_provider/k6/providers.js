@@ -61,8 +61,6 @@ const FakeData = {
         MAP[[constants.STRING, constants.SLUG]] = FakeData.getSlug;
         MAP[[constants.STRING, constants.UUID]] = FakeData.getUUID;
         MAP[[constants.BOOLEAN, null]] = FakeData.getBoolean;
-        MAP[[constants.ARRAY, null]] = FakeData.getArray;
-        MAP[[constants.OBJECT, null]] = FakeData.getObject;
 
         return MAP;
     },
@@ -137,80 +135,6 @@ const FakeData = {
 
     getBoolean: function(config) {
         return faker.random.boolean();
-    },
-
-    getArray: function(config) {
-        const itemConfig = _.get(config, constants.ITEMS);
-
-        if (_.isEmpty(itemConfig)) {
-            throw new InvalidDataOptionsError(`Items should be defined for Array type - ${JSON.stringify(itemConfig)}`)
-        }
-
-        const fakeFunc = FakeData.getFakeMapper(itemConfig);
-
-        const minItems = _.get(config, constants.MIN_ITEMS, 0);
-        const maxItems = _.get(config, constants.MAX_ITEMS, Math.max(10, minItems + 1));
-
-        let fakeItems = _.range(_.random(minItems, maxItems)).map(() => fakeFunc(itemConfig));
-
-        if (_.get(config, constants.UNIQUE_ITEMS, false)) {
-            fakeItems = new Set(fakeItems);
-
-            // If due to de-duplication, our array count decreases and is less than what is required
-            while (fakeItems.length < minItems){
-                fakeItems.add(fakeFunc(itemConfig))
-            }
-
-            fakeItems = Array.from(fakeItems)
-        }
-
-        return fakeItems
-    },
-
-    getObject: function(config) {
-
-        // We want to respect empty properties and additional properties
-        let properties = config[constants.PROPERTIES];
-        let additionalProperties = config[constants.ADDITIONAL_PROPERTIES];
-
-        if(!properties && !additionalProperties) {
-            // This may be manual, so try treating whole object as properties
-            properties = {};
-            _.forEach(config, function(value, key) {
-                if (typeof value === "object") {
-                    properties[key] = value;
-                }
-            })
-        }
-
-        if (!properties) {
-            properties = {};
-        }
-
-        if (!additionalProperties) {
-            additionalProperties = {};
-        }
-
-        let fakeObject = {};
-
-        _.forEach(properties, function(propConfig, name) {
-            const fakeFunc = FakeData.getFakeMapper(propConfig);
-            if (fakeFunc) {
-                fakeObject[name] = fakeFunc(propConfig);
-            }
-        });
-
-        if (!_.isEmpty(additionalProperties)) {
-            const addPropMapper = FakeData.getFakeMapper(additionalProperties);
-            if (addPropMapper) {
-                // Generate minimum possible additional properties
-                _.forEach(_.range(_.get(additionalProperties, constants.MIN_PROPERTIES, 0)), function (index) {
-                    fakeObject["k6_load_test_" + index] = addPropMapper;
-                });
-            }
-        }   
-
-        return fakeObject
     },
 
     getRandomDateTime: function(config) {
@@ -349,23 +273,101 @@ export class Provider {
         return resourceProvider.getResources(this.profile, options);
     }
 
-    generateData(config, options) {
+    itemResolution(config, options) {
+        const resource = _.get(config, constants.RESOURCE);
+        let retValue;
 
-        let dataBody = {};
+        if (resource) {
+            retValue = this.getResource(resource, options);
+        } else {
+            let itemType = _.get(config, constants.TYPE);
+
+            if (!itemType) {
+                throw new InvalidDataOptionsError(`Item type must be defined - ${JSON.stringify(config)}`);
+            }
+
+            if (itemType === constants.ARRAY) {
+                retValue = this.resolveArray(config, options);
+            } else if (itemType === constants.OBJECT) {
+                retValue = this.resolveObject(config, options);
+            } else {
+                retValue = Provider.getFakeData(config);
+            }
+        }
+
+        return retValue;
+
+    }
+
+    resolveArray(config, options) {
+        const itemConfig = _.get(config, constants.ITEMS);
         const self = this;
 
-        _.forEach(config, function(itemConfig, itemName) {
+        if (_.isEmpty(itemConfig)) {
+            throw new InvalidDataOptionsError(`Items should be defined for Array type - ${JSON.stringify(itemConfig)}`)
+        }
 
-            const resource = _.get(itemConfig, constants.RESOURCE);
+        const minItems = _.get(config, constants.MIN_ITEMS, 0);
+        const maxItems = _.get(config, constants.MAX_ITEMS, Math.max(10, minItems + 1));
 
-            let value = resource ? self.getResource(resource, options) : Provider.getFakeData(itemConfig);
+        let items = _.range(_.random(minItems, maxItems)).map(() => self.itemResolution(itemConfig, options));
 
-            if (!_.isNull(value)) {
-                dataBody[itemName] = value;
+        if (_.get(config, constants.UNIQUE_ITEMS, false)) {
+            items = new Set(items);
+            // If due to de-duplication, our array count decreases and is less than what is required
+            while (items.length < minItems){
+                items.add(self.itemResolution(itemConfig, options));
+            }
+            items = Array.from(items);
+        }
+        return items;
+    }
+
+    resolveObject(config, options) {
+
+        // We want to respect empty properties and additional properties
+        let properties = config[constants.PROPERTIES];
+        let additionalProperties = config[constants.ADDITIONAL_PROPERTIES];
+        const self = this;
+
+        if(!properties && !additionalProperties) {
+            // This may be manual, so try treating whole object as properties
+            properties = {};
+            _.forEach(config, function(value, key) {
+                if (typeof value === "object") {
+                    properties[key] = value;
+                }
+            })
+        }
+
+        if (!properties) {
+            properties = {};
+        }
+
+        if (!additionalProperties) {
+            additionalProperties = {};
+        }
+
+        let dataObject = {};
+
+        _.forEach(properties, function(propConfig, name) {
+            const itemValue = self.itemResolution(propConfig, options);
+            if (!_.isNil(itemValue)) {
+                dataObject[name] = itemValue;
             }
         });
 
-        return dataBody;
+        if (!_.isEmpty(additionalProperties)) {
+            const addPropMapper = self.itemResolution(additionalProperties, options);
+            if (addPropMapper) {
+                // Generate minimum possible additional properties
+                _.forEach(_.range(_.get(additionalProperties, constants.MIN_PROPERTIES, 0)), function (index) {
+                    dataObject["k6_load_test_" + index] = addPropMapper;
+                });
+            }
+        }
+
+        return dataObject;
     }
 
     addData(config, resourceKey, resourceField) {
