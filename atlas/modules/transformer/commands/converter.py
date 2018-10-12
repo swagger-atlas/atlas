@@ -52,7 +52,7 @@ class Converter(TransformerBaseCommand):
 
         _task_set = load_conf[TASK_SET](tasks=tasks, tag="User")
 
-        config = load_conf[FILE_CONFIG](_task_set)
+        config = load_conf[FILE_CONFIG](_task_set, spec)
         config.write_to_file()
 
         if load_conf_type == "k6":

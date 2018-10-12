@@ -89,3 +89,9 @@ DEFINITIONS = "definitions"
 
 # Extra Keys for Data Providers
 EXTRA_KEYS = {PARAMETER_NAME, IN_, READ_ONLY, REQUIRED, TITLE}
+
+# URL Settings
+BASE_PATH = "basePath"
+HOST = "host"
+INFO = "info"
+API_URL = "url"

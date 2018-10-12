@@ -1,7 +1,7 @@
 from io import open
 import os
 
-from atlas.modules import utils
+from atlas.modules import utils, constants
 from atlas.conf import settings
 
 
@@ -9,15 +9,14 @@ class FileConfig:
 
     OUT_FILE = None
 
-    def __init__(self, task_set):
+    def __init__(self, task_set, specs=None):
         self.task_set = task_set
+        self.specs = specs or {}
 
-    @staticmethod
-    def get_imports():
+    def get_imports(self):
         raise NotImplementedError
 
-    @staticmethod
-    def get_global_vars():
+    def get_global_vars(self):
         return ""
 
     def convert(self):
@@ -34,3 +33,18 @@ class FileConfig:
 
         with open(_file, 'w') as write_file:
             write_file.write(self.convert() + "\n")  # Append EOF New line
+
+    def get_swagger_url(self):
+
+        protocol = settings.SERVER_URL.get('protocol', 'http')
+
+        host = settings.SERVER_URL.get('host')
+        if not host:
+            host = self.specs.get(constants.HOST, "localhost")
+
+        api_url = settings.SERVER_URL.get('api_url')
+        if not api_url:
+            api_info = self.specs.get(constants.INFO, {})
+            api_url = api_info.get(constants.API_URL, self.specs.get(constants.BASE_PATH, ""))
+
+        return f"{protocol}://{host}{api_url}"

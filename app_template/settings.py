@@ -11,7 +11,13 @@ class Settings:
     # This API would not be hit during load test
     EXCLUDE_URLS = ["/logout/"]
 
-    HOST_URL = ""
+    SERVER_URL = {
+        "protocol": "http",
+        "host": "",           # if left empty, would be picked from swagger. If not there, would be localhost
+
+        # In swagger, we search for info/url and basePath  for this setting
+        "api_url": "",       # if left empty, would be picked from swagger. If not there, would be blank string.
+    }
 
     # Page Query Parameters
     # These parameters are esp. handled, since they must be positive
