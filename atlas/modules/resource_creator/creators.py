@@ -78,8 +78,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         }
         self.processed_refs.add(reference)
 
-    @staticmethod
-    def extract_resource_name_from_param(param_name, url_path):
+    def extract_resource_name_from_param(self, param_name, url_path):
         """
         Extract Resource Name from parameter name
         Names could be either snake case (foo_id) or camelCase (fooId)
@@ -104,6 +103,9 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
             if resource_index >= 0:
                 # Singularize the resource
                 resource_name = inflection.singularize(url_array[resource_index])
+
+        if not resource_name and param_name in self.resource_keys:
+            resource_name = param_name
 
         return resource_name
 
@@ -166,14 +168,17 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         properties = ref_config.get(swagger_constants.PROPERTIES, {})
 
         for key, value in properties.items():
+            resource = ""
             if swagger_constants.REF in value:
                 self.get_ref_name_and_config(value[swagger_constants.REF])
-            elif key in ["id", "slug"]:
+            elif key in ["id", "slug", "pk"]:
                 resource = value.get(swagger_constants.RESOURCE, utils.convert_to_snake_case(ref_name))
+            elif key in self.resource_keys:
+                resource = key
 
-                if resource:
-                    resource = self.add_resource(resource)
-                    value[swagger_constants.RESOURCE] = resource
+            if resource:
+                resource = self.add_resource(resource)
+                value[swagger_constants.RESOURCE] = resource
 
         self.processed_refs.add(ref_name)
 
