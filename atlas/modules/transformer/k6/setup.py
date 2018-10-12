@@ -62,6 +62,8 @@ class K6Setup:
                 js_val = "new Set({})".format(list(value))
             elif hasattr(value, "__call__"):
                 continue        # It is a duck-typed function, and should not be copied over
+            elif isinstance(value, dict):
+                print(f"Ignoring {item}")
             else:
                 # While this may not necessarily be an error, we do not convert it.
                 # This includes any Dict structure for now

@@ -9,8 +9,7 @@ class K6FileConfig(transformer.FileConfig):
 
     OUT_FILE = settings.K6_FILE
 
-    @staticmethod
-    def get_imports():
+    def get_imports(self):
         imports = [
             "import http from 'k6/http'",
             "import { check, group } from 'k6'",
@@ -25,11 +24,10 @@ class K6FileConfig(transformer.FileConfig):
         ]
         return "\n".join(imports)
 
-    @staticmethod
-    def get_global_vars():
+    def get_global_vars(self):
 
         global_statements = [
-            f"const baseURL = '{settings.HOST_URL}';",
+            f"const baseURL = '{self.get_swagger_url()}';",
             "profile.setUp();",
             "let provider;",
             "let defaultHeaders = profile.headers;"
