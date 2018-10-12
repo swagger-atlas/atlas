@@ -75,6 +75,7 @@ BINARY = "binary"
 EMAIL = "email"
 UUID = "uuid"
 URI = "uri"
+URL = "url"
 SLUG = "slug"
 
 # Array Options

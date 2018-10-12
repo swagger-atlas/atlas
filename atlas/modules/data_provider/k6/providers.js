@@ -58,6 +58,7 @@ const FakeData = {
         MAP[[constants.STRING, constants.BYTE]] = FakeData.getBase64;
         MAP[[constants.STRING, constants.EMAIL]] = FakeData.getEmail;
         MAP[[constants.STRING, constants.URI]] = FakeData.getURI;
+        MAP[[constants.STRING, constants.URL]] = FakeData.getURL;
         MAP[[constants.STRING, constants.SLUG]] = FakeData.getSlug;
         MAP[[constants.STRING, constants.UUID]] = FakeData.getUUID;
         MAP[[constants.BOOLEAN, null]] = FakeData.getBoolean;
@@ -111,6 +112,10 @@ const FakeData = {
 
     getURI: function(config) {
         return faker.internet.avatar();
+    },
+
+    getURL: function(config) {
+        return faker.internet.url()
     },
 
     getSlug: function(config) {
