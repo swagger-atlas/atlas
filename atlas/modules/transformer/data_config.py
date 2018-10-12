@@ -5,6 +5,7 @@ class DataConfig:
 
     def __init__(self, spec):
         self.spec = spec
+        self.visited_ref = set()
 
     def resolve_item_config(self, item_config):
         item_data = {}
@@ -64,11 +65,22 @@ class DataConfig:
         if properties or properties == {}:      # Properties could be blank dict, which is perfectly fine
             config = properties
 
-        for item_name, item_config in config.items():
+        return self.parse_properties(config, data_body)
 
-            # First, resolve references
-            ref = item_config if item_name == constants.REF else item_config.get(constants.REF)
-            if ref:
+    def parse_properties(self, config, data_body):
+
+        for item_name, item_config in config.items():
+            if item_name == constants.REF:
+                ref = item_config
+            else:
+                # First check whether Item config is a dict.
+                if isinstance(item_config, dict):
+                    ref = item_config.get(constants.REF)
+                else:
+                    continue    # This is A reference where we cannot do anything
+
+            if ref and ref not in self.visited_ref:
+                self.visited_ref.add(ref)
                 ref_config = self.generate(
                     utils.resolve_reference(self.spec, ref)
                 )
@@ -77,6 +89,7 @@ class DataConfig:
                 else:
                     # This is field-level reference
                     data_body[item_name] = {constants.TYPE: constants.OBJECT, constants.PROPERTIES: ref_config}
+                self.visited_ref.remove(ref)
                 continue  # We generated the data already, move on to next once
 
             # Do not generate data for Read-only fields

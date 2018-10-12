@@ -73,7 +73,7 @@ class Task(models.Task):
 
         body.append("let headers = _.cloneDeep(defaultHeaders);")
         if self.headers:
-            body.extend(self.error_template_list(["_.merge(headers, provider.generateData(header_config));"]))
+            body.extend(self.error_template_list(["_.merge(headers, provider.resolveObject(header_config));"]))
 
         request_params = {
             "headers": "headers"
@@ -87,7 +87,7 @@ class Task(models.Task):
         if self.open_api_op.method != constants.GET:
             body.append("let body = {};")       # We need body to be part of Function scope, and not try/catch scope
             if self.data_body:
-                body.extend(self.error_template_list(["body = provider.generateData(bodyConfig);"]))
+                body.extend(self.error_template_list(["body = provider.resolveObject(bodyConfig);"]))
             param_array.append("body")
         param_array.append("requestParams")
 
@@ -158,10 +158,10 @@ class TaskSet(models.TaskSet):
     @staticmethod
     def format_url(width):
         statements = [
-            "function formatURL(url, queryConfig, pathConfig, pathResourceCallback) {",
-            "const pathParams = provider.generateData(pathConfig, pathResourceCallback);",
+            "function formatURL(url, queryConfig, pathConfig, options) {",
+            "const pathParams = provider.resolveObject(pathConfig, options);",
             "url = dynamicTemplate(url, pathParams);",
-            "const queryParams = provider.generateData(queryConfig);",
+            "const queryParams = provider.resolveObject(queryConfig);",
             "const queryString = Object.keys(queryParams).map(key => key + '=' + queryParams[key]).join('&');",
             "url = queryString? url + '?' + queryString : url;",
             "return [url, _.assign(pathParams, queryParams)];"

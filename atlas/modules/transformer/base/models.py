@@ -55,10 +55,7 @@ class Task:
                 self.parse_url_params(name, config, param_type="path")
 
             elif in_ == constants.BODY_PARAM:
-                schema = config.get(constants.SCHEMA)
-                if not schema:
-                    raise exceptions.ImproperSwaggerException("Body Parameter must specify schema")
-                self.data_body = schema
+                self.parse_body_params(name, config)
 
             elif in_ == constants.QUERY_PARAM:
                 self.parse_url_params(name, config)
@@ -74,6 +71,18 @@ class Task:
                     "Config {} does not have valid parameter type".format(config))
 
         self.data_body = self.data_config.generate(self.data_body)
+
+    def parse_body_params(self, name, config):
+        schema = config.get(constants.SCHEMA)
+        if schema:
+            self.data_body = schema
+        else:
+            # If schema is not there, we want to see if we can safely ignore this before raising error
+            required = config.get(constants.REQUIRED, True)
+            if required:
+                raise exceptions.ImproperSwaggerException(
+                    f"Body Parameter {name} must specify schema. OP ID: {self.open_api_op.func_name}"
+                )
 
     def parse_header_params(self, name, config):
         config = self.data_config.generate({name: config})
