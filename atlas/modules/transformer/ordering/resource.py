@@ -44,11 +44,12 @@ class ResourceGraph(DAG):
             self.add_edge(source_key, dependent_key)
 
     @staticmethod
-    def process_resource_for_refs(resource_config: dict) -> set:
+    def process_resource_for_refs(resource_config: dict) -> (set, set):
         """
         Process a single resource and return set of all references from it
         """
         refs = set()
+        resources = set()
 
         # ########## --  Ignore ALL OF, since adding these relations gave us several cycles -- ####
 
@@ -69,11 +70,14 @@ class ResourceGraph(DAG):
                 config = config.get(constants.ITEMS, {})
             ref = config.get(constants.REF)
             refs.add(ref)
+            resource = config.get(constants.RESOURCE)
+            resources.add(resource)
 
         # Now look through Additional properties to see if there is any ref there
         refs.add(resource_config.get(constants.ADDITIONAL_PROPERTIES, {}).get(constants.REF))
+        resources.add(resource_config.get(constants.ADDITIONAL_PROPERTIES, {}).get(constants.RESOURCE))
 
-        return refs
+        return refs, resources
 
     def construct_graph(self):
 
@@ -84,9 +88,12 @@ class ResourceGraph(DAG):
 
         # Now add edges between the nodes
         for resource_key, resource_config in self.resources.items():
-            refs = self.process_resource_for_refs(resource_config)
+            refs, resources = self.process_resource_for_refs(resource_config)
             for ref in refs:
                 self.add_ref_edge(ref, resource_key)
+            for resource in resources:
+                if resource:
+                    self.add_edge(resource, resource_key)
 
     @staticmethod
     def get_ref_name(config):
