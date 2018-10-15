@@ -14,7 +14,7 @@ class ResourceMap(mixins.ProfileMixin):
 
     def __init__(self, profiles=None):
 
-        self.map = self.read_file_from_output(settings.MAPPING_FILE) or {}
+        self.map = self.read_file_from_input(settings.MAPPING_FILE) or {}
         self.limit = 50
         self.client = db_client.Client()
 
