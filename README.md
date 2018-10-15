@@ -15,9 +15,6 @@ Quick Start
 - Run `python atlas newproject <project-name>`
 - Switch to new directory
 - Copy your swagger definition and Profiles in Conf directory
-- Run `python manage.py generate`
-- Fill up your resource mapping as needed
-- Run `python manage.py fetch_data`
 
 
 K6 Load Test Basics
@@ -26,12 +23,10 @@ K6 Load Test Basics
 - Install and Run Redis Server: https://redis.io/download
 - Install and run Webdis server: https://github.com/nicolasff/webdis
 
-- One Time setup: `python manage.py setup k6`
 - Install k6 (https://docs.k6.io/docs/installation)
+
 - And then:
-    - `python manage.py build k6`
     - `python manage.py dist k6`
-    - `curl -i -XPOST localhost:7379/ -d 'flushdb'`
     - `k6 run dist/k6.js -u <number_of_users> -i <number_of_iterations>` [See: https://docs.k6.io/docs/options]
 
 Please see [K6 Guide](docs/k6.md) for advanced usage of the same concept
