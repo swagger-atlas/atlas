@@ -8,7 +8,7 @@ from atlas.modules.commands.base import CommandError, handle_default_options
 COMMANDS = {
     "newproject": 'atlas.modules.commands.new_project.StartProjectCommand',
     "build": "atlas.modules.transformer.commands.converter.Converter",
-    "generate": "atlas.modules.resource_creator.commands.generate.Generate",
+    "detect_resources": "atlas.modules.resource_creator.commands.generate.Generate",
     "fetch_data": "atlas.modules.resource_data_generator.commands.generate.Generate",
     "setup": "atlas.modules.transformer.commands.setup.Setup",
     "dist": "atlas.modules.transformer.commands.dist.Dist",

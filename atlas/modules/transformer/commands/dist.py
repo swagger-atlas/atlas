@@ -18,8 +18,8 @@ class Dist(TransformerBaseCommand):
         super(Dist, self).add_arguments(parser)
 
         add_bool_arg(parser, "setup", default=True)
-        add_bool_arg(parser, "detect-resources", default=True)
-        add_bool_arg(parser, "fetch-data", default=True)
+        add_bool_arg(parser, "detect_resources", default=True)
+        add_bool_arg(parser, "fetch_data", default=True)
 
     def handle(self, **options):
         load_conf_type = options.pop("type")
@@ -37,11 +37,11 @@ class Dist(TransformerBaseCommand):
     def k6_pipeline(self, **options):
 
         # Create Data Types and then fetch it
-        if options.get("detect-resources"):
+        if options.get("detect_resources"):
             print("Resource Detection Started...")
             create_resource.Generate().handle()
 
-        if options.get("fetch-data"):
+        if options.get("fetch_data"):
             print("Updating Cached Databases...")
             fetch_data.Generate().handle()
 
