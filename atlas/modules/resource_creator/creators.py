@@ -209,4 +209,4 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
         # Update Resource Mapping File
         auto_resource = {resource: {"def": "# Add your definition here"} for resource in self.new_resources}
-        self.write_file_to_output(settings.MAPPING_FILE, {**self.resources, **auto_resource}, append_mode=False)
+        self.write_file_to_input(settings.MAPPING_FILE, {**self.resources, **auto_resource}, append_mode=False)
