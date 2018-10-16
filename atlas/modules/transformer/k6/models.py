@@ -73,6 +73,7 @@ class Task(models.Task):
 
         body.append("let headers = _.cloneDeep(defaultHeaders);")
         if self.headers:
+            body.append(f"let header_config = {{{', '.join(self.headers)}}};")
             body.extend(self.error_template_list(["_.merge(headers, provider.resolveObject(header_config));"]))
 
         request_params = {
