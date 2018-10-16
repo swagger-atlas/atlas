@@ -74,8 +74,11 @@ class ResourceGraph(DAG):
             resources.add(resource)
 
         # Now look through Additional properties to see if there is any ref there
-        refs.add(resource_config.get(constants.ADDITIONAL_PROPERTIES, {}).get(constants.REF))
-        resources.add(resource_config.get(constants.ADDITIONAL_PROPERTIES, {}).get(constants.RESOURCE))
+        additional_properties = resource_config.get(constants.ADDITIONAL_PROPERTIES, {})
+
+        if additional_properties and isinstance(additional_properties, dict):
+            refs.add(additional_properties.get(constants.REF))
+            resources.add(additional_properties.get(constants.RESOURCE))
 
         return refs, resources
 
@@ -100,7 +103,13 @@ class ResourceGraph(DAG):
         schema = config.get(constants.SCHEMA, {})
 
         # Search in simple direct ref or array ref
-        ref = schema.get(constants.REF) or schema.get(constants.ITEMS, {}).get(constants.REF)
+        ref = schema.get(constants.REF)
+
+        if schema and not ref:
+            items = schema.get(constants.ITEMS, {})
+            if items and isinstance(items, dict):
+                ref = items.get(constants.REF)
+
         return utils.get_ref_name(ref).lower() if ref else None
 
     def parse_paths(self, interfaces):
