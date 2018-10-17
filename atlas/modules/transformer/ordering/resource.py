@@ -1,3 +1,5 @@
+import re
+
 from atlas.modules import constants, utils
 from atlas.modules.transformer.ordering.base import Node, DAG
 
@@ -37,11 +39,16 @@ class ResourceGraph(DAG):
         self.resources = dict()
         self.references = [Reference(key.lower(), config) for key, config in references.items()]
 
+    @staticmethod
+    def convert_ref_name_to_resource(ref_name: str) -> str:
+        return "".join([x.lower() for x in re.sub("-", "_", ref_name).split("_")])
+
     def add_ref_edge(self, ref, dependent_key):
         if ref:
             source_key = utils.get_ref_name(ref)
+            source_resource = self.convert_ref_name_to_resource(source_key)
             # Note the edge - Source is required for resource
-            self.add_edge(source_key, dependent_key)
+            self.add_edge(source_resource, dependent_key)
 
     @staticmethod
     def process_resource_for_refs(resource_config: dict) -> (set, set):
@@ -86,8 +93,9 @@ class ResourceGraph(DAG):
 
         # Add all nodes first
         for reference in self.references:
-            self.resources[reference.name] = reference.config
-            self.add_node(reference.name)
+            resource_name = self.convert_ref_name_to_resource(reference.name)
+            self.resources[resource_name] = reference.config
+            self.add_node(resource_name)
 
         # Now add edges between the nodes
         for resource_key, resource_config in self.resources.items():
@@ -135,7 +143,7 @@ class ResourceGraph(DAG):
                     ref_graph[ref] = "consumer"
 
             for ref, ref_op in ref_graph.items():
-                ref_node = self.nodes.get(ref)
+                resource_node = self.nodes.get(self.convert_ref_name_to_resource(ref))
                 ref_op = "add_consumer" if ref_op == "consumer" else "add_producer"
-                if ref_node:
-                    getattr(ref_node, ref_op)(op_id)
+                if resource_node:
+                    getattr(resource_node, ref_op)(op_id)
