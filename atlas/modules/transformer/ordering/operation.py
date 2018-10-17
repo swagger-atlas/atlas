@@ -41,12 +41,12 @@ class OperationGraph(DAG):
         node_producers = resource.producers
 
         if not node_consumers:
-            dummy_key = "${}-CONSUMER".format(resource_key.lower())
+            dummy_key = "${}-CONSUMER".format(resource_key)
             self.add_node(dummy_key)
             node_consumers = {dummy_key}
 
         if not node_producers:
-            dummy_key = "${}-PRODUCER".format(resource_key.lower())
+            dummy_key = "${}-PRODUCER".format(resource_key)
             self.add_node(dummy_key)
             node_producers = {dummy_key}
 

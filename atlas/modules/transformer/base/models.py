@@ -166,10 +166,25 @@ class Task:
                     if resource:
                         resources.append((field, resource))
 
-        if len(resources) > 1:
-            raise exceptions.ImproperSwaggerException("Multiple Swagger resources at top level - {}".format(responses))
-
+        resources = self.resolve_multiple_resources(resources, responses)
         return resources[0] if resources else ()
+
+    @staticmethod
+    def resolve_multiple_resources(resources, responses):
+        if len(resources) > 1:
+            # We have multiple resources, so we try to find out if we can identify primary resource
+            primary_resources = []
+            for resource in resources:
+                if resource in {"id", "slug", "pk"}:
+                    primary_resources.append(resource)
+
+            # We found at least one primary resource, let us use that. It shouldn't matter which one
+            if primary_resources:
+                resources = [primary_resources[0]]
+            else:
+                raise exceptions.ImproperSwaggerException(f"Multiple Swagger resources at top level - {responses}")
+
+        return resources
 
     def get_delete_resource(self) -> str:
         """
