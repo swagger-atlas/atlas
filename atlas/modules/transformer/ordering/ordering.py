@@ -18,7 +18,7 @@ class Ordering:
 
     def get_resource_graph(self):
         resource_definitions = self.specs.get(constants.DEFINITIONS)
-        res_graph = resource.ResourceGraph(resource_definitions)
+        res_graph = resource.ResourceGraph(resource_definitions, self.specs)
         res_graph.construct_graph()
         res_graph.parse_paths(self.interfaces)
         return res_graph

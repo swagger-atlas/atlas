@@ -41,6 +41,11 @@ class Task:
         """
 
         for config in parameters.values():
+
+            ref = config.get(constants.REF)
+            if ref:
+                config = utils.resolve_reference(self.data_config.spec, ref)
+
             in_ = config.get(constants.IN_)
 
             if not in_:

@@ -34,10 +34,11 @@ class ResourceGraph(DAG):
 
     node_class = Resource
 
-    def __init__(self, references: dict):
+    def __init__(self, references: dict, specs=None):
         super(ResourceGraph, self).__init__()
         self.resources = dict()
         self.references = [Reference(key.lower(), config) for key, config in references.items()]
+        self.specs = specs or {}
 
     @staticmethod
     def convert_ref_name_to_resource(ref_name: str) -> str:
@@ -132,6 +133,11 @@ class ResourceGraph(DAG):
             for parameter in operation.parameters.values():
                 # Try to find if it is Path Params Resource
                 # This should over-write any previous value
+
+                parameter_ref = parameter.get(constants.REF)
+                if parameter_ref:
+                    parameter = utils.resolve_reference(self.specs, parameter_ref)
+
                 resource = parameter.get(constants.RESOURCE)
                 if resource:
                     # This time, it is Path Params, so we are sure that is is consumer

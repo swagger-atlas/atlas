@@ -112,12 +112,17 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
     def parse_params(self, params, url):
 
         for param in params:
+
+            ref = param.get(swagger_constants.REF)
+            if ref:
+                param = utils.resolve_reference(self.specs, ref)
+
             param_type = param.get(swagger_constants.IN_)
 
             if not param_type:
                 raise exceptions.ImproperSwaggerException("Param type not defined for {}".format(param))
 
-            if param_type in swagger_constants.URL_PARAMS:
+            if param_type == swagger_constants.PATH_PARAM:
 
                 name = param.get(swagger_constants.PARAMETER_NAME)
 

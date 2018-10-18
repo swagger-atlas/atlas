@@ -1,3 +1,5 @@
+import re
+
 from atlas.modules import (
     constants,
     exceptions,
@@ -32,7 +34,7 @@ class OpenAPITaskInterface:
 
     @func_name.setter
     def func_name(self, value):
-        self._func_name = value
+        self._func_name = re.sub(r"\.", "_", value)
 
     @property
     def method(self):

@@ -4,7 +4,8 @@ import re
 
 from atlas.modules import (
     constants as swagger_constants,
-    exceptions
+    exceptions,
+    utils
 )
 from atlas.modules.transformer import interface
 from atlas.conf import settings
@@ -17,17 +18,20 @@ class Operation:
     Define an OpenAPI Specific Operation
     """
 
-    def __init__(self, config):
+    def __init__(self, config, specs=None):
 
         self.config = config
         self.parameters = OrderedDict()
+        self.specs = specs or {}
 
     def add_parameters(self, parameters):
 
-        # ASSUMPTION: We will assume that our parameters are not defined by refs
-        # This seems a valid assumption considering that none of Swagger Generators do that right now
-
         for parameter in parameters:
+
+            ref = parameter.get(swagger_constants.REF)
+            if ref:
+                parameter = utils.resolve_reference(self.specs, ref)
+
             name = parameter.get(swagger_constants.PARAMETER_NAME, None)
 
             if not name:
@@ -103,7 +107,7 @@ class OpenAPISpec:
                 op_interface.method = method
                 op_interface.url = path
 
-                operation = Operation(config=method_config)
+                operation = Operation(config=method_config, specs=self.spec)
                 operation.add_parameters(common_parameters)
 
                 self.interfaces.append(operation.add_to_interface(op_interface))
