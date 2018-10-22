@@ -78,10 +78,11 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         }
         self.processed_refs.add(reference)
 
-    def extract_resource_name_from_param(self, param_name, url_path):
+    def extract_resource_name_from_param(self, param_name, url_path, param_type=swagger_constants.PATH_PARAM):
         """
         Extract Resource Name from parameter name
         Names could be either snake case (foo_id) or camelCase (fooId)
+        In case of URL Params, further they could be foo/id
         Return None if no such resource could be found
         """
 
@@ -97,7 +98,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         # Resource Name not found by simple means.
         # Now, assume that resource could be available after the resource
         # For example: pets/{id} -- here most likely id refers to pet
-        if not resource_name and param_name in {"id", "slug", "pk"}:
+        if not resource_name and param_name in {"id", "slug", "pk"} and param_type == swagger_constants.PATH_PARAM:
             url_array = url_path.split("/")
             resource_index = url_array.index(f'{{{param_name}}}') - 1
             if resource_index >= 0:
@@ -122,7 +123,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
             if not param_type:
                 raise exceptions.ImproperSwaggerException("Param type not defined for {}".format(param))
 
-            if param_type == swagger_constants.PATH_PARAM:
+            if param_type in swagger_constants.URL_PARAMS:
 
                 name = param.get(swagger_constants.PARAMETER_NAME)
 
@@ -135,7 +136,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 if resource is not None:    # Empty strings should be respected
                     self.add_resource(resource)
                 elif not resource:          # If resource is explicitly empty string, we should not generate them
-                    resource = self.extract_resource_name_from_param(name, url)
+                    resource = self.extract_resource_name_from_param(name, url, param_type)
                     if resource:
                         resource = self.add_resource(resource)
                         param[swagger_constants.RESOURCE] = resource

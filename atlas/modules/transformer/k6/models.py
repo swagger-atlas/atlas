@@ -102,6 +102,9 @@ class Task(models.Task):
             body.append("reqArgs[1] = JSON.stringify(reqArgs[1]);")
             body.append("reqArgs[2].headers['Content-Type'] = 'application/json';")
 
+        if self.open_api_op.method == constants.POST:
+            body.append("reqArgs[2].headers['Content-Length'] = Buffer.byteLength(reqArgs[1].length, 'utf8');")
+
         return self.cache_operation_tasks(body)
 
     def cache_operation_tasks(self, body):
