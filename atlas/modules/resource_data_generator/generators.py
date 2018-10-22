@@ -82,7 +82,7 @@ class ResourceMap(mixins.ProfileMixin):
             self.read_for_profile(resources, global_settings)
             self.write_file(
                 self.get_profile_resource_name(name, config), resources,
-                os.path.join(settings.OUTPUT_FOLDER, settings.RESOURCES_FOLDER), False
+                os.path.join(settings.OUTPUT_FOLDER, settings.RESOURCES_FOLDER), False, force_write=True
             )
 
     def construct_fetch_query(self, table, column, filters):
