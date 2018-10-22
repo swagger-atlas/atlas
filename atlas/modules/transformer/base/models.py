@@ -41,6 +41,11 @@ class Task:
         """
 
         for config in parameters.values():
+
+            ref = config.get(constants.REF)
+            if ref:
+                config = utils.resolve_reference(self.data_config.spec, ref)
+
             in_ = config.get(constants.IN_)
 
             if not in_:
@@ -157,7 +162,7 @@ class Task:
             if not ref:
                 items = schema.get(constants.ITEMS, {})
                 if items and isinstance(items, dict):
-                    items.get(constants.REF)
+                    ref = items.get(constants.REF)
             if ref:
                 ref_name = utils.get_ref_name(ref)
                 ref_definition = self.data_config.spec.get(constants.DEFINITIONS, {}).get(ref_name, {})
