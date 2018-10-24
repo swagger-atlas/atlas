@@ -95,6 +95,9 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 resource_name = param_name[:-len(suffix)]
                 break
 
+        # We need to convert Param Name only after subjecting it to CamelCase Checks
+        param_name = "".join([x.lower() for x in re.sub("-", "_", param_name).split("_")])
+
         # Resource Name not found by simple means.
         # Now, assume that resource could be available after the resource
         # For example: pets/{id} -- here most likely id refers to pet
