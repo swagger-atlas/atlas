@@ -150,46 +150,27 @@ class Task:
 
     def parse_responses(self, responses):
         """
-        We could have data_config resolve all references recursively,
-        but we are only interested in top-level resources
-
-        So, this quickly extracts it and move on
+        Resolve the responses.
         """
-        resources = []
-        for response in responses.values():
-            schema = response.get(constants.SCHEMA, {})
-            ref = schema.get(constants.REF)
-            if not ref:
-                items = schema.get(constants.ITEMS, {})
-                if items and isinstance(items, dict):
-                    ref = items.get(constants.REF)
-            if ref:
-                ref_name = utils.get_ref_name(ref)
-                ref_definition = self.data_config.spec.get(constants.DEFINITIONS, {}).get(ref_name, {})
-                for field, config in ref_definition.get(constants.PROPERTIES, {}).items():
-                    resource = config.get(constants.RESOURCE)
-                    if resource:
-                        resources.append((field, resource))
 
-        resources = self.resolve_multiple_resources(resources, responses)
-        return resources[0] if resources else ()
-
-    @staticmethod
-    def resolve_multiple_resources(resources, responses):
-        if len(resources) > 1:
-            # We have multiple resources, so we try to find out if we can identify primary resource
-            primary_resources = []
-            for resource in resources:
-                if resource in {"id", "slug", "pk"}:
-                    primary_resources.append(resource)
-
-            # We found at least one primary resource, let us use that. It shouldn't matter which one
-            if primary_resources:
-                resources = [primary_resources[0]]
+        for status, config in responses.items():
+            try:
+                status_code = int(status)
+            except (ValueError, TypeError):
+                raise exceptions.ImproperSwaggerException(f"Swagger {responses} status codes must be Integer Strings")
             else:
-                raise exceptions.ImproperSwaggerException(f"Multiple Swagger resources at top level - {responses}")
+                # 2xx responses are typically used as indication of valid response
+                if 200 <= status_code < 300:
+                    # Short-circuit return with first valid response we encountered
+                    properties = (
+                        self.data_config.generate(config, {"read_only": True})
+                        .get(constants.SCHEMA, {})
+                        .get(constants.PROPERTIES, {})
+                    )
+                    if properties:
+                        return properties
 
-        return resources
+        return {}
 
     def get_delete_resource(self) -> str:
         """

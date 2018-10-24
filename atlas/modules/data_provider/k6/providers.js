@@ -389,27 +389,49 @@ export class ResponseDataParser {
         this.resourceInstance = Resource.instance;
     }
 
-    addData(config, resourceKey, resourceField) {
+    parser(schema, response) {
 
-        let self = this;
+        const self = this;
+        let resource;
+        let config = response;
 
-        let newResources = new Set();
-        if (_.isArray(config)) {
-            _.forEach(config, function (elementConfig) {
-                const extractedData = self.extractData(elementConfig, resourceField);
-                if (extractedData) {
-                    newResources = [...newResources, ...extractedData];
+        _.forEach(schema, function (schemaConfig, key) {
+            if (_.isArray(config[key]) && !_.isEmpty(config[key])) {
+                const firstValue = config[key][0];
+
+                if (typeof firstValue === "object") {
+                    let itemConfig = _.get(schemaConfig, constants.ITEMS, {});
+                    self.parser(_.get(itemConfig, constants.PROPERTIES, itemConfig), firstValue);
+                } else {
+                    resource = _.get(schemaConfig, constants.RESOURCE);
+
+                    if (!_.isNil(resource)) {
+                       self.addDatum(resource, config[key]);
+                    }
                 }
-            });
-        } else {
-            newResources = self.extractData(config, resourceField);
-        }
+            } else if (typeof schemaConfig === "object" && schemaConfig.constructor === Object) {
+                // First check if resource is available
+                resource = _.get(schemaConfig, constants.RESOURCE);
 
-        if (!_.isEmpty(newResources)) {
-            this.resourceInstance.updateResource(self.profile, resourceKey, newResources);
-        }
+                if (!_.isNil(resource)) {
+                   self.addDatum(resource, config[key]);
+                } else if (typeof config[key] === "object" && config[key].constructor === Object){
+                   // Expect that if Response has objects, then schema would have object
+                   // It is much faster than checking each properties in schema
+                   self.parser(schemaConfig, config[key]);
+                }
+            }
+        });
 
         return true;
+    }
+
+    addDatum(resourceKey, values) {
+        const newResources = new Set(_.isArray(values) ? values: [values]);
+
+        if(!_.isEmpty(newResources)) {
+            this.resourceInstance.updateResource(this.profile, resourceKey, newResources);
+        }
     }
 
     deleteData(resourceKey, resourceValue) {
@@ -417,21 +439,4 @@ export class ResponseDataParser {
         return true;
     }
 
-    extractData(config, resourceField) {
-        let ret = new Set();
-        _.forEach(config, function (itemConfig, itemName) {
-            if (itemName === resourceField) {
-                if (_.isArray(itemConfig)) {
-                    if (!_.isEmpty(itemConfig)) {
-                        ret = new Set(itemConfig)
-                    }
-                } else {
-                    if (itemConfig) {
-                        ret.add(itemConfig);
-                    }
-                }
-            }
-        });
-        return ret;
-    }
 }

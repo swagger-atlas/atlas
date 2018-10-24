@@ -116,9 +116,7 @@ class Task(models.Task):
 
         response = self.parse_responses(self.open_api_op.responses)
         if response:
-            body.append("let responseResource = '{}';".format(response[1]))
-            body.append("let responseField = '{}';".format(response[0]))
-            self.post_check_tasks.append("respDataParser.addData(res.json(), responseResource, responseField)")
+            self.post_check_tasks.append(f"respDataParser.parser({response}, res.json())")
 
         return body
 
