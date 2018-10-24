@@ -253,11 +253,13 @@ class ResourceProvider {
 
 
 export class Provider {
+    /*
+        This class is responsible for generating data for given schema.
+        Data generation may be done from DB cache or from fake methods
+     */
 
     constructor(profile=null) {
         this.profile = profile;
-        // Ideally, Resource class should be singleton
-        // But here we know that Provider would be initialized only once
         this.resourceInstance = Resource.instance;
     }
 
@@ -373,6 +375,18 @@ export class Provider {
         }
 
         return dataObject;
+    }
+}
+
+
+export class ResponseDataParser {
+    /*
+        This class is responsible for parsing responses and updating cached DB as per response
+     */
+
+    constructor(profile=null) {
+        this.profile = profile;
+        this.resourceInstance = Resource.instance;
     }
 
     addData(config, resourceKey, resourceField) {

@@ -118,7 +118,7 @@ class Task(models.Task):
         if response:
             body.append("let responseResource = '{}';".format(response[1]))
             body.append("let responseField = '{}';".format(response[0]))
-            self.post_check_tasks.append("provider.addData(res.json(), responseResource, responseField)")
+            self.post_check_tasks.append("respDataParser.addData(res.json(), responseResource, responseField)")
 
         return body
 
@@ -195,6 +195,7 @@ class TaskSet(models.TaskSet):
         statements = [
             "export default function() {",
             "{w}provider = new Provider(profile.profileName);".format(w=' ' * width * 4),
+            "{w}respDataParser = new ResponseDataParser(profile.profileName);".format(w=' ' * width * 4),
             "{w}{task_calls}".format(task_calls=self.task_calls(width), w=' ' * width * 4),
             "}",
             "\n",
