@@ -7,6 +7,15 @@ class DataConfig:
         self.spec = spec
         self.visited_ref = set()
 
+        self.include_read_only = False
+
+    def reset_options(self):
+        self.include_read_only = False
+
+    def set_options(self, options):
+        if options.get("read_only"):
+            self.include_read_only = True
+
     def resolve_item_config(self, item_config):
         item_data = {}
         for key, value in item_config.items():
@@ -41,7 +50,7 @@ class DataConfig:
 
         return data_body
 
-    def generate(self, config):
+    def generate(self, config, options=None):
         """
         Generates the schema for Load testing file
         Runs as following:
@@ -49,6 +58,8 @@ class DataConfig:
             2. Then, check for Additional Properties, and add free fields
             3. Go through Properties, and make sure that references are parsed correctly as needed
         """
+
+        options = options or {}
 
         data_body = {}
         all_of_config = config.get(constants.ALL_OF, [])
@@ -65,7 +76,9 @@ class DataConfig:
         if properties or properties == {}:      # Properties could be blank dict, which is perfectly fine
             config = properties
 
-        return self.parse_properties(config, data_body)
+        data_body = self.parse_properties(config, data_body)
+        self.reset_options()
+        return data_body
 
     def parse_properties(self, config, data_body):
 
@@ -92,9 +105,9 @@ class DataConfig:
                 self.visited_ref.remove(ref)
                 continue  # We generated the data already, move on to next once
 
-            # Do not generate data for Read-only fields
+            # Do not generate data for Read-only fields unless explicitly over-written
             read_only = item_config.get(constants.READ_ONLY, False)
-            if read_only:
+            if read_only and not self.include_read_only:
                 continue
 
             # If it is resource, we only need resource mapping
