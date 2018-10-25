@@ -1,8 +1,8 @@
-import _ from 'js_libs/lodash.js';
-import faker from 'js_libs/faker.js'
+_ = require("lodash");
+faker = require("faker");
 
-import * as constants from 'js_libs/constants.js'
-import { Resource } from './resources.js'
+constants = require('./constants');
+Resource = require("./resources").Resource;
 
 /*
         Custom Exception Definitions
@@ -252,7 +252,7 @@ class ResourceProvider {
 }
 
 
-export class Provider {
+class Provider {
     /*
         This class is responsible for generating data for given schema.
         Data generation may be done from DB cache or from fake methods
@@ -379,7 +379,7 @@ export class Provider {
 }
 
 
-export class ResponseDataParser {
+class ResponseDataParser {
     /*
         This class is responsible for parsing responses and updating cached DB as per response
      */
@@ -440,3 +440,9 @@ export class ResponseDataParser {
     }
 
 }
+
+
+module.exports = {
+    Provider: Provider,
+    ResponseDataParser: ResponseDataParser
+};

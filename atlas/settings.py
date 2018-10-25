@@ -18,7 +18,7 @@ class Settings:
     ARTILLERY_YAML = "artillery.yaml"
 
     LOCUST_HOOK_FILE = "hooks.py"
-    K6_HOOK_FILE = "hooks.js"
+    ARTILLERY_HOOK_FILE = "hooks.js"
     MAPPING_FILE = "resource_mapping.yaml"
     RES_MAPPING_HOOKS_FILE = "resource_hooks.py"
     PROFILES_FILE = "profiles.yaml"
@@ -27,5 +27,6 @@ class Settings:
 
     # Generated Output files for K6
     # Do not change these names, as they are imported as it is in JS
+    ARTILLERY_LIB_FOLDER = "libs"
     K6_PROFILES = "profiles.js"
     K6_RESOURCES = "resources.js"

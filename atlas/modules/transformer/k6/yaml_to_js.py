@@ -14,14 +14,13 @@ BOOL_MAP = {
 
 
 TEMPLATE = """
-import http from 'k6/http'
-import _ from 'js_libs/lodash.js'
-import * as settings from 'js_libs/settings.js'
+_ = require('lodash');
+settings = require('./settings');
 
 const singleton = Symbol();
 const singletonEnforcer = Symbol();
 
-export class Resource {{
+exports.Resource = class Resource {{
     // Resource class is singleton
     // You have to use resource.instance to get resource, and not new Resource()
 
@@ -78,7 +77,7 @@ export class Resource {{
     deleteResource(profile, resourceKey, resourceValue) {{
         http.post(this.db_url, "srem/" + Resource.getKey(profile, resourceKey) + "/" + resourceValue);
     }}
-}}
+}};
 """
 
 
@@ -99,9 +98,9 @@ class Converter:
             data = yaml.safe_load(yaml_file)
 
         self.profiles = data.keys()
-        out_data = "export const profiles = {};\n".format(json.dumps(data, indent=4))
+        out_data = "exports.profiles = {};\n".format(json.dumps(data, indent=4))
 
-        out_file = os.path.join(self.path, settings.OUTPUT_FOLDER, settings.K6_PROFILES)
+        out_file = os.path.join(self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_LIB_FOLDER, settings.K6_PROFILES)
 
         with open(out_file, 'w') as js_file:
             js_file.write(out_data)
@@ -122,7 +121,7 @@ class Converter:
         profile_str = "\n".join(profile_data)
         out_data = TEMPLATE.format(initial_resources=profile_str)
 
-        out_file = os.path.join(self.path, settings.OUTPUT_FOLDER, settings.K6_RESOURCES)
+        out_file = os.path.join(self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_LIB_FOLDER, settings.K6_RESOURCES)
 
         with open(out_file, 'w') as js_file:
             js_file.write(out_data)

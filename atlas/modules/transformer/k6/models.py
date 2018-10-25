@@ -123,7 +123,7 @@ class Task(models.Task):
 
         response = self.parse_responses(self.open_api_op.responses)
         if response:
-            self.post_check_tasks.append(f"respDataParser.parser({response}, res.json())")
+            self.post_check_tasks.append(f"respDataParser.parser({response}, res.json());")
 
         return body
 

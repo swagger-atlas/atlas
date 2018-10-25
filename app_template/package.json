@@ -1,0 +1,12 @@
+{
+  "name": "",
+  "private": true,
+  "scripts": {
+    "artillery": "artillery"
+  },
+  "dependencies": {
+    "artillery": "^1.6.0-24",
+    "lodash": "^4.17.11",
+    "faker": "git+https://github.com/JoshLabs/faker.js.git#master"
+  }
+}

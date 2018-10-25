@@ -1,9 +1,9 @@
-import { K6Hook } from "./hookSetup.js";    // This will be corrected at dist. time, so no need to change it
-import { Profile } from "./profile.js";
+ArtilleryHook = require("./hookSetup").ArtilleryHook;
+Profile = require("./profile").Profile;
 
 // Do NOT change name of identifiers
-export let profile = new Profile("default");      // YOUR PROFILE NAME Goes here
-export const hook = new K6Hook();
+let profile = new Profile("default");      // YOUR PROFILE NAME Goes here
+const hook = new ArtilleryHook();
 
 function setHeaders() {
     // You can change this as needed
@@ -11,6 +11,11 @@ function setHeaders() {
 }
 
 profile.register(setHeaders);
+
+module.exports = {
+    profile: profile,
+    hook: hook
+};
 
 /*
 Define your functions and register them in hooks here.

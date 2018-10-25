@@ -215,7 +215,8 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
     def update(self):
 
         # Update Specs File
-        self.write_file_to_output(self.swagger_file, self.specs, append_mode=False)
+        self.write_file_to_output(self.swagger_file, self.specs, append_mode=False,
+                                  project_sub_folder=settings.ARTILLERY_LIB_FOLDER)
 
         # Update Resource Mapping File
         auto_resource = {resource: {"def": "# Add your definition here"} for resource in self.new_resources}

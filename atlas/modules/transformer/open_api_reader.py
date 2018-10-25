@@ -45,7 +45,8 @@ class SpecsFile:
             raise exceptions.ImproperSwaggerException("Incorrect extension for {}".format(self.spec_file))
 
     def file_load(self):
-        _file = os.path.join(utils.get_project_path(), settings.OUTPUT_FOLDER, self.spec_file)
+        _file = os.path.join(utils.get_project_path(), settings.OUTPUT_FOLDER, settings.ARTILLERY_LIB_FOLDER,
+                             self.spec_file)
 
         with open(_file) as open_api_file:
             ret_stream = self.CONVERTER[self.converter](open_api_file)
