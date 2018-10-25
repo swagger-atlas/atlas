@@ -25,7 +25,8 @@ class K6Dist(project_setup.Setup):
     def copy_files(self):
 
         source_files = [
-            os.path.join(self.path, settings.OUTPUT_FOLDER, settings.K6_FILE),
+            os.path.join(self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_FILE),
+            os.path.join(self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_YAML),
             os.path.join(self.path, settings.OUTPUT_FOLDER, settings.K6_PROFILES),
             os.path.join(self.path, settings.OUTPUT_FOLDER, settings.K6_RESOURCES),
             os.path.join(self.path, settings.INPUT_FOLDER, settings.K6_HOOK_FILE),
@@ -62,7 +63,7 @@ class K6Dist(project_setup.Setup):
 
         # No one else should be accessing these files
         source_files = [
-            os.path.join(utils.get_project_path(), settings.DIST_FOLDER, settings.K6_FILE)
+            os.path.join(utils.get_project_path(), settings.DIST_FOLDER, settings.ARTILLERY_FILE)
         ]
 
         import_files = [settings.K6_HOOK_FILE, "providers.js"]
@@ -90,7 +91,7 @@ class K6Dist(project_setup.Setup):
             os.path.join(utils.get_project_path(), settings.DIST_FOLDER, "providers.js"),
             os.path.join(utils.get_project_path(), settings.DIST_FOLDER, "hookSetup.js"),
             os.path.join(utils.get_project_path(), settings.DIST_FOLDER, "profile.js"),
-            os.path.join(utils.get_project_path(), settings.DIST_FOLDER, settings.K6_FILE),
+            os.path.join(utils.get_project_path(), settings.DIST_FOLDER, settings.ARTILLERY_FILE),
             os.path.join(utils.get_project_path(), settings.DIST_FOLDER, "resources.js"),
         ]
 

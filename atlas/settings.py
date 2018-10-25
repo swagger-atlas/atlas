@@ -14,7 +14,8 @@ class Settings:
 
     SWAGGER_FILE = "swagger.yaml"
     LOCUST_FILE = "locust.py"
-    K6_FILE = "k6.js"
+    ARTILLERY_FILE = "processor.js"
+    ARTILLERY_YAML = "artillery.yaml"
 
     LOCUST_HOOK_FILE = "hooks.py"
     K6_HOOK_FILE = "hooks.js"

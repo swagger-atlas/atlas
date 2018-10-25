@@ -3,7 +3,6 @@ import re
 
 from atlas.modules import constants, utils
 from atlas.modules.transformer.base import models
-from atlas.modules.transformer.k6 import constants as k6_constants
 from atlas.conf import settings
 
 
@@ -11,6 +10,14 @@ class Task(models.Task):
     """
     Define a function which is responsible for hitting single URL with single method
     """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.before_func_name = f"{self.func_name}PreReq"
+        self.after_func_name = f"{self.func_name}PostRes"
+
+        self.yaml_task = {}
 
     def error_template_list(self, try_statements: list) -> list:
         """
@@ -54,7 +61,7 @@ class Task(models.Task):
 
         query_str, path_str = self.parse_url_params_for_body()
 
-        body.append(f"let url = baseURL + '{self.open_api_op.url}';")
+        body.append(f"let url = '{self.open_api_op.url}';")
 
         if query_str != "{}" or path_str != "{}":
             body.append("let urlConfig = [];")
@@ -82,7 +89,7 @@ class Task(models.Task):
         request_param_str = ""
         for key, value in request_params.items():
             request_param_str += "'{name}': {config}".format(name=key, config=value)
-        body.append("let requestParams = {{{}}};".format(request_param_str))
+        body.append("let reqParams = {{{}}};".format(request_param_str))
 
         param_array = ["url"]
         if self.open_api_op.method != constants.GET:
@@ -90,7 +97,7 @@ class Task(models.Task):
             if self.data_body:
                 body.extend(self.error_template_list(["body = provider.resolveObject(bodyConfig);"]))
             param_array.append("body")
-        param_array.append("requestParams")
+        param_array.append("reqParams")
 
         body.append("let reqArgs = hook.call('{op_id}', ...{args});".format(
             op_id=self.open_api_op.func_name, args="[{}]".format(", ".join(param_array))
@@ -120,30 +127,37 @@ class Task(models.Task):
 
         return body
 
-    def get_function_definition(self, width):
+    def set_yaml_definition(self):
+        self.yaml_task = {
+            self.open_api_op.method: {
+                "url": self.open_api_op.url,
+                "beforeRequest": self.before_func_name,
+                "afterResponse": self.after_func_name
+            }
+        }
 
-        body = self.body_definition()
-
-        body.append("let res = http.{method}(...reqArgs);".format(
-            method=k6_constants.K6_MAP.get(self.open_api_op.method, self.open_api_op.method)
-        ))
-
-        post_check_statements = " && ".join(self.post_check_tasks) if self.post_check_tasks else ""
-
-        check_statement = "check(res, {{'resp is 2xx': (r) => (r.status >= 200 && r.status < 300) {}}});".format(
-            "&& " + post_check_statements if post_check_statements else ""
-        )
-
-        body.append(check_statement)
-        return "\n{w}".format(w=' ' * width * 4).join(body)
-
-    def convert(self, width):
+    def pre_request_function(self, width):
         statements = [
-            "function {func_name}() {{".format(func_name=self.func_name),
-            "{w}{body}".format(w=' ' * width * 4, body=self.get_function_definition(width)),
+            f"function {self.before_func_name}(requestParams, context, ee, next) {{",
+            "{w}{body}".format(w=' ' * width * 4, body="\n{w}".format(w=' ' * width * 4).join(self.body_definition())),
+            "{w}return next();".format(w=' ' * width * 4),
             "}"
         ]
         return "\n".join(statements)
+
+    def post_response_function(self, width):
+        statements = [
+            f"function {self.after_func_name}(requestParams, response, context, ee, next) {{",
+            "{w}{body}".format(w=' ' * width * 4, body="\n{w}".format(w=' ' * width * 4).join(self.post_check_tasks)),
+            "{w}return next();".format(w=' ' * width * 4),
+            "}"
+        ]
+        return "\n".join(statements)
+
+    def convert(self, width):
+
+        self.set_yaml_definition()
+        return [self.pre_request_function(width), self.post_response_function(width)]
 
 
 class TaskSet(models.TaskSet):
@@ -151,13 +165,28 @@ class TaskSet(models.TaskSet):
     Function containing collection of tasks
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.yaml_flow = {}
+
+    def set_yaml_flow(self):
+        self.yaml_flow = {
+            "flow": [_task.yaml_task for _task in self.tasks]
+        }
+
     def task_definitions(self, width):
         join_string = "\n\n".format(w=' ' * width * 4)
-        return join_string.join([_task.convert(width) for _task in self.tasks])
+        tasks = []
+        for _task in self.tasks:
+            tasks.extend(_task.convert(width))
+        return join_string.join(tasks)
 
     @staticmethod
-    def group_statement(task):
-        return "group('{func_name}', {func_name});".format(func_name=task.func_name)
+    def func_exports(task, width):
+        return "\n".join([
+            "{w}{func}: {func},".format(w=' '*width*4, func=task.before_func_name),
+            "{w}{func}: {func},".format(w=' '*width*4, func=task.after_func_name)
+        ])
 
     @staticmethod
     def format_url(width):
@@ -186,16 +215,17 @@ class TaskSet(models.TaskSet):
         return join_string.join(statements) + "\n}"
 
     def task_calls(self, width):
-        join_string = "\n{w}".format(w=' ' * width * 4)
-        return join_string.join([self.group_statement(_task) for _task in self.tasks])
+        return "\n".join([
+            "module.exports = {",
+            "\n".join([self.func_exports(_task, width) for _task in self.tasks]),
+            "};"
+        ])
 
     def convert(self, width):
         statements = [
-            "export default function() {",
-            "{w}provider = new Provider(profile.profileName);".format(w=' ' * width * 4),
-            "{w}respDataParser = new ResponseDataParser(profile.profileName);".format(w=' ' * width * 4),
-            "{w}{task_calls}".format(task_calls=self.task_calls(width), w=' ' * width * 4),
-            "}",
+            "provider = new Provider(profile.profileName);",
+            "respDataParser = new ResponseDataParser(profile.profileName);",
+            f"\n{self.task_calls(width)}",
             "\n",
             self.dynamic_template(width),
             "\n",
@@ -204,4 +234,5 @@ class TaskSet(models.TaskSet):
             self.task_definitions(width)
         ]
 
+        self.set_yaml_flow()
         return "\n".join(statements)
