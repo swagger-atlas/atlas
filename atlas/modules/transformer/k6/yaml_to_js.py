@@ -29,7 +29,7 @@ exports.Resource = class Resource {{
             throw "Cannot construct Singleton";
         }}
 
-        this.db_url = settings.REDIS_SERVER_URL;
+        this.resources = {{}};
 
         {initial_resources}
     }}
@@ -47,21 +47,15 @@ exports.Resource = class Resource {{
 
     getResource(profile, resourceKey, options) {{
 
-        let command = "smembers";
-        let isSingle = false;
+        let values = this.resources[Resource.getKey(profile, resourceKey)].values();
 
-        if (options.delete) {{
-            command = "spop";
-            isSingle = true;
-        }} else if (options.items === 1) {{
-            command = "srandmember";
-            isSingle = true;
-        }}
+        if (options.delete || options.items === 1) {{
+            let value = _.sample(values);
 
-        let resp = http.post(this.db_url, command + "/" + Resource.getKey(profile, resourceKey));
-        let values = resp.json()[command];
+            if (!_.isNil(value) && options.delete) {{
+                this.deleteResource(profile, resourceKey, value);
+            }}
 
-        if (isSingle) {{
             values = _.isNil(values)  || values === "" ? [] : [values];
         }}
 
@@ -70,12 +64,18 @@ exports.Resource = class Resource {{
 
     updateResource(profile, resourceKey, resourceValues) {{
         if (!_.isEmpty(resourceValues)) {{
-            http.post(this.db_url, "sadd/" + Resource.getKey(profile, resourceKey) + "/" + _.join([...resourceValues], '/'));
+            const key = Resource.getKey(profile, resourceKey);
+
+            if (this.resources[key]) {{
+                this.resources[key] = new Set([...resourceValues, ...this.resources[key]]);
+            }} else {{
+                this.resources[key] = resourceValues;
+            }}
         }}
     }}
 
     deleteResource(profile, resourceKey, resourceValue) {{
-        http.post(this.db_url, "srem/" + Resource.getKey(profile, resourceKey) + "/" + resourceValue);
+        this.resources[Resource.getKey(profile, resourceKey)].delete(resourceValue);
     }}
 }};
 """
@@ -116,7 +116,7 @@ class Converter:
                 data = yaml.safe_load(yaml_file)
 
             indent_width = 2
-            profile_data.append(self.redis_statements(profile, data, indent_width))
+            profile_data.append(self.update_statements(profile, data, indent_width))
 
         profile_str = "\n".join(profile_data)
         out_data = TEMPLATE.format(initial_resources=profile_str)
@@ -127,9 +127,9 @@ class Converter:
             js_file.write(out_data)
 
     @staticmethod
-    def redis_statements(profile, data, indent_width):
+    def update_statements(profile, data, indent_width):
         """
-        Convert the resources into Redis Statements
+        Convert the resources into Update Statements
         Assumption being that Resources are a single level dict, with each value being set
         """
         indent = ' ' * 4 * indent_width
