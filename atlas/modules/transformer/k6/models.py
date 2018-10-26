@@ -30,8 +30,8 @@ class Task(models.Task):
         statements.append("} catch (ex) {")
         catch_statements = [
             "console.error(ex.message + ' failed for ' + '{}');".format(self.func_name),
-            "check(ex, {'providerCheck': () => false});",
-            "return;"
+            "ee.emit('error', 'Provider Check Failed');",
+            "return next();"
         ]
         statements.extend(["{}{}".format(" " * 4, statement) for statement in catch_statements])
         statements.append("}")
@@ -126,9 +126,8 @@ class Task(models.Task):
 
         response = self.parse_responses(self.open_api_op.responses)
         if response:
-            self.post_check_tasks.append("const body = response.body;")
             self.post_check_tasks.append(
-                f"respDataParser.parser({response}, typeof body === 'object' ? body : JSON.parse(body));"
+                f"respDataParser.parser({response}, extractBody(response, requestParams, context));"
             )
 
         return body
@@ -154,10 +153,24 @@ class Task(models.Task):
     def post_response_function(self, width):
         statements = [
             f"function {self.after_func_name}(requestParams, response, context, ee, next) {{",
-            "{w}{body}".format(w=' ' * width * 4, body="\n{w}".format(w=' ' * width * 4).join(self.post_check_tasks)),
+            "{w}if (response.status < 200 && response.status > 300) {{".format(w=' ' * width * 4),
+            "{w}ee.emit('error', 'Non 2xx Response');".format(w=' ' * (width + 1) * 4)
+        ]
+
+        if self.post_check_tasks:
+            statements.extend([
+                "{w}}} else {{".format(w=' ' * width * 4),
+                "{w}{body}".format(
+                    w=' ' * (width + 1) * 4, body="\n{w}".format(w=' ' * (width + 1) * 4).join(self.post_check_tasks)
+                )
+            ])
+
+        statements.extend([
+            "{w}}}".format(w=' ' * width * 4),
             "{w}return next();".format(w=' ' * width * 4),
             "}"
-        ]
+        ])
+
         return "\n".join(statements)
 
     def convert(self, width):
@@ -193,6 +206,16 @@ class TaskSet(models.TaskSet):
             "{w}{func}: {func},".format(w=' '*width*4, func=task.before_func_name),
             "{w}{func}: {func},".format(w=' '*width*4, func=task.after_func_name)
         ])
+
+    @staticmethod
+    def extract_body(width):
+        statements = [
+            "function extractBody(response, requestParams, context) {",
+            "const body = response.body;",
+            "return typeof body === 'object' ? body : JSON.parse(body);"
+        ]
+        join_string = "\n{w}".format(w=' ' * width * 4)
+        return join_string.join(statements) + "\n}"
 
     @staticmethod
     def format_url(width):
@@ -236,6 +259,8 @@ class TaskSet(models.TaskSet):
             self.dynamic_template(width),
             "\n",
             self.format_url(width),
+            "\n",
+            self.extract_body(width),
             "\n",
             self.task_definitions(width)
         ]
