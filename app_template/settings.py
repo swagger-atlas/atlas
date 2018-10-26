@@ -31,6 +31,3 @@ class Settings:
 
     # Only hit APIs which match Tags
     ONLY_TAG_API = False
-
-    # REDIS URL
-    REDIS_SERVER_URL = "http://localhost:7379"
