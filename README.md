@@ -6,7 +6,7 @@ ATLAS
 - For those who look still further (or backwards!), Simple Application for Load Testing and Analysis
 
 ATLAS takes your Swagger, and smartly generates the code which could be used as input to various load testing tools.
-Currently, ATLAS fully supports K6, and we have plans to incorporate for Locust Testing.
+Currently, ATLAS fully supports Artillery, and we have plans to incorporate for Locust Testing.
 
 
 Quick Start
@@ -14,22 +14,23 @@ Quick Start
 - Install the Atlas Project by `pip install -e git@code.jtg.tools:jtg/atlas.git`
 - Run `python atlas newproject <project-name>`
 - Switch to new directory
+- Update `settings.py`, `package.json`
+- Run `npm install`
 - Copy your swagger definition and Profiles in Conf directory
 
 
-K6 Load Test Basics
+Artillery Load Test Basics
 =======
 
-- Install and Run Redis Server: https://redis.io/download
-- Install and run Webdis server: https://github.com/nicolasff/webdis
+Install Artillery:
+    - `npm install -g artillery`
+    - `npm install`
 
-- Install k6 (https://docs.k6.io/docs/installation)
+Build and Run Artillery:
+    - `python manage.py dist artillery`
+    - `artillery run dist/artillery.yaml
 
-- And then:
-    - `python manage.py dist k6`
-    - `k6 run dist/k6.js -u <number_of_users> -i <number_of_iterations>` [See: https://docs.k6.io/docs/options]
-
-Please see [K6 Guide](docs/k6.md) for advanced usage of the same concept
+Please see [Artillery Guide](docs/artillery.md) for advanced usage of the same concept
 
 
 Contributing to ATLAS

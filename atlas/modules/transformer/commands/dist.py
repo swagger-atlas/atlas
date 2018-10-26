@@ -3,11 +3,11 @@ from atlas.modules.commands.utils import add_bool_arg
 from atlas.modules.resource_data_generator.commands import generate as fetch_data
 from atlas.modules.resource_creator.commands import generate as create_resource
 from atlas.modules.transformer.commands.base import TransformerBaseCommand
-from atlas.modules.transformer.k6.dist import K6Dist
+from atlas.modules.transformer.artillery.dist import ArtilleryDist
 from atlas.modules.transformer.commands import converter, setup
 
 
-VALID_TYPES = {"k6"}
+VALID_TYPES = {"artillery"}
 
 
 class Dist(TransformerBaseCommand):
@@ -24,17 +24,17 @@ class Dist(TransformerBaseCommand):
     def handle(self, **options):
         load_conf_type = options.pop("type")
 
-        if load_conf_type == "k6":
-            self.k6_pipeline(**options)
+        if load_conf_type == "artillery":
+            self.artillery_pipeline(**options)
         else:
             raise CommandError("Invalid Load Testing Type. Valid types are: {}".format(self.VALID_CONVERTERS))
 
     @staticmethod
-    def k6_dist():
-        dist = K6Dist()
+    def artillery_dist():
+        dist = ArtilleryDist()
         dist.start()
 
-    def k6_pipeline(self, **options):
+    def artillery_pipeline(self, **options):
 
         # Create Data Types and then fetch it
         if options.get("detect_resources"):
@@ -45,17 +45,17 @@ class Dist(TransformerBaseCommand):
             print("Updating Cached Databases...")
             fetch_data.Generate().handle()
 
-        # Setup the K6 Files
+        # Setup the Artillery Files
         if options.get("setup"):
             print("Setting up JS Libraries")
-            setup.Setup().handle(type="k6")
+            setup.Setup().handle(type="artillery")
 
-        # Build the Swagger to K6 Files
-        print("Converting your Swagger file to K6 Load Test...")
-        converter.Converter().handle(type="k6")
+        # Build the Swagger to Artillery Files
+        print("Converting your Swagger file to Artillery Load Test...")
+        converter.Converter().handle(type="artillery")
 
         # Now package it for distribution
         print("Preparing your distribution package")
-        self.k6_dist()
+        self.artillery_dist()
 
-        print("Successfully finished. \n\nYou can start the test on local by `k6 run dist/k6.js`\n")
+        print("Successfully finished. \n\nYou can start the test on local by `artillery run dist/artillery.yaml`\n")

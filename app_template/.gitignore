@@ -58,3 +58,9 @@ venv.bak/
 
 # PyCharm
 .idea/
+
+# External Dependencies
+node_modules/
+
+# Artillery Reports
+report*.json*

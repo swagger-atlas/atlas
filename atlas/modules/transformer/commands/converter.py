@@ -1,6 +1,10 @@
 from atlas.modules.commands.base import CommandError
 from atlas.modules.transformer.commands.base import TransformerBaseCommand
-from atlas.modules.transformer.k6 import models as k6_models, transformer as k6_transformer, yaml_to_js
+from atlas.modules.transformer.artillery import (
+    models as artillery_models,
+    transformer as artillery_transformer,
+    yaml_to_js
+)
 from atlas.modules.transformer.locust import models as locust_models, transformer as locust_transformer
 from atlas.modules.transformer import open_api_models, open_api_reader
 from atlas.modules.transformer.ordering import ordering
@@ -11,10 +15,10 @@ TASK_SET = "task_set"
 FILE_CONFIG = "file_config"
 
 CONVERTER_MAP = {
-    "k6": {
-        TASK: k6_models.Task,
-        TASK_SET: k6_models.TaskSet,
-        FILE_CONFIG: k6_transformer.K6FileConfig
+    "artillery": {
+        TASK: artillery_models.Task,
+        TASK_SET: artillery_models.TaskSet,
+        FILE_CONFIG: artillery_transformer.ArtilleryFileConfig
     },
     "locust": {
         TASK: locust_models.Task,
@@ -55,6 +59,6 @@ class Converter(TransformerBaseCommand):
         config = load_conf[FILE_CONFIG](_task_set, spec)
         config.write_to_file()
 
-        if load_conf_type == "k6":
+        if load_conf_type == "artillery":
             js_converter = yaml_to_js.Converter()
             js_converter.convert()

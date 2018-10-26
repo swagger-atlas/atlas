@@ -1,18 +1,11 @@
 from io import open
 import os
 
-import requests
 import six
 
 from atlas.modules import constants
 from atlas.conf import settings
 
-
-LIBS = {
-    # Please do not change the names of keys as we have imported the packages in multiple locations with these names
-    "lodash": "https://raw.githubusercontent.com/lodash/lodash/4.17.10-npm/lodash.min.js",
-    "faker": "https://raw.githubusercontent.com/JoshLabs/faker.js/master/build/build/faker.min.js"
-}
 
 BOOL_MAP = {
     False: "false",
@@ -20,21 +13,10 @@ BOOL_MAP = {
 }
 
 
-class K6Setup:
+class ArtillerySetup:
 
     def __init__(self):
-        self.js_lib_path = os.path.join(os.getcwd(), "js_libs")
-
-    def ensure_js_lib_dir(self):
-        if not os.path.exists(self.js_lib_path):
-            os.makedirs(self.js_lib_path)
-
-    def create_vendor_libraries(self):
-        for key, value in LIBS.items():
-            out_file = os.path.join(self.js_lib_path, "{}.js".format(key))
-            resp = requests.get(value)
-            with open(out_file, "w+") as out_stream:
-                out_stream.write(resp.text)
+        self.js_lib_path = os.path.join(os.getcwd(), settings.OUTPUT_FOLDER, settings.ARTILLERY_LIB_FOLDER)
 
     def convert_python_value_to_js_value(self, python_value, var_name, stringify=True):
         js_val = None
@@ -78,7 +60,7 @@ class K6Setup:
             js_val = self.convert_python_value_to_js_value(value, item)
 
             if js_val is not None:
-                out_data.append(f"export const {item} = {js_val};")
+                out_data.append(f"exports.{item} = {js_val};")
 
         return out_data
 
@@ -97,7 +79,5 @@ class K6Setup:
             out_stream.write("\n".join(out_data) + "\n")
 
     def setup(self):
-        self.ensure_js_lib_dir()
-        self.create_vendor_libraries()
         self.constants_file()
         self.settings_file()

@@ -14,14 +14,13 @@ BOOL_MAP = {
 
 
 TEMPLATE = """
-import http from 'k6/http'
-import _ from 'js_libs/lodash.js'
-import * as settings from 'js_libs/settings.js'
+_ = require('lodash');
+settings = require('./settings');
 
 const singleton = Symbol();
 const singletonEnforcer = Symbol();
 
-export class Resource {{
+exports.Resource = class Resource {{
     // Resource class is singleton
     // You have to use resource.instance to get resource, and not new Resource()
 
@@ -30,7 +29,7 @@ export class Resource {{
             throw "Cannot construct Singleton";
         }}
 
-        this.db_url = settings.REDIS_SERVER_URL;
+        this.resources = {{}};
 
         {initial_resources}
     }}
@@ -48,22 +47,16 @@ export class Resource {{
 
     getResource(profile, resourceKey, options) {{
 
-        let command = "smembers";
-        let isSingle = false;
+        let values = [...this.resources[Resource.getKey(profile, resourceKey)]];
 
-        if (options.delete) {{
-            command = "spop";
-            isSingle = true;
-        }} else if (options.items === 1) {{
-            command = "srandmember";
-            isSingle = true;
-        }}
+        if (options.delete || options.items === 1) {{
+            let value = _.sample(values);
 
-        let resp = http.post(this.db_url, command + "/" + Resource.getKey(profile, resourceKey));
-        let values = resp.json()[command];
+            if (!_.isNil(value) && options.delete) {{
+                this.deleteResource(profile, resourceKey, value);
+            }}
 
-        if (isSingle) {{
-            values = _.isNil(values)  || values === "" ? [] : [values];
+            values = _.isNil(value)  || value === "" ? [] : [value];
         }}
 
         return new Set(_.isEmpty(values) ? []: values);
@@ -71,14 +64,20 @@ export class Resource {{
 
     updateResource(profile, resourceKey, resourceValues) {{
         if (!_.isEmpty(resourceValues)) {{
-            http.post(this.db_url, "sadd/" + Resource.getKey(profile, resourceKey) + "/" + _.join([...resourceValues], '/'));
+            const key = Resource.getKey(profile, resourceKey);
+
+            if (this.resources[key]) {{
+                this.resources[key] = new Set([...resourceValues, ...this.resources[key]]);
+            }} else {{
+                this.resources[key] = resourceValues;
+            }}
         }}
     }}
 
     deleteResource(profile, resourceKey, resourceValue) {{
-        http.post(this.db_url, "srem/" + Resource.getKey(profile, resourceKey) + "/" + resourceValue);
+        this.resources[Resource.getKey(profile, resourceKey)].delete(resourceValue);
     }}
-}}
+}};
 """
 
 
@@ -99,9 +98,11 @@ class Converter:
             data = yaml.safe_load(yaml_file)
 
         self.profiles = data.keys()
-        out_data = "export const profiles = {};\n".format(json.dumps(data, indent=4))
+        out_data = "exports.profiles = {};\n".format(json.dumps(data, indent=4))
 
-        out_file = os.path.join(self.path, settings.OUTPUT_FOLDER, settings.K6_PROFILES)
+        out_file = os.path.join(
+            self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_LIB_FOLDER, settings.ARTILLERY_PROFILES
+        )
 
         with open(out_file, 'w') as js_file:
             js_file.write(out_data)
@@ -117,20 +118,22 @@ class Converter:
                 data = yaml.safe_load(yaml_file)
 
             indent_width = 2
-            profile_data.append(self.redis_statements(profile, data, indent_width))
+            profile_data.append(self.update_statements(profile, data, indent_width))
 
         profile_str = "\n".join(profile_data)
         out_data = TEMPLATE.format(initial_resources=profile_str)
 
-        out_file = os.path.join(self.path, settings.OUTPUT_FOLDER, settings.K6_RESOURCES)
+        out_file = os.path.join(
+            self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_LIB_FOLDER, settings.ARTILLERY_RESOURCES
+        )
 
         with open(out_file, 'w') as js_file:
             js_file.write(out_data)
 
     @staticmethod
-    def redis_statements(profile, data, indent_width):
+    def update_statements(profile, data, indent_width):
         """
-        Convert the resources into Redis Statements
+        Convert the resources into Update Statements
         Assumption being that Resources are a single level dict, with each value being set
         """
         indent = ' ' * 4 * indent_width

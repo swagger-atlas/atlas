@@ -14,17 +14,19 @@ class Settings:
 
     SWAGGER_FILE = "swagger.yaml"
     LOCUST_FILE = "locust.py"
-    K6_FILE = "k6.js"
+    ARTILLERY_FILE = "processor.js"
+    ARTILLERY_YAML = "artillery.yaml"
 
     LOCUST_HOOK_FILE = "hooks.py"
-    K6_HOOK_FILE = "hooks.js"
+    ARTILLERY_HOOK_FILE = "hooks.js"
     MAPPING_FILE = "resource_mapping.yaml"
     RES_MAPPING_HOOKS_FILE = "resource_hooks.py"
     PROFILES_FILE = "profiles.yaml"
     RESOURCES_FOLDER = "resources"
     DIST_FOLDER = "dist"
 
-    # Generated Output files for K6
+    # Generated Output files for Artillery
     # Do not change these names, as they are imported as it is in JS
-    K6_PROFILES = "profiles.js"
-    K6_RESOURCES = "resources.js"
+    ARTILLERY_LIB_FOLDER = "libs"
+    ARTILLERY_PROFILES = "profiles.js"
+    ARTILLERY_RESOURCES = "resources.js"

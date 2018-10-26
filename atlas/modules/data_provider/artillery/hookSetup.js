@@ -1,4 +1,4 @@
-export class K6Hook {
+exports.ArtilleryHook = class ArtilleryHook {
 
     constructor() {
         this.hooks = {};
@@ -19,4 +19,4 @@ export class K6Hook {
         }
         return args;
     }
-}
+};

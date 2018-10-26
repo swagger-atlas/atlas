@@ -1,8 +1,8 @@
-import _ from 'js_libs/lodash.js';
-import faker from 'js_libs/faker.js'
+_ = require("lodash");
+faker = require("faker");
 
-import * as constants from 'js_libs/constants.js'
-import { Resource } from './resources.js'
+constants = require('./constants');
+Resource = require("./resources").Resource;
 
 /*
         Custom Exception Definitions
@@ -252,7 +252,7 @@ class ResourceProvider {
 }
 
 
-export class Provider {
+class Provider {
     /*
         This class is responsible for generating data for given schema.
         Data generation may be done from DB cache or from fake methods
@@ -369,7 +369,7 @@ export class Provider {
             if (addPropMapper) {
                 // Generate minimum possible additional properties
                 _.forEach(_.range(_.get(additionalProperties, constants.MIN_PROPERTIES, 0)), function (index) {
-                    dataObject["k6_load_test_" + index] = addPropMapper;
+                    dataObject["artillery_load_test_" + index] = addPropMapper;
                 });
             }
         }
@@ -379,7 +379,7 @@ export class Provider {
 }
 
 
-export class ResponseDataParser {
+class ResponseDataParser {
     /*
         This class is responsible for parsing responses and updating cached DB as per response
      */
@@ -406,7 +406,7 @@ export class ResponseDataParser {
                     resource = _.get(schemaConfig, constants.RESOURCE);
 
                     if (!_.isNil(resource)) {
-                       self.addDatum(resource, config[key]);
+                        self.addDatum(resource, config[key]);
                     }
                 }
             } else if (typeof schemaConfig === "object" && schemaConfig.constructor === Object) {
@@ -414,11 +414,11 @@ export class ResponseDataParser {
                 resource = _.get(schemaConfig, constants.RESOURCE);
 
                 if (!_.isNil(resource)) {
-                   self.addDatum(resource, config[key]);
+                    self.addDatum(resource, config[key]);
                 } else if (typeof config[key] === "object" && config[key].constructor === Object){
-                   // Expect that if Response has objects, then schema would have object
-                   // It is much faster than checking each properties in schema
-                   self.parser(schemaConfig, config[key]);
+                    // Expect that if Response has objects, then schema would have object
+                    // It is much faster than checking each properties in schema
+                    self.parser(schemaConfig, config[key]);
                 }
             }
         });
@@ -440,3 +440,9 @@ export class ResponseDataParser {
     }
 
 }
+
+
+module.exports = {
+    Provider: Provider,
+    ResponseDataParser: ResponseDataParser
+};
