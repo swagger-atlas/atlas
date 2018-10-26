@@ -127,6 +127,8 @@ class ResourceGraph(DAG):
             op_id = operation.func_name
             ref_graph = {}
             for response in operation.responses.values():
+                if operation.method in {constants.DELETE, constants.PATCH, constants.PUT}:
+                    continue
                 ref = self.get_ref_name(response)
                 if ref:
                     ref_graph[ref] = "producer"
