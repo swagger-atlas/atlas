@@ -126,7 +126,10 @@ class Task(models.Task):
 
         response = self.parse_responses(self.open_api_op.responses)
         if response:
-            self.post_check_tasks.append(f"respDataParser.parser({response}, response);")
+            self.post_check_tasks.append("const body = response.body;")
+            self.post_check_tasks.append(
+                f"respDataParser.parser({response}, typeof body === 'object' ? body : JSON.parse(body));"
+            )
 
         return body
 

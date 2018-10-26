@@ -47,7 +47,7 @@ exports.Resource = class Resource {{
 
     getResource(profile, resourceKey, options) {{
 
-        let values = this.resources[Resource.getKey(profile, resourceKey)].values();
+        let values = [...this.resources[Resource.getKey(profile, resourceKey)]];
 
         if (options.delete || options.items === 1) {{
             let value = _.sample(values);
@@ -56,7 +56,7 @@ exports.Resource = class Resource {{
                 this.deleteResource(profile, resourceKey, value);
             }}
 
-            values = _.isNil(values)  || values === "" ? [] : [values];
+            values = _.isNil(value)  || value === "" ? [] : [value];
         }}
 
         return new Set(_.isEmpty(values) ? []: values);

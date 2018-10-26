@@ -406,7 +406,7 @@ class ResponseDataParser {
                     resource = _.get(schemaConfig, constants.RESOURCE);
 
                     if (!_.isNil(resource)) {
-                       self.addDatum(resource, config[key]);
+                        self.addDatum(resource, config[key]);
                     }
                 }
             } else if (typeof schemaConfig === "object" && schemaConfig.constructor === Object) {
@@ -414,11 +414,11 @@ class ResponseDataParser {
                 resource = _.get(schemaConfig, constants.RESOURCE);
 
                 if (!_.isNil(resource)) {
-                   self.addDatum(resource, config[key]);
+                    self.addDatum(resource, config[key]);
                 } else if (typeof config[key] === "object" && config[key].constructor === Object){
-                   // Expect that if Response has objects, then schema would have object
-                   // It is much faster than checking each properties in schema
-                   self.parser(schemaConfig, config[key]);
+                    // Expect that if Response has objects, then schema would have object
+                    // It is much faster than checking each properties in schema
+                    self.parser(schemaConfig, config[key]);
                 }
             }
         });
