@@ -94,3 +94,5 @@ BASE_PATH = "basePath"
 HOST = "host"
 INFO = "info"
 API_URL = "url"
+
+DEFAULT = "default"

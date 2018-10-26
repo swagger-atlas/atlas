@@ -163,13 +163,15 @@ class Task:
         Resolve the responses.
         """
 
+        return_response = {}
+
         for status, config in responses.items():
 
-            if status == "default":
+            if status == constants.DEFAULT:
                 response = self.get_response_properties(config)
                 if response:
-                    return response
-                continue      # Don't do any additional check
+                    return_response = response
+                continue      # No need to do any other checks
 
             try:
                 status_code = int(status)
@@ -183,7 +185,7 @@ class Task:
                     if schema:
                         return schema
 
-        return {}
+        return return_response
 
     def get_delete_resource(self) -> str:
         """

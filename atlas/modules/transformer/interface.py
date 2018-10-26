@@ -73,7 +73,7 @@ class OpenAPITaskInterface:
         valid_responses = {}
         for status_code, config in value.items():
             if isinstance(status_code, str):
-                if status_code == "default":
+                if status_code == constants.DEFAULT:
                     valid_responses[status_code] = config
                 else:
                     try:
