@@ -29,8 +29,12 @@ Running the Project
 
 Please go through [ATLAS Docs](https://code.jtg.tools/jtg/atlas/README.md) for detailed run-down and options.
 
-Build and Run Artillery:
-    - `python manage.py dist k6`
-    - `npm run-script artillery run dist/artillery.yaml`
+Install Artillery:
+    - `npm install -g artillery`
+    - `npm install`
 
-You would need to see [K6 Guide](https://code.jtg.tools/jtg/atlas/docs/k6.md) for details.
+Build and Run Artillery:
+    - `python manage.py dist artillery`
+    - `artillery run dist/artillery.yaml`
+
+You would need to see [Artillery Guide](https://code.jtg.tools/jtg/atlas/docs/artillery.md) for details.

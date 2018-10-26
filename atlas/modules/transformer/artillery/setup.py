@@ -13,7 +13,7 @@ BOOL_MAP = {
 }
 
 
-class K6Setup:
+class ArtillerySetup:
 
     def __init__(self):
         self.js_lib_path = os.path.join(os.getcwd(), settings.OUTPUT_FOLDER, settings.ARTILLERY_LIB_FOLDER)

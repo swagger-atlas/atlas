@@ -22,11 +22,15 @@ Quick Start
 Artillery Load Test Basics
 =======
 
-Build and Run Artillery:
-    - `python manage.py dist k6`
-    - `npm run-script artillery run dist/artillery.yaml
+Install Artillery:
+    - `npm install -g artillery`
+    - `npm install`
 
-Please see [K6 Guide](docs/k6.md) for advanced usage of the same concept
+Build and Run Artillery:
+    - `python manage.py dist artillery`
+    - `artillery run dist/artillery.yaml
+
+Please see [Artillery Guide](docs/artillery.md) for advanced usage of the same concept
 
 
 Contributing to ATLAS

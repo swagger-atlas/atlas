@@ -3,7 +3,7 @@ from atlas.modules.transformer.base import transformer
 from atlas.conf import settings
 
 
-class K6FileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
+class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
 
     OUT_FILE = settings.ARTILLERY_FILE
 
@@ -31,7 +31,6 @@ class K6FileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
         ])
 
     def set_yaml_config(self):
-        # TODO: Default headers, move hook codes appropriate positions
         self.yaml_config = {
             "config": {
                 "target": self.get_swagger_url(),

@@ -369,7 +369,7 @@ class Provider {
             if (addPropMapper) {
                 // Generate minimum possible additional properties
                 _.forEach(_.range(_.get(additionalProperties, constants.MIN_PROPERTIES, 0)), function (index) {
-                    dataObject["k6_load_test_" + index] = addPropMapper;
+                    dataObject["artillery_load_test_" + index] = addPropMapper;
                 });
             }
         }

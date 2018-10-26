@@ -9,7 +9,7 @@ from atlas.conf import settings
 PySed = namedtuple('py_sed_tuple', ['pattern', 'replace_text'])
 
 
-class K6Dist(project_setup.Setup):
+class ArtilleryDist(project_setup.Setup):
 
     def start(self):
         self.path = utils.get_project_path()
@@ -22,9 +22,9 @@ class K6Dist(project_setup.Setup):
 
         source_files = [
             os.path.join(self.path, settings.INPUT_FOLDER, settings.ARTILLERY_HOOK_FILE),
-            os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "k6", "providers.js"),
-            os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "k6", "hookSetup.js"),
-            os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "k6", "profile.js")
+            os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery", "providers.js"),
+            os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery", "hookSetup.js"),
+            os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery", "profile.js")
         ]
 
         for _file in source_files:

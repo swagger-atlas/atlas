@@ -25,8 +25,8 @@ class Settings:
     RESOURCES_FOLDER = "resources"
     DIST_FOLDER = "dist"
 
-    # Generated Output files for K6
+    # Generated Output files for Artillery
     # Do not change these names, as they are imported as it is in JS
     ARTILLERY_LIB_FOLDER = "libs"
-    K6_PROFILES = "profiles.js"
-    K6_RESOURCES = "resources.js"
+    ARTILLERY_PROFILES = "profiles.js"
+    ARTILLERY_RESOURCES = "resources.js"

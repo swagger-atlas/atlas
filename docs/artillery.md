@@ -1,35 +1,35 @@
-What is K6
+What is Artillery
 =======
 
-K6 is a developer-centric load testing tool. It read JS configuration file and run load test depending on your options
-K6 is documented at their [official site](https://docs.k6.io/docs)
+Artillery is a modern, powerful & easy-to-use load testing and functional testing toolkit.
+Use it to ship scalable applications that stay performant & resilient under high load.
+Artillery is documented at their [official site](https://artillery.io/docs/)
 
 
-Short note on K6 Commands
+Short note on Artillery Commands
 ======
-- In this documentation, K6 commands are given which are each relevant to their section.
-- When you run `python manage.py dist k6`, all these commands are run by default.
+- In this documentation, artillery commands are given which are each relevant to their section.
+- When you run `python manage.py dist artillery`, all these commands are run by default.
 - In the dist command, you can toggle the features as needed
 
 
-K6 Setup for ATLAS
+Artillery Setup for ATLAS
 =====
-When integrating ATLAS project with K6, you would need to run one-time script which would install all required dependencies.
-For K6, setup is responsible for:
+When integrating ATLAS project with artillery, you would need to run one-time script which would install all required dependencies.
+For artillery, setup is responsible for:
 
-- Installing all third party JS libraries
 - Convert all required constants into a JS file and expose them
 - Convert all required settings into a JS file and expose them
 
 This step should be only executed if you change any settings value or update your ATLAS project.
 
-`python manage.py setup k6`
+`python manage.py setup artillery`
 
 
-Basic K6 Configuration
+Basic Artillery Configuration
 ========
 
-At the very least, we require two K6 Configuration to be filled by users:
+At the very least, we require two artillery Configuration to be filled by users:
 - You need to enter your Swagger definition at `conf/swagger.yaml` location
 - You need to enter your Profiles definition at `conf/profiles.yaml` [Profiles](profiles.md)
 
@@ -55,23 +55,23 @@ If your APIs need authentication, you can leverage the `conf/hooks.js` for same.
 - You can add or remove other hooks also and register them with `profile.register(<your_func_name>)` which would be run for each of your test user once.
 
 
-Building K6 Configuration for ATLAS
+Building Artillery Configuration for ATLAS
 ========
-Once you have setup K6, you want ATLAS to build the Swagger into K6 readable format.
+Once you have setup artillery, you want ATLAS to build the Swagger into artillery readable format.
 This generally occurs in following steps:
 - Identification of resources. Run `python manage.py detect_resources` for same. Unless, you are updating Swagger, this should be only run once.
 - Run `python manage.py fetch_data` so we can extract all relevant values. One time operation unless you want to re-fetch all values again
-- Run `python manage.py build k6` which transforms your YAML Swagger to K6 JS File (with lots of other awesome stuff besides)
+- Run `python manage.py build artillery` which transforms your YAML Swagger to artillery YAML File (with lots of other awesome stuff besides)
 
 
 Distributing Your Setup
 =========
 
-Finally, there is a magic command `python manage.py dist k6`.
+Finally, there is a magic command `python manage.py dist artillery`.
 This will create a folder `dist`.
 
 This is self-sufficient folder.
-You can copy this folder and run it ANYWHERE where k6 is pre-installed. It does not NEED any other configurations or even access to your swagger schema
+You can copy this folder and run it ANYWHERE where artillery is pre-installed. It does not NEED any other configurations or even access to your swagger schema
 
 
 FAQ
