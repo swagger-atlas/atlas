@@ -10,7 +10,7 @@ class Settings:
 
     # These APIs would not be hit during load test
     # Strings are matched via Regex Mechanism
-    EXCLUDE_URLS = ["/logout/"]
+    EXCLUDE_URLS = ["/logout", "/login"]
 
     SERVER_URL = {
         "protocol": "http",

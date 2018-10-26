@@ -148,12 +148,29 @@ class Task:
 
         return query_str, path_str
 
+    def get_response_properties(self, config):
+        properties = (
+            self.data_config.generate(
+                config, {"read_only": True}).get(constants.SCHEMA, {}).get(constants.PROPERTIES, {})
+        )
+        if properties:
+            return properties
+
+        return {}
+
     def parse_responses(self, responses):
         """
         Resolve the responses.
         """
 
         for status, config in responses.items():
+
+            if status == "default":
+                response = self.get_response_properties(config)
+                if response:
+                    return response
+                continue      # Don't do any additional check
+
             try:
                 status_code = int(status)
             except (ValueError, TypeError):
@@ -162,13 +179,9 @@ class Task:
                 # 2xx responses are typically used as indication of valid response
                 if 200 <= status_code < 300:
                     # Short-circuit return with first valid response we encountered
-                    properties = (
-                        self.data_config.generate(config, {"read_only": True})
-                        .get(constants.SCHEMA, {})
-                        .get(constants.PROPERTIES, {})
-                    )
-                    if properties:
-                        return properties
+                    schema = self.get_response_properties(config)
+                    if schema:
+                        return schema
 
         return {}
 

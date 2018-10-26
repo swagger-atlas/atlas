@@ -6,7 +6,6 @@ PATHS = "paths"
 OPERATION = "operationId"
 TAGS = "tags"
 RESPONSES = "responses"
-VALID_RESPONSES = {'200', '201', '204'}
 
 # Parameter Constants
 PARAMETERS = "parameters"
