@@ -6,6 +6,7 @@ PATHS = "paths"
 OPERATION = "operationId"
 TAGS = "tags"
 RESPONSES = "responses"
+SCHEMES = "schemes"
 
 # Parameter Constants
 PARAMETERS = "parameters"
