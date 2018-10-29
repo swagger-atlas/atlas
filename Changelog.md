@@ -2,6 +2,13 @@ Changelog
 ========
 
 
+1.2.0 -- In progress
+=====
+
+Features
+    - Automatically mark IDs and Slugs as Read only in references
+
+
 1.1.0
 ====
 
