@@ -127,7 +127,7 @@ class Task(models.Task):
         response = self.parse_responses(self.open_api_op.responses)
         if response:
             self.post_check_tasks.append(
-                f"respDataParser.parser({response}, extractBody(response, requestParams, context));"
+                f"respDataParser.parser({json.dumps(response)}, extractBody(response, requestParams, context));"
             )
 
         return body
@@ -153,7 +153,8 @@ class Task(models.Task):
     def post_response_function(self, width):
         statements = [
             f"function {self.after_func_name}(requestParams, response, context, ee, next) {{",
-            "{w}if (response.status < 200 && response.status > 300) {{".format(w=' ' * width * 4),
+            "{w}const status = response.statusCode;"
+            "{w}if (!status || status < 200 || status > 300) {{".format(w=' ' * width * 4),
             "{w}ee.emit('error', 'Non 2xx Response');".format(w=' ' * (width + 1) * 4)
         ]
 
@@ -211,7 +212,8 @@ class TaskSet(models.TaskSet):
     def extract_body(width):
         statements = [
             "function extractBody(response, requestParams, context) {",
-            "const body = response.body;",
+            "let body = response.body;",
+            "if (!(body)) { body = {}; }",
             "return typeof body === 'object' ? body : JSON.parse(body);"
         ]
         join_string = "\n{w}".format(w=' ' * width * 4)

@@ -148,12 +148,31 @@ class Task:
 
         return query_str, path_str
 
+    def get_response_properties(self, config):
+        properties = (
+            self.data_config.generate(
+                config, {"read_only": True}).get(constants.SCHEMA, {}).get(constants.PROPERTIES, {})
+        )
+        if properties:
+            return properties
+
+        return {}
+
     def parse_responses(self, responses):
         """
         Resolve the responses.
         """
 
+        return_response = {}
+
         for status, config in responses.items():
+
+            if status == constants.DEFAULT:
+                response = self.get_response_properties(config)
+                if response:
+                    return_response = response
+                continue      # No need to do any other checks
+
             try:
                 status_code = int(status)
             except (ValueError, TypeError):
@@ -162,15 +181,11 @@ class Task:
                 # 2xx responses are typically used as indication of valid response
                 if 200 <= status_code < 300:
                     # Short-circuit return with first valid response we encountered
-                    properties = (
-                        self.data_config.generate(config, {"read_only": True})
-                        .get(constants.SCHEMA, {})
-                        .get(constants.PROPERTIES, {})
-                    )
-                    if properties:
-                        return properties
+                    schema = self.get_response_properties(config)
+                    if schema:
+                        return schema
 
-        return {}
+        return return_response
 
     def get_delete_resource(self) -> str:
         """

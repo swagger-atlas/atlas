@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="atlas",
-    version="0.13",
+    version="0.14",
     packages=["atlas"],
     install_requires=[
         "six==1.11.0",

@@ -70,4 +70,18 @@ class OpenAPITaskInterface:
 
     @responses.setter
     def responses(self, value):
-        self._responses = value
+        valid_responses = {}
+        for status_code, config in value.items():
+            if isinstance(status_code, str):
+                if status_code == constants.DEFAULT:
+                    valid_responses[status_code] = config
+                else:
+                    try:
+                        status_code = int(status_code)
+                    except (ValueError, TypeError):
+                        raise exceptions.ImproperSwaggerException(f"Status Code of {config} must be default/int string")
+
+            if isinstance(status_code, int) and 200 <= status_code < 300:
+                valid_responses[str(status_code)] = config
+
+        self._responses = valid_responses
