@@ -36,7 +36,10 @@ class FileConfig:
 
     def get_swagger_url(self):
 
-        protocol = settings.SERVER_URL.get('protocol', 'http')
+        protocol = settings.SERVER_URL.get('protocol')
+        if not protocol:
+            schemes = self.specs.get(constants.SCHEMES, [])
+            protocol = schemes[0] if schemes else "http"
 
         host = settings.SERVER_URL.get('host')
         if not host:

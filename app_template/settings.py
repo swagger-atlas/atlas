@@ -13,7 +13,7 @@ class Settings:
     EXCLUDE_URLS = ["/logout", "/login"]
 
     SERVER_URL = {
-        "protocol": "http",
+        "protocol": "",       # If left empty, would be picked from swagger. If not in swagger, would be "http"
         "host": "",           # if left empty, would be picked from swagger. If not there, would be localhost
 
         # In swagger, we search for info/url and basePath  for this setting
