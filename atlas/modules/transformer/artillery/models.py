@@ -103,11 +103,8 @@ class Task(models.Task):
             op_id=self.open_api_op.func_name, args="[{}]".format(", ".join(param_array))
         ))
 
-        # We can pick this up from Swagger Also
-        mime = "json"
-        if mime == "json" and "body" in param_array:
-            body.append("requestParams.json = reqArgs[1];")
-            body.append("reqArgs[2].headers['Content-Type'] = 'application/json';")
+        if "body" in param_array:
+            body = self.handle_mime(body)
 
         if self.open_api_op.method == constants.POST:
             # This is incorrect, but would work for Simple strings as long as char length is equal to byte length
@@ -118,6 +115,20 @@ class Task(models.Task):
         body.append(f"requestParams.headers = reqArgs[{len(param_array) - 1}];")
 
         return self.cache_operation_tasks(body)
+
+    def handle_mime(self, body):
+        mime = self.open_api_op.mime
+
+        request_map = {
+            constants.JSON_CONSUMES: "json",
+            constants.FORM_CONSUMES: "form",
+            constants.MULTIPART_CONSUMES: "formData"
+        }
+
+        body.append(f"reqArgs[2].headers['Content-Type'] = '{mime}';")
+        body.append(f"requestParams.{request_map[mime]} = reqArgs[1];")
+
+        return body
 
     def cache_operation_tasks(self, body):
         """
