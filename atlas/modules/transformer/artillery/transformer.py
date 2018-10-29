@@ -38,7 +38,7 @@ class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
                 "phases": [
                     {
                         "duration": 1,
-                        "arrivalCount": 1
+                        "arrivalRate": 1
                     }
                 ]
             },
