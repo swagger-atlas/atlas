@@ -14,7 +14,7 @@ class ResourceMap(mixins.ProfileMixin):
 
     def __init__(self, profiles=None):
 
-        self.map = self.read_file_from_output(settings.MAPPING_FILE)
+        self.map = self.read_file_from_input(settings.MAPPING_FILE) or {}
         self.limit = 50
         self.client = db_client.Client()
 
@@ -74,15 +74,12 @@ class ResourceMap(mixins.ProfileMixin):
         global_settings = self.map.pop(resource_constants.GLOBALS, {})
 
         for name, config in self.get_profiles().items():
-            resources = self.read_file(
-                self.get_profile_resource_name(name, config), {},
-                os.path.join(settings.OUTPUT_FOLDER, settings.RESOURCES_FOLDER)
-            )
+            resources = {}
             self.active_profile_config = config
             self.read_for_profile(resources, global_settings)
             self.write_file(
                 self.get_profile_resource_name(name, config), resources,
-                os.path.join(settings.OUTPUT_FOLDER, settings.RESOURCES_FOLDER), False
+                os.path.join(settings.OUTPUT_FOLDER, settings.RESOURCES_FOLDER), False, force_write=True
             )
 
     def construct_fetch_query(self, table, column, filters):

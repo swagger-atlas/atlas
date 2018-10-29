@@ -26,7 +26,7 @@ That is why, we developed limited but powerful intelligence which tries to parse
 - If there is any explicit resource, we go for it
 - Else, we try to reason which entities could be faked, and which needs to be tagged resources.
 
-You can run `python manage.py generate` which would collate the explicit resources with generated resources.
+You can run `python manage.py detect_resources` which would collate the explicit resources with generated resources.
 You can check the output in `build/resource_mapping.yaml`
 - If we miss any resources in the automation, do let us know!
 

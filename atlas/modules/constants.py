@@ -6,7 +6,7 @@ PATHS = "paths"
 OPERATION = "operationId"
 TAGS = "tags"
 RESPONSES = "responses"
-VALID_RESPONSES = {'200', '201', '204'}
+SCHEMES = "schemes"
 
 # Parameter Constants
 PARAMETERS = "parameters"
@@ -28,6 +28,9 @@ PROPERTIES = "properties"
 READ_ONLY = "readOnly"
 TITLE = "title"
 DESCRIPTION = "description"
+ALL_OF = "allOf"
+ADDITIONAL_PROPERTIES = "additionalProperties"
+MIN_PROPERTIES = "minProperties"
 
 # Open API Supported Methods
 GET = "get"
@@ -72,6 +75,7 @@ BINARY = "binary"
 EMAIL = "email"
 UUID = "uuid"
 URI = "uri"
+URL = "url"
 SLUG = "slug"
 
 # Array Options
@@ -84,4 +88,12 @@ UNIQUE_ITEMS = "uniqueItems"
 DEFINITIONS = "definitions"
 
 # Extra Keys for Data Providers
-EXTRA_KEYS = {PARAMETER_NAME, IN_, READ_ONLY, REQUIRED, TITLE}
+EXTRA_KEYS = {PARAMETER_NAME, IN_, READ_ONLY, REQUIRED, TITLE, DESCRIPTION}
+
+# URL Settings
+BASE_PATH = "basePath"
+HOST = "host"
+INFO = "info"
+API_URL = "url"
+
+DEFAULT = "default"

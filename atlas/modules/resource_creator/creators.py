@@ -1,5 +1,7 @@
 import re
 
+import inflection
+
 from atlas.conf import settings
 from atlas.modules import (
     constants as swagger_constants,
@@ -19,26 +21,52 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
         self.swagger_file = swagger_file or settings.SWAGGER_FILE
         self.specs = self.read_file_from_input(self.swagger_file, {})
+        self.spec_definitions = self.format_references(self.specs.get(swagger_constants.DEFINITIONS, {}).keys())
 
         self.resources = self.read_file_from_input(settings.MAPPING_FILE, {})
+        self.resource_keys = self.format_references(self.resources.keys())
         self.new_resources = set()
 
+        # Keep list of refs which are already processed to avoid duplicate processing
+        self.processed_refs = set()
+
+    @staticmethod
+    def format_references(references) -> set:
+        """
+        Convert all resource keys to uniform format
+        Uniformity is ensured by:
+            - Making sure everything is in lower case
+            - removing _, - from strings
+
+        This does mean that abc_d, and ab_cd refers to same keys
+        However, we estimate that this has lower probability
+            than users writing Swagger correctly to adhere to correct casing in their references
+
+        :return: Set of all Resource Keys
+        """
+        return {"".join([x.lower() for x in re.sub("-", "_", key).split("_")]) for key in references}
+
     def add_resource(self, resource):
-        if resource and resource not in self.resources:
+
+        if not resource:
+            return ""
+
+        resource = "".join([x.lower() for x in re.sub("-", "_", resource).split("_")])
+
+        if resource not in self.resource_keys:
             self.new_resources.add(resource)
+            self.resource_keys.add(resource)
+
+        return resource
 
     def add_reference_definition(self, reference, fields):
         """
         Add a virtual reference for every resource in Swagger definition
         """
-        definitions = self.specs.get(swagger_constants.DEFINITIONS)
+        definitions = self.specs.get(swagger_constants.DEFINITIONS, {})
 
-        # Change reference name to CamelCase
-        snake_case = re.sub("-", "_", reference)
-        reference = "".join([x.title() for x in snake_case.split("_")])
-
-        if reference in definitions:
-            return  # We already have reference with same name, so do nothing
+        if reference in self.spec_definitions or reference in self.processed_refs:
+            return  # We already have reference with same name, or have processed it earlier, so do nothing
 
         definitions[reference] = {
             swagger_constants.TYPE: swagger_constants.OBJECT,
@@ -48,29 +76,51 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 fields[swagger_constants.PARAMETER_NAME]: dict(fields)
             }
         }
+        self.processed_refs.add(reference)
 
-    @staticmethod
-    def extract_resource_name_from_param(param_name):
+    def extract_resource_name_from_param(self, param_name, url_path, param_type=swagger_constants.PATH_PARAM):
         """
         Extract Resource Name from parameter name
         Names could be either snake case (foo_id) or camelCase (fooId)
+        In case of URL Params, further they could be foo/id
         Return None if no such resource could be found
         """
 
         resource_name = None
 
-        identifier_suffixes = ["_id", "Id", "_slug", "Slug"]
+        identifier_suffixes = {"_id", "Id", "_slug", "Slug", "pk"}
 
         for suffix in identifier_suffixes:
             if param_name.endswith(suffix):
                 resource_name = param_name[:-len(suffix)]
                 break
 
+        # We need to convert Param Name only after subjecting it to CamelCase Checks
+        param_name = "".join([x.lower() for x in re.sub("-", "_", param_name).split("_")])
+
+        # Resource Name not found by simple means.
+        # Now, assume that resource could be available after the resource
+        # For example: pets/{id} -- here most likely id refers to pet
+        if not resource_name and param_name in {"id", "slug", "pk"} and param_type == swagger_constants.PATH_PARAM:
+            url_array = url_path.split("/")
+            resource_index = url_array.index(f'{{{param_name}}}') - 1
+            if resource_index >= 0:
+                # Singularize the resource
+                resource_name = inflection.singularize(url_array[resource_index])
+
+        if not resource_name and param_name in self.resource_keys:
+            resource_name = param_name
+
         return resource_name
 
-    def parse_params(self, params):
+    def parse_params(self, params, url):
 
         for param in params:
+
+            ref = param.get(swagger_constants.REF)
+            if ref:
+                param = utils.resolve_reference(self.specs, ref)
+
             param_type = param.get(swagger_constants.IN_)
 
             if not param_type:
@@ -89,23 +139,27 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 if resource is not None:    # Empty strings should be respected
                     self.add_resource(resource)
                 elif not resource:          # If resource is explicitly empty string, we should not generate them
-                    resource = self.extract_resource_name_from_param(name)
+                    resource = self.extract_resource_name_from_param(name, url, param_type)
                     if resource:
+                        resource = self.add_resource(resource)
                         param[swagger_constants.RESOURCE] = resource
-                        self.add_resource(resource)
                         self.add_reference_definition(resource, param)
 
             elif param_type == swagger_constants.BODY_PARAM:
                 self.resolve_body_param(param)
 
-    def resolve_body_param(self, param_config):
-        schema = param_config.get(swagger_constants.SCHEMA, {})
+    def resolve_body_param(self, body_config):
+        schema = body_config.get(swagger_constants.SCHEMA, {})
+        self.resolve_schema(schema)
 
+    def resolve_schema(self, schema):
+        """
+        We can only associate Complete references, and not in-line definitions
+        """
         ref = schema.get(swagger_constants.REF)
 
         if ref:
             self.get_ref_name_and_config(ref)
-        # We have no way to map in-line obj def. to a resource
 
     def get_ref_name_and_config(self, ref):
         ref_config = utils.resolve_reference(self.specs, ref)
@@ -114,43 +168,56 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
     def parse_reference(self, ref_name, ref_config):
 
-        properties = ref_config.get(swagger_constants.PROPERTIES)
+        if ref_name in self.processed_refs:
+            return      # This has already been processed, so need to do it again
 
-        if properties is None:      # Properties can be empty dictionary, which is fine
-            raise exceptions.ImproperSwaggerException("Properties must be defined for {}".format(ref_name))
+        for element in ref_config.get(swagger_constants.ALL_OF, []):
+            self.resolve_schema(element)
+
+        properties = ref_config.get(swagger_constants.PROPERTIES, {})
 
         for key, value in properties.items():
-            if swagger_constants.REF in value:
-                self.get_ref_name_and_config(value[swagger_constants.REF])
-            elif key in ["id", "slug"]:
+            resource = ""
+            if key in ["id", "slug", "pk"]:
                 resource = value.get(swagger_constants.RESOURCE, utils.convert_to_snake_case(ref_name))
+            elif swagger_constants.REF in value:
+                self.get_ref_name_and_config(value[swagger_constants.REF])
 
-                if resource:
-                    value[swagger_constants.RESOURCE] = resource
-                    self.add_resource(resource)
+            # elif key in self.resource_keys:
+            #     resource = key
+
+            if resource:
+                resource = self.add_resource(resource)
+                value[swagger_constants.RESOURCE] = resource
+
+        self.processed_refs.add(ref_name)
 
     def parse(self):
 
-        for path in self.specs.get(swagger_constants.PATHS, {}).values():
+        for url, path_config in self.specs.get(swagger_constants.PATHS, {}).items():
 
-            parameters = path.get(swagger_constants.PARAMETERS)
+            parameters = path_config.get(swagger_constants.PARAMETERS)
 
             if parameters:
-                self.parse_params(parameters)
+                self.parse_params(parameters, url)
 
-            for method, method_config in path.items():
+            for method, method_config in path_config.items():
 
                 if method in swagger_constants.VALID_METHODS:
                     parameters = method_config.get(swagger_constants.PARAMETERS)
 
                     if parameters:
-                        self.parse_params(parameters)
+                        self.parse_params(parameters, url)
+
+        for ref_name, ref_config in self.specs.get(swagger_constants.DEFINITIONS, {}).items():
+            self.parse_reference(ref_name, ref_config)
 
     def update(self):
 
         # Update Specs File
-        self.write_file_to_output(self.swagger_file, self.specs, append_mode=False)
+        self.write_file_to_output(self.swagger_file, self.specs, append_mode=False,
+                                  project_sub_folder=settings.ARTILLERY_LIB_FOLDER)
 
         # Update Resource Mapping File
         auto_resource = {resource: {"def": "# Add your definition here"} for resource in self.new_resources}
-        self.write_file_to_output(settings.MAPPING_FILE, {**self.resources, **auto_resource}, append_mode=False)
+        self.write_file_to_input(settings.MAPPING_FILE, {**self.resources, **auto_resource}, append_mode=False)

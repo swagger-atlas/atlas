@@ -8,10 +8,17 @@ class Settings:
         "port": ""
     }
 
-    # This API would not be hit during load test
-    EXCLUDE_URLS = ["/logout/"]
+    # These APIs would not be hit during load test
+    # Strings are matched via Regex Mechanism
+    EXCLUDE_URLS = ["/logout", "/login"]
 
-    HOST_URL = ""
+    SERVER_URL = {
+        "protocol": "",       # If left empty, would be picked from swagger. If not in swagger, would be "http"
+        "host": "",           # if left empty, would be picked from swagger. If not there, would be localhost
+
+        # In swagger, we search for info/url and basePath  for this setting
+        "api_url": "",       # if left empty, would be picked from swagger. If not there, would be blank string.
+    }
 
     # Page Query Parameters
     # These parameters are esp. handled, since they must be positive

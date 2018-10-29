@@ -1,7 +1,6 @@
-import { profiles as Profiles } from './profiles.js'
+Profiles = require('./profiles').profiles;
 
-
-export class Profile {
+exports.Profile = class Profile {
     constructor(profileName) {
         this.profile = Profiles[profileName];
         this.profileName = profileName;
@@ -20,4 +19,4 @@ export class Profile {
             func();
         }
     }
-}
+};

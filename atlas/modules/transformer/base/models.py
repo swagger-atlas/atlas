@@ -41,6 +41,11 @@ class Task:
         """
 
         for config in parameters.values():
+
+            ref = config.get(constants.REF)
+            if ref:
+                config = utils.resolve_reference(self.data_config.spec, ref)
+
             in_ = config.get(constants.IN_)
 
             if not in_:
@@ -55,10 +60,7 @@ class Task:
                 self.parse_url_params(name, config, param_type="path")
 
             elif in_ == constants.BODY_PARAM:
-                schema = config.get(constants.SCHEMA)
-                if not schema:
-                    raise exceptions.ImproperSwaggerException("Body Parameter must specify schema")
-                self.data_body = schema
+                self.parse_body_params(name, config)
 
             elif in_ == constants.QUERY_PARAM:
                 self.parse_url_params(name, config)
@@ -74,6 +76,18 @@ class Task:
                     "Config {} does not have valid parameter type".format(config))
 
         self.data_body = self.data_config.generate(self.data_body)
+
+    def parse_body_params(self, name, config):
+        schema = config.get(constants.SCHEMA)
+        if schema:
+            self.data_body = schema
+        else:
+            # If schema is not there, we want to see if we can safely ignore this before raising error
+            required = config.get(constants.REQUIRED, True)
+            if required:
+                raise exceptions.ImproperSwaggerException(
+                    f"Body Parameter {name} must specify schema. OP ID: {self.open_api_op.func_name}"
+                )
 
     def parse_header_params(self, name, config):
         config = self.data_config.generate({name: config})
@@ -134,29 +148,62 @@ class Task:
 
         return query_str, path_str
 
+    def get_response_properties(self, config):
+        properties = (
+            self.data_config.generate(
+                config, {"read_only": True}).get(constants.SCHEMA, {}).get(constants.PROPERTIES, {})
+        )
+        if properties:
+            return properties
+
+        return {}
+
     def parse_responses(self, responses):
         """
-        We could have data_config resolve all references recursively,
-        but we are only interested in top-level resources
-
-        So, this quickly extracts it and move on
+        Resolve the responses.
         """
-        resources = []
-        for response in responses.values():
-            schema = response.get(constants.SCHEMA, {})
-            ref = schema.get(constants.REF) or schema.get(constants.ITEMS, {}).get(constants.REF)
-            if ref:
-                ref_name = utils.get_ref_name(ref)
-                ref_definition = self.data_config.spec.get(constants.DEFINITIONS, {}).get(ref_name, {})
-                for field, config in ref_definition.get(constants.PROPERTIES, {}).items():
-                    resource = config.get(constants.RESOURCE)
-                    if resource:
-                        resources.append((field, resource))
 
-        if len(resources) > 1:
-            raise exceptions.ImproperSwaggerException("Multiple Swagger resources at top level - {}".format(responses))
+        return_response = {}
 
-        return resources[0] if resources else ()
+        for status, config in responses.items():
+
+            if status == constants.DEFAULT:
+                response = self.get_response_properties(config)
+                if response:
+                    return_response = response
+                continue      # No need to do any other checks
+
+            try:
+                status_code = int(status)
+            except (ValueError, TypeError):
+                raise exceptions.ImproperSwaggerException(f"Swagger {responses} status codes must be Integer Strings")
+            else:
+                # 2xx responses are typically used as indication of valid response
+                if 200 <= status_code < 300:
+                    # Short-circuit return with first valid response we encountered
+                    schema = self.get_response_properties(config)
+                    if schema:
+                        return schema
+
+        return return_response
+
+    def get_delete_resource(self) -> str:
+        """
+        Find the resource which needs to be deleted
+        We will assume that in URL, last path params represent the resource to be deleted
+
+        If needed, this can be later revisited and we can see how to handle cascading or multiple deletes
+        """
+
+        url_paths = self.open_api_op.url.split("/")
+        param = ""
+
+        for component in reversed(url_paths):
+            if component.startswith("{") and component.endswith("}"):
+                param = component[1:-1]     # Strip leading and trailing curly braces
+                break
+
+        return param
 
 
 class TaskSet:
