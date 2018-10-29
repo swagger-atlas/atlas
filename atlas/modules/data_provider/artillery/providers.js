@@ -397,11 +397,13 @@ class ResponseDataParser {
 
         _.forEach(schema, function (schemaConfig, key) {
             if (_.isArray(config[key]) && !_.isEmpty(config[key])) {
-                const firstValue = config[key][0];
 
-                if (typeof firstValue === "object") {
+                if (typeof config[key][0] === "object") {
                     let itemConfig = _.get(schemaConfig, constants.ITEMS, {});
-                    self.parser(_.get(itemConfig, constants.PROPERTIES, itemConfig), firstValue);
+                    // Run the Parser for first 10 values, which should be sufficient
+                    _.forEach(_.slice(config[key], 0, 10), function (value) {
+                        self.parser(_.get(itemConfig, constants.PROPERTIES, itemConfig), value);
+                    });
                 } else {
                     resource = _.get(schemaConfig, constants.RESOURCE);
 
