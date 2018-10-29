@@ -91,6 +91,8 @@ class OpenAPISpec:
         exclude_urls = getattr(settings, "EXCLUDE_URLS", [])
         exclude_url_regex = re.compile(r"|".join(url for url in exclude_urls))
 
+        global_consume = self.spec.get(swagger_constants.CONSUMES, [])
+
         for path, config in paths.items():
 
             # We do not include these URLs in our Load Test
@@ -103,6 +105,9 @@ class OpenAPISpec:
                 op_interface = interface.OpenAPITaskInterface()
                 op_interface.method = method
                 op_interface.url = path
+                consumes = method_config.get(swagger_constants.CONSUMES, [])
+                consumes.extend(global_consume)
+                op_interface.consumes = consumes
 
                 operation = Operation(config=method_config, specs=self.spec)
                 operation.add_parameters(common_parameters)
