@@ -74,10 +74,7 @@ class ResourceMap(mixins.ProfileMixin):
         global_settings = self.map.pop(resource_constants.GLOBALS, {})
 
         for name, config in self.get_profiles().items():
-            resources = self.read_file(
-                self.get_profile_resource_name(name, config), {},
-                os.path.join(settings.OUTPUT_FOLDER, settings.RESOURCES_FOLDER)
-            )
+            resources = {}
             self.active_profile_config = config
             self.read_for_profile(resources, global_settings)
             self.write_file(

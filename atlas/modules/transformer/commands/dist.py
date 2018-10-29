@@ -42,12 +42,12 @@ class Dist(TransformerBaseCommand):
             create_resource.Generate().handle()
 
         if options.get("fetch_data"):
-            print("Updating Cached Databases...")
+            print("Fetching Data from database and updating caches...")
             fetch_data.Generate().handle()
 
         # Setup the Artillery Files
         if options.get("setup"):
-            print("Setting up JS Libraries")
+            print("Converting Settings/Constants to JS Libraries")
             setup.Setup().handle(type="artillery")
 
         # Build the Swagger to Artillery Files
@@ -58,4 +58,5 @@ class Dist(TransformerBaseCommand):
         print("Preparing your distribution package")
         self.artillery_dist()
 
-        print("Successfully finished. \n\nYou can start the test on local by `artillery run dist/artillery.yaml`\n")
+        print("Successfully finished. \n\nYou can start the test on local by `artillery run dist/artillery.yaml`\n"
+              "If needed, you can adjust duration and user-spawn rate in dist/artillery.yaml - in config/phases\n")
