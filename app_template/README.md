@@ -7,7 +7,7 @@ This is an application build on ATLAS framework
 Project Setup
 ======
 
-1. Create a Virtual Environment
+1. Create a Virtual Environment, if not already created
     - Run `virtualenv <path/to/virtualenvs/atlas> -p <python3.x>`
      (Replace <variables> with your own versions). Python should be 3.5+
     - `source <path/to/virtualenvs/atlas>/bin/activate` to activate this
@@ -24,12 +24,10 @@ Project Setup
     - Task hooks as per task (For example, Artillery hooks are hooks.js)
 
 
-Running the Project
+Running Artillery
 ========
 
-Please go through [ATLAS Docs](https://code.jtg.tools/jtg/atlas/README.md) for detailed run-down and options.
-
-Install Artillery:
+Install Artillery and dependencies:
     - `npm install -g artillery`
     - `npm install`
 
@@ -37,4 +35,4 @@ Build and Run Artillery:
     - `python manage.py dist artillery`
     - `artillery run dist/artillery.yaml`
 
-You would need to see [Artillery Guide](https://code.jtg.tools/jtg/atlas/docs/artillery.md) for details.
+You should see [Artillery Guide](https://code.jtg.tools/jtg/atlas/docs/artillery.md) for details.

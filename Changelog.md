@@ -2,12 +2,12 @@ Changelog
 ========
 
 
-1.2.0 -- In progress
+1.2.0
 =====
 
 Features
     - Automatically mark IDs and Slugs as Read only in references
-
+    - Readme updates, mainly regarding resource mapping and resource hooks
 
 1.1.0
 ====

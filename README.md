@@ -9,28 +9,16 @@ ATLAS takes your Swagger, and smartly generates the code which could be used as 
 Currently, ATLAS fully supports Artillery, and we have plans to incorporate for Locust Testing.
 
 
-Quick Start
+Creating a new Project
 =====
+- Create a virtual environment
 - Install the Atlas Project by `pip install -e git@code.jtg.tools:jtg/atlas.git`
 - Run `python atlas newproject <project-name>`
 - Switch to new directory
-- Update `settings.py`, `package.json`
-- Run `npm install`
-- Copy your swagger definition and Profiles in Conf directory
+- Follow the README of directory to customize and run your load test
 
-
-Artillery Load Test Basics
-=======
-
-Install Artillery:
-    - `npm install -g artillery`
-    - `npm install`
-
-Build and Run Artillery:
-    - `python manage.py dist artillery`
-    - `artillery run dist/artillery.yaml
-
-Please see [Artillery Guide](docs/artillery.md) for advanced usage of the same concept
+Note: Atlas generates code in Python 3.5+ and JS.
+Your servers could be in any language :)
 
 
 Contributing to ATLAS
