@@ -97,3 +97,12 @@ INFO = "info"
 API_URL = "url"
 
 DEFAULT = "default"
+
+# Consumes
+CONSUMES = "consumes"
+JSON_CONSUMES = "application/json"
+FORM_CONSUMES = "application/x-www-form-urlencoded"
+MULTIPART_CONSUMES = "multipart/form-data"
+
+# Lower ranked are prioritized higher
+CONSUME_PRIORITY = [JSON_CONSUMES, FORM_CONSUMES, MULTIPART_CONSUMES]
