@@ -4,7 +4,7 @@ Profiles
 You may need profiles for:
 - Storing authentication information specific to the profile
 - May want to specify which APIs should be run for this type of users (eg. Student should not be running APIs accessible only to Staff)
-- Easier way to ensure that resources which are fetched are specific to the profile
+- A way to ensure that resources could mapped to a specific profile
 
 
 Creating and using Profiles
@@ -18,7 +18,7 @@ You can define multiple profiles in ATLAS as needed.
 
 
 After the creation of profiles, you can specify which profile to use in `hooks.js`
-Using `profile.register` function, you can also specify any number of hooks which you want to run for profile before start of load test
+Using `profile.register` function, you can also specify any number of hooks which you want to run for the profile before the start of load test
 
 
 Using Profiles for Tagging
@@ -65,7 +65,7 @@ Using profiles for Resource Mapping Variables
 
 Please see [resources](resources.md) documentation for understanding of resources.
 
-Profiles can store key value pairs which `resource_mapping` file can directly access.
+Profiles can store key-value pairs which `resource_mapping` file can directly access.
 
 *Example*
 ```yaml
@@ -79,4 +79,4 @@ courses
     sql: select id from courses_courses c join student_courses s on c.id = s.course_id where s.student_id = {id}
 ```
 
-Here `id` would be transplanted by value of 5.
+Here `id` would be transplanted by the value of 5.

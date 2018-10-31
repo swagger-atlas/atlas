@@ -23,7 +23,7 @@ Features
     - Transfer the resource dependency
     - This works with arbitrarily with any complex relationships between APIs as long it is not cyclic
 
-Do Read [Best Practices](docs/best_practices.md) for swagger practices to get most out of ATLAS Automation systems.
+Do Read [Best Practices](docs/best_practices.md) for swagger practices to get the most out of ATLAS Automation systems.
 
 ---
 
@@ -53,8 +53,8 @@ This header will now be added to all API Requests.
 ---
 
 #### Data Generation
-- Atlas generates random fake data for most of requests. This includes POST body data fields
-- However, for some fields ATLAS prefer to use real data.
+- Atlas generates random fake data for most of the requests. This includes POST body data fields
+- However, for some fields, ATLAS prefer to use real data.
   For example, Path Parameter if randomized give high error rate, so ATLAS would prefer that they are actual instances
   For most of this, ATLAS can infer these fields from results of previous APIs.
   However, you can specify the mapping of these fields yourself. See **Mapping Resources to Database** section in [Resources](resources.md) for details
@@ -63,10 +63,10 @@ This header will now be added to all API Requests.
 
 #### Selective API Hits
 You may want to load test a subset of APIs only. There are several quick ways to do that
-- Exclude URLs: In settings, you can give list of Regex for excluding URLs
-- Tag Specific: (tags are same as those given in swagger). See [Profiles](profiles.md) for tagging example
+- Exclude URLs: In settings, you can give a list of Regex for excluding URLs
+- Tag Specific: (tags are the same as those given in swagger). See [Profiles](profiles.md) for tagging example
     - In settings, mark ONLY_TAG_API as True
-    - In `conf/profiles.yaml`, in tags section, mark the tags you want to test with
+    - In `conf/profiles.yaml`, in the `tags` section, mark the tags you want to test with
 
 ---
 
