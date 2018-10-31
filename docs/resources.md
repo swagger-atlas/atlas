@@ -9,33 +9,41 @@ These such entities are collectively known as "resources" in ATLAS.
 
 
 Identification of Resources
-========
-
-Explicit
-------
-- User can specify resources in SWAGGER file explicitly by using `resource: <>` property
-- This could be specified in any Parameter or reference
-- Users could manually edit the Swagger file, or change their project documentation for same
-- Users could also directly add the resources in `conf/resource_mapping.yaml` file
+===========================
 
 Automated
 -----
-We understand that tagging all resources for the sake of ATLAS alone is something most developers would be averse to for various reasons.
-That is why, we developed limited but powerful intelligence which tries to parse your swagger and auto-generate the resources
+Resources are largely identified via automated system.
 - We look for resources in Parameters and References
-- If there is any explicit resource, we go for it
-- Else, we try to reason which entities could be faked, and which needs to be tagged resources.
+- If there is any explicit resource, we go for it. (See Manual Section below)
+- Else, we try to reason for which entities data could be faked, and which needs to be tagged resources.
 
 You can run `python manage.py detect_resources` which would collate the explicit resources with generated resources.
 You can check the output in `build/resource_mapping.yaml`
 - If we miss any resources in the automation, do let us know!
 
 
+Explicit/Manual
+---------------
+We do provide mechanism to manually mark the resources in Swagger by add `resource` keyword in relevant entity.
+
+*Example*
+```yaml
+- in: path
+  name: id
+  resource: student     # We marked this as Student Resource in Swagger, and our Automation system will respect that
+  required: true
+```
+
+
 Mapping Resources to Database
 ========
 
-- Once resources are identified, we need to fetch their data from DB.
-- For this, we need to map the resources to relevant source
+- Most of resources thus identified would have their data fetched during execution of API workflow itself (See Workflow section below)
+- However, there may be some resources for which we cannot get their data in Workflow (eg: APIs which do not have any Create/List APIs and have manual creation/updation process)
+
+- For them, we can have data pre-populated in the system
+- For this, we need to map the resources to relevant DB source
 - Resource Mapping file serves this purpose
 
 Resource Mapping File
@@ -52,8 +60,8 @@ resource_a:
 This roughly translates to "select id from A" query and store the results for resource_a.
 
 
-Various Options for Resource Mapping Files are:
-- source: Tells what the source for this resource is. Possible values are `table`, `script`. Default value is `table`.
+**Source**
+Tells what the source for this resource is. Possible values are `table`, `script`. Default value is `table`.
 Table source would construct an SQL query to fetch the data from given table
 
 **Table Source Options**
