@@ -9,6 +9,13 @@ ATLAS takes your Swagger, and smartly generates the code which could be used as 
 Currently, ATLAS fully supports Artillery, and we have plans to incorporate for Locust Testing.
 
 
+Features
+========
+
+ATLAS transforms Swagger to Load Testing File taking care of authentication, workflow, and data generation!!
+For list of features see: [Features](docs/features.md)
+
+
 Creating a new Project
 =====
 - Create a virtual environment

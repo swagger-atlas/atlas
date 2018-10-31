@@ -53,37 +53,125 @@ This roughly translates to "select id from A" query and store the results for re
 
 
 Various Options for Resource Mapping Files are:
-- source: Tells what the source for this resource is. Possible values are `table`, `script`. Default value is `table`
+- source: Tells what the source for this resource is. Possible values are `table`, `script`. Default value is `table`.
+Table source would construct an SQL query to fetch the data from given table
 
-Table Source Options
-- table: Table Name
-- column: Column Name. Defaults to id
+**Table Source Options**
+- table: Table Name (Required)
+- column: Column Name. Defaults to `id`
 - filters: Any filters you want to add
 - sql: Ignores all of above options, and write your own custom sql query
-- mapper: Post-processing function you want to run. Default mapper takes the SQL Output as input (which is list of tuples) and flatten them up.
+- mapper: Post-processing function you want to run. Default mapper takes the SQL Output as input (which is list of tuples) and flatten them up. Mapper function is defined in `conf/resource_hooks.py`
+
+In `Filters` and `sql` you can use context variables from `profiles.yaml` file to customize your data for a single profile. See SQL Example below
+
+*Example Snippet*
+```yaml
+student:
+    table: students_student
+    # Query would be "select id from students_student;" and this query result would be processed to return a flat list of IDs
+
+invitation:
+    table: invitations_invitation
+    column: token
+    # Query would be "select token from invitation_invitation;" and this query result would be processed to return a flat list of IDs
+
+offer:
+    table: offers_offer
+    filters: is_active=true and status=1
+    # Query would be "select id from offers_offer where active=true and status=1;" and this query result would be processed to return a flat list of IDs
+
+courses
+    sql: select id from courses_courses c join student_courses s on c.id = s.course_id where s.student_id = {id}
+    # Here ID, would be picked and templated from conf/profiles.yaml file.
+    # If ID is defined as 5 for example, query would be: "select id from courses_courses c join student_courses s on c.id = s.course_id where s.student_id = 5;"
+
+auth:
+    table: users_token
+    mapper: encode
+    # Query would be "select id from user_token;" and this query result would be encode(<result_of_sql_query>)
+```
 
 
-Script source options
-- func: Function Name. Must be declared in `conf/resource_hooks.py` file
-- args: Argument List
-- kwargs: Keyword argument list
+**Script source options**
+- func: Function Name. Must be defined in `conf/resource_hooks.py` file. This is required argument
+- args: Argument List. Optional
+- kwargs: Keyword argument list. Optional
 
+*Example Snippet*
+__resource_mapping.yaml__
+```yaml
+resource_name:
+    source: script
+    func: my_func_name
+    args:
+        - 1
+        - 2
+    kwargs:
+        a: 1
+```
 
-Misc Options
+__resource_hooks.py__
+```python
+def my_func_name(arg_1, arg_2, a):
+    return [arg_1 + arg_2 + a, arg_1, arg_2]
+
+# Note: Function MUST return a list, even if it single value.
+```
+
+**Misc Options**
 - resource: Inherit the resource definition of another resource. You can then selectively over-write the keys or keep them exactly the same
 - def: Denotes dummy resource. No data is fetched for it.
 
+*Example - Resource Inheritance*
+```
+animal:
+    table: animals_animal
 
-Important Considerations
-- While defining the resources, you can use `{<var_name>}` syntax. This var_name is picked up from your profiles.yaml file.
-- So, your resources could be personalized to each profile type
+pet:
+    resource: annimal
+    # Exactly same as animal resource
+
+cat:
+    resource: pet
+    filters: type='cat'
+    # Same as Pet Resource with filter over-ridden
+```
+
+*Example - Dummy Resource*
+```
+forums:
+    def: <something>
+    # This resource WILL not be parsed EVEN if other keys are found
+    # These resources are generated at run-time during workflow itself, rather than pre-compiled in cache
+```
+
+**Globals**
+- If you have properties which you would like to execute to all resources, you can define it in `$globals`
+
+*Example*
+```
+$globals:
+    filters: is_active=true
+
+user:
+    table: users_user
+    # Use the global filter
+
+admin:
+    table: users_user
+    filters: is_active=true and role=2
+    # Use its own filter rather than global
+```
 
 You can fetch data for resources using `python manage.py fetch_data`
 This will create resources folder in build
 Each file would be <profile_name>.yaml and each file would contain your resources fetched for that profile
 
-**While defining resource mapping file is ideal, it could be an arduous task to do same for potentially hundreds of resources.**
-That's why we have implemented something called Workflow
+- Resource Defined in Resource Mapping file as TABLE or SOURCE resources are pre-compiled.
+This ensures that even if there are no APIs constructing these resources, we would always have a valid data for them.
+Pre-compiled resources *do* update  during workflow also
+- Resources Marked with DEF are only created and updated during run-time.
 
 
 Workflow
