@@ -5,12 +5,12 @@ Quick Feature Overview
 
 - Converts Swagger to Load Test file seamlessly
 - Generates fake Data for testing.
-- Understands resource dependencies and workflow:
+- Understands resource dependencies and workflow -
     eg: if one API creates PET, and another API wants to use Pet ID,
     ATLAS is intelligent enough to:
-        - order the APIs so that CREATE API comes before any API which wants to use the IDs
-        - Transfer the resource dependency
-    This works with arbitrarily with any complex relationships between APIs as long it is not cyclic
+    - Order the APIs so that CREATE API comes before any API which wants to use the IDs
+    - Transfer the resource dependency
+    - This works with arbitrarily with any complex relationships between APIs as long it is not cyclic
 
 Do Read [Best Practices](docs/best_practices.md) for swagger practices to get most out of ATLAS Automation systems.
 
