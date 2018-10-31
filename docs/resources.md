@@ -81,7 +81,7 @@ offer:
     filters: is_active=true and status=1
     # Query would be "select id from offers_offer where active=true and status=1;" and this query result would be processed to return a flat list of IDs
 
-courses
+courses:
     sql: select id from courses_courses c join student_courses s on c.id = s.course_id where s.student_id = {id}
     # Here ID, would be picked and templated from conf/profiles.yaml file.
     # If ID is defined as 5 for example, query would be: "select id from courses_courses c join student_courses s on c.id = s.course_id where s.student_id = 5;"
@@ -124,12 +124,12 @@ def my_func_name(arg_1, arg_2, a):
 - def: Denotes dummy resource. No data is fetched for it.
 
 *Example - Resource Inheritance*
-```
+```yaml
 animal:
     table: animals_animal
 
 pet:
-    resource: annimal
+    resource: animal
     # Exactly same as animal resource
 
 cat:
@@ -139,7 +139,7 @@ cat:
 ```
 
 *Example - Dummy Resource*
-```
+```yaml
 forums:
     def: <something>
     # This resource WILL not be parsed EVEN if other keys are found
@@ -150,7 +150,7 @@ forums:
 - If you have properties which you would like to execute to all resources, you can define it in `$globals`
 
 *Example*
-```
+```yaml
 $globals:
     filters: is_active=true
 
