@@ -23,11 +23,9 @@ class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
     def get_global_vars(self):
 
         return "\n".join([
-            "const hook = Hook.hook, profile = Hook.profile;",
+            "const hook = Hook.hook;",
             "const Provider = utils.Provider, ResponseDataParser = utils.ResponseDataParser;",
-            "profile.setUp();",
-            "let provider, respDataParser;",
-            "let defaultHeaders = profile.headers;",
+            "let provider, respDataParser, defaultHeaders;",
         ])
 
     def set_yaml_config(self):

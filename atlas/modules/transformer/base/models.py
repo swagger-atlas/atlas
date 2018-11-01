@@ -149,12 +149,13 @@ class Task:
         return query_str, path_str
 
     def get_response_properties(self, config):
+        self.data_config.set_options({"read_only": True})
         properties = (
-            self.data_config.generate(
-                config, {"read_only": True}).get(constants.SCHEMA, {}).get(constants.PROPERTIES, {})
+            self.data_config.generate(config).get(constants.SCHEMA, {}).get(constants.PROPERTIES, {})
         )
         if properties:
             return properties
+        self.data_config.reset_options()
 
         return {}
 
