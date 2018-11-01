@@ -2,7 +2,7 @@ ArtilleryHook = require("./hookSetup").ArtilleryHook;
 Profile = require("./profile").Profile;
 
 // Do NOT change name of identifiers
-let profile = new Profile("default");      // YOUR PROFILE NAME Goes here
+let profile = Profile.instance("default");      // YOUR PROFILE NAME Goes here
 const hook = new ArtilleryHook();
 
 function setHeaders() {
