@@ -1,10 +1,10 @@
 SETUP_FUNCTION = """
 function setUp(context, event, done) {
-    const profile = Hook.profile;
-    profile.setUp();
-    context.vars["provider"] = new Provider(profile.profileName);
-    context.vars["respDataParser"] = new ResponseDataParser(profile.profileName);
-    defaultHeaders = profile.headers;
+    const profile = Hook.selectProfile();
+    const profileName = Object.keys(profile)[0];
+    context.vars["provider"] = new Provider(profileName);
+    context.vars["respDataParser"] = new ResponseDataParser(profileName);
+    defaultHeaders = profile[profileName].auth.headers;
     return done();
 }"""
 

@@ -1,20 +1,26 @@
+_ = require("lodash");
 ArtilleryHook = require("./hookSetup").ArtilleryHook;
-Profile = require("./profile").Profile;
+profiles = require("./profiles").profiles;
 
 // Do NOT change name of identifiers
-let profile = Profile.instance("default");      // YOUR PROFILE NAME Goes here
 const hook = new ArtilleryHook();
 
-function setHeaders() {
-    // You can change this as needed
-    profile.headers = {'Authorization': 'Token ' + profile.profile.token};
+function selectProfile() {
+    // You should change this logic if you do not want to select Profiles randomly
+    const profileName = _.sample(Object.keys(profiles));
+    let profile = profiles[profileName];
+
+    // You can change the statements as needed
+    profile.auth = {
+        "headers": {'Authorization': 'Token ' + profile.token}
+    };
+    return {[profileName]: profile};
 }
 
-profile.register(setHeaders);
-
 module.exports = {
-    profile: profile,
-    hook: hook
+    // profile: profile,
+    hook: hook,
+    selectProfile: selectProfile
 };
 
 /*
