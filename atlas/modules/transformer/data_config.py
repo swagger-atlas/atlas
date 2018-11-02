@@ -9,13 +9,6 @@ class DataConfig:
 
         self.include_read_only = False
 
-    def reset_options(self):
-        self.include_read_only = False
-
-    def set_options(self, options):
-        if options.get("read_only"):
-            self.include_read_only = True
-
     def resolve_item_config(self, item_config):
         item_data = {}
         for key, value in item_config.items():
@@ -28,6 +21,12 @@ class DataConfig:
             else:
                 item_data[key] = value
         return item_data
+
+    def generate_with_read_only_fields(self, *args, **kwargs):
+        self.include_read_only = True
+        ret = self.generate(*args, **kwargs)
+        self.include_read_only = False
+        return ret
 
     def process_additional_properties(self, config):
         """
@@ -57,6 +56,9 @@ class DataConfig:
             1. First check for ALL OF. If yes, recursively parse each sub-schema
             2. Then, check for Additional Properties, and add free fields
             3. Go through Properties, and make sure that references are parsed correctly as needed
+
+        Generate is recursive method at several depths (i.e. it may call func which may call generate and so on),
+        Do do not manipulate instance variables unless you know what you are doing.
         """
 
         data_body = {}
@@ -75,7 +77,6 @@ class DataConfig:
             config = properties
 
         data_body = self.parse_properties(config, data_body)
-        self.reset_options()
         return data_body
 
     def parse_properties(self, config, data_body):
