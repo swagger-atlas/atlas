@@ -8,6 +8,7 @@ class Settings:
 
     PROJECT_FOLDER_NAME = "project"     # Name of top-level namespace where all projects are
     APP_TEMPLATE_DIRECTORY = "app_template"
+    EXAMPLE_DIRECTORY = "examples"
 
     INPUT_FOLDER = "conf"
     OUTPUT_FOLDER = "build"

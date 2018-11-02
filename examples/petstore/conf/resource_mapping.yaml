@@ -1,0 +1,13 @@
+category:
+  func: get_category
+  source: script
+order:
+  def: '# Add your definition here'
+pet:
+  func: get_pet
+  source: script
+tag:
+  func: get_tag
+  source: script
+user:
+  def: '# Add your definition here'
