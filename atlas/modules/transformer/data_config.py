@@ -50,7 +50,7 @@ class DataConfig:
 
         return data_body
 
-    def generate(self, config, options=None):
+    def generate(self, config):
         """
         Generates the schema for Load testing file
         Runs as following:
@@ -58,8 +58,6 @@ class DataConfig:
             2. Then, check for Additional Properties, and add free fields
             3. Go through Properties, and make sure that references are parsed correctly as needed
         """
-
-        options = options or {}
 
         data_body = {}
         all_of_config = config.get(constants.ALL_OF, [])
