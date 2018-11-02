@@ -1,6 +1,14 @@
 Changelog
 ========
 
+2.1.0
+-----
+
+*Features*
+- Added a command line option to create new examples - `python atlas example <example_name>`
+- Added Petstore example
+
+
 2.0.3
 -----
 
