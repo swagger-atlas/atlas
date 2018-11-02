@@ -1,6 +1,12 @@
 Changelog
 ========
 
+2.0.0
+-----
+
+*Features*
+- Multiple Profiles support. Now, each VU is picked randomly from one of the profiles
+
 1.2.1
 -----
 
