@@ -8,7 +8,7 @@ PyYAML==3.13
 faker==0.8.17
 
 six==1.11.0
-requests==2.19.1
+requests==2.20.0
 
 # Words Management - Singularize/Pluralize, capitalize etc
 inflection==0.3.1

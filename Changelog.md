@@ -1,6 +1,12 @@
 Changelog
 ========
 
+2.0.2
+-----
+
+- Security Updates. Updated Requests library where it  removes Authorization header from requests redirected from https to http on the same hostname. (CVE-2018-18074)
+
+
 2.0.1
 -----
 
@@ -12,6 +18,7 @@ Changelog
 
 *Features*
 - Multiple Profiles support. Now, each VU is picked randomly from one of the profiles
+
 
 1.2.1
 -----
