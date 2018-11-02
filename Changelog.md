@@ -1,6 +1,12 @@
 Changelog
 ========
 
+2.0.1
+-----
+
+- Comprehensive Documentation Updates.
+
+
 2.0.0
 -----
 
