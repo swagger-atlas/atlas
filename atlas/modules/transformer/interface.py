@@ -19,6 +19,7 @@ class OpenAPITaskInterface:
         self._url = ""
         self._tags = []
         self._responses = {}
+        self._consumes = [constants.JSON_CONSUMES]
 
     @property
     def parameters(self):
@@ -85,3 +86,23 @@ class OpenAPITaskInterface:
                 valid_responses[str(status_code)] = config
 
         self._responses = valid_responses
+
+    @property
+    def mime(self):
+        lowest_idx = len(constants.CONSUME_PRIORITY)
+        mime = ""
+        for element in self._consumes:
+            mime_idx = constants.CONSUME_PRIORITY.index(element)
+            if mime_idx < lowest_idx:
+                lowest_idx = mime_idx
+                mime = element
+        return mime
+
+    @property
+    def consumes(self):
+        return self._consumes
+
+    @consumes.setter
+    def consumes(self, value: list):
+        if value:
+            self._consumes = [element for element in value if element in constants.CONSUME_PRIORITY]

@@ -4,6 +4,7 @@ import re
 from atlas.modules import constants, utils
 from atlas.modules.transformer.base import models
 from atlas.conf import settings
+from atlas.modules.transformer.artillery import templates
 
 
 class Task(models.Task):
@@ -42,13 +43,13 @@ class Task(models.Task):
         return "".join([x.title() if idx > 0 else x for idx, x in enumerate(snake_case.split("_"))])
 
     def get_format_url_params(self):
-        params = ['url', 'queryConfig', 'pathConfig']
+        params = ['url', 'queryConfig', 'pathConfig', 'provider']
         if self.open_api_op.method == constants.DELETE:
             params.append("{'delete': true}")
         return ", ".join(params)
 
     def body_definition(self):
-        body = list()
+        body = ["const provider = context.vars['provider'];"]
 
         if self.data_body:
             body.append("const bodyConfig = {config};".format(config=json.dumps(self.data_body)))
@@ -103,11 +104,8 @@ class Task(models.Task):
             op_id=self.open_api_op.func_name, args="[{}]".format(", ".join(param_array))
         ))
 
-        # We can pick this up from Swagger Also
-        mime = "json"
-        if mime == "json" and "body" in param_array:
-            body.append("requestParams.json = reqArgs[1];")
-            body.append("reqArgs[2].headers['Content-Type'] = 'application/json';")
+        if "body" in param_array:
+            body = self.handle_mime(body)
 
         if self.open_api_op.method == constants.POST:
             # This is incorrect, but would work for Simple strings as long as char length is equal to byte length
@@ -119,6 +117,20 @@ class Task(models.Task):
 
         return self.cache_operation_tasks(body)
 
+    def handle_mime(self, body):
+        mime = self.open_api_op.mime
+
+        request_map = {
+            constants.JSON_CONSUMES: "json",
+            constants.FORM_CONSUMES: "form",
+            constants.MULTIPART_CONSUMES: "formData"
+        }
+
+        body.append(f"reqArgs[2].headers['Content-Type'] = '{mime}';")
+        body.append(f"requestParams.{request_map[mime]} = reqArgs[1];")
+
+        return body
+
     def cache_operation_tasks(self, body):
         """
         Define the definition for tasks which are responsible for updating the cached data
@@ -127,7 +139,8 @@ class Task(models.Task):
         response = self.parse_responses(self.open_api_op.responses)
         if response:
             self.post_check_tasks.append(
-                f"respDataParser.parser({json.dumps(response)}, extractBody(response, requestParams, context));"
+                f"context.vars['respDataParser'].parser("
+                f"{json.dumps(response)}, extractBody(response, requestParams, context));"
             )
 
         return body
@@ -153,7 +166,7 @@ class Task(models.Task):
     def post_response_function(self, width):
         statements = [
             f"function {self.after_func_name}(requestParams, response, context, ee, next) {{",
-            "{w}const status = response.statusCode;"
+            "{w}const status = response.statusCode;".format(w=' ' * width * 4),
             "{w}if (!status || status < 200 || status > 300) {{".format(w=' ' * width * 4),
             "{w}ee.emit('error', 'Non 2xx Response');".format(w=' ' * (width + 1) * 4)
         ]
@@ -190,8 +203,10 @@ class TaskSet(models.TaskSet):
         self.yaml_flow = {}
 
     def set_yaml_flow(self):
+        flow_definition = [{"function": "setUp"}]
+        flow_definition.extend([_task.yaml_task for _task in self.tasks])
         self.yaml_flow = {
-            "flow": [_task.yaml_task for _task in self.tasks]
+            "flow": flow_definition
         }
 
     def task_definitions(self, width):
@@ -208,61 +223,21 @@ class TaskSet(models.TaskSet):
             "{w}{func}: {func},".format(w=' '*width*4, func=task.after_func_name)
         ])
 
-    @staticmethod
-    def extract_body(width):
-        statements = [
-            "function extractBody(response, requestParams, context) {",
-            "let body = response.body;",
-            "if (!(body)) { body = {}; }",
-            "return typeof body === 'object' ? body : JSON.parse(body);"
-        ]
-        join_string = "\n{w}".format(w=' ' * width * 4)
-        return join_string.join(statements) + "\n}"
-
-    @staticmethod
-    def format_url(width):
-        statements = [
-            "function formatURL(url, queryConfig, pathConfig, options) {",
-            "const pathParams = provider.resolveObject(pathConfig, options);",
-            "url = dynamicTemplate(url, pathParams);",
-            "const queryParams = provider.resolveObject(queryConfig);",
-            "const queryString = Object.keys(queryParams).map(key => key + '=' + queryParams[key]).join('&');",
-            "url = queryString? url + '?' + queryString : url;",
-            "return [url, _.assign(pathParams, queryParams)];"
-        ]
-        join_string = "\n{w}".format(w=' ' * width * 4)
-        return join_string.join(statements) + "\n}"
-
-    @staticmethod
-    def dynamic_template(width):
-        statements = [
-            "function dynamicTemplate(string, vars) {",
-            "_.forIn(vars, function (value, key) {",
-            "{w}string = string.replace(new RegExp('({{' + key + '}})', 'gi'), value);".format(w=' ' * width * 4),
-            "});",
-            "return string;"
-        ]
-        join_string = "\n{w}".format(w=' ' * width * 4)
-        return join_string.join(statements) + "\n}"
-
     def task_calls(self, width):
         return "\n".join([
             "module.exports = {",
+            "{w}setUp: setUp,".format(w=' '*width*4),
             "\n".join([self.func_exports(_task, width) for _task in self.tasks]),
             "};"
         ])
 
     def convert(self, width):
         statements = [
-            "provider = new Provider(profile.profileName);",
-            "respDataParser = new ResponseDataParser(profile.profileName);",
-            f"\n{self.task_calls(width)}",
-            "\n",
-            self.dynamic_template(width),
-            "\n",
-            self.format_url(width),
-            "\n",
-            self.extract_body(width),
+            self.task_calls(width),
+            templates.SETUP_FUNCTION,
+            templates.DYNAMIC_TEMPLATE_FUNCTION,
+            templates.FORMAT_URL_FUNCTION,
+            templates.EXTRACT_BODY_FUNCTION,
             "\n",
             self.task_definitions(width)
         ]
