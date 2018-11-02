@@ -101,6 +101,13 @@ Creating a new Project
 - Follow the README of directory to customize and run your load test
 
 
+Example Project
+===============
+
+- After installing ATLAS, run `python atlas example <example_name>` (To know possible examples you can run `python atlas example --help`)
+- Switch to Project, and you will steps to run Server and Load Test
+
+
 Contributing to ATLAS
 =========
 

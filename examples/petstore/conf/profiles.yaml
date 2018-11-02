@@ -1,0 +1,9 @@
+default:
+  token: dummy
+  tags:
+    - tag1
+    - tag2
+second_profile:
+  token: ABCD
+  tags:
+    - XYZ
