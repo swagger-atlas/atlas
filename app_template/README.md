@@ -2,7 +2,7 @@ ATLAS Application
 =======
 
 This is an application build on ATLAS framework
-
+Please see [ATLAS Documentation](https://code.jtg.tools/jtg/atlas/README.md) for information about ATLAS.
 
 Project Setup
 ======

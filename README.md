@@ -43,12 +43,19 @@ With ATLAS, you can provide Header Authentication by:
 
 ```js
 // hooks.js
-function setHeader() {
-    profile.headers = {'Authorization': 'Token ' + profile.profile.token};
+function selectProfile() {
+    const profileName = _.sample(Object.keys(profiles));
+    let profile = profiles[profileName];
+
+    // You can change the statements as needed
+    profile.auth = {
+        "headers": {'Authorization': 'Token ' + profile.token}
+    };
+    return {[profileName]: profile};
 }
 ```
 
-This header will now be added to all API Requests.
+This header will now be added to all API Requests. We only support Header authentication for now
 
 ---
 

@@ -1,6 +1,10 @@
 Profiles
 =====
 
+Profiles are used in ATLAS to stimulate a role of an user who is running the application.
+Within each profile, you can store user-specific details.
+When running Load test, ATLAS will randomly distribute profiles among users for load testing.
+
 You may need profiles for:
 - Storing authentication information specific to the profile
 - May want to specify which APIs should be run for this type of users (eg. Student should not be running APIs accessible only to Staff)
@@ -19,6 +23,31 @@ You can define multiple profiles in ATLAS as needed.
 
 After the creation of profiles, you can specify which profile to use in `hooks.js`
 Using `profile.register` function, you can also specify any number of hooks which you want to run for the profile before the start of load test
+
+
+Profile Distribution
+====================
+
+By default, ATLAS randomly distribute profiles for each simulated user.
+You can change this behaviour by editing `conf/hooks.js`
+
+```js
+function selectProfile() {
+
+    // Profile Distribution Strategy - It randomly picks a Profile for now
+    // You can change this to other strategies by changing this logic
+    // Some examples might be -- Weighted distribution, subset of profiles etc
+    const profileName = _.sample(Object.keys(profiles));
+
+    let profile = profiles[profileName];
+
+    // Auth Statements
+    profile.auth = {
+        "headers": {'Authorization': 'Token ' + profile.token}
+    };
+    return {[profileName]: profile};
+}
+```
 
 
 Using Profiles for Tagging
@@ -52,12 +81,20 @@ Profiles can store authentication key-value pairs.
 
 And then in `conf/hooks.js`
 ```js
-function setHeader() {
-    profile.headers = {'Authorization': 'Token ' + profile.profile.token};
+function selectProfile() {
+    const profileName = _.sample(Object.keys(profiles));
+    let profile = profiles[profileName];
+
+    // You can change the statements as needed
+    profile.auth = {
+        "headers": {'Authorization': 'Token ' + profile.token}
+    };
+    return {[profileName]: profile};
 }
 ```
 
 This header will now be added to all API Requests.
+Please note we only Header Authentication for now.
 
 
 Using profiles for Resource Mapping Variables
