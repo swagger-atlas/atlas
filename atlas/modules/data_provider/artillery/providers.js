@@ -389,46 +389,66 @@ class ResponseDataParser {
         this.resourceInstance = Resource.instance;
     }
 
-    parser(schema, response) {
+    parseArray(schema, response) {
 
         const self = this;
-        let resource;
-        let config = response;
+
+        if (_.isEmpty(response)) {
+            return;     // Short-circuit return
+        }
+
+        if (typeof response[0] === "object") {
+            let itemConfig = _.get(schema, constants.ITEMS, {});
+            // Run the Parser for first 10 values, which should be sufficient
+            _.forEach(_.slice(response, 0, 10), function (value) {
+                self.parser(_.get(itemConfig, constants.PROPERTIES, itemConfig), value);
+            });
+        } else {
+            let resource = _.get(schema, constants.RESOURCE);
+
+            if (!_.isNil(resource)) {
+                self.addData(resource, response);
+            }
+        }
+    }
+
+    parseObject(schema, response) {
+
+        const self = this;
 
         _.forEach(schema, function (schemaConfig, key) {
-            if (_.isArray(config[key]) && !_.isEmpty(config[key])) {
-
-                if (typeof config[key][0] === "object") {
-                    let itemConfig = _.get(schemaConfig, constants.ITEMS, {});
-                    // Run the Parser for first 10 values, which should be sufficient
-                    _.forEach(_.slice(config[key], 0, 10), function (value) {
-                        self.parser(_.get(itemConfig, constants.PROPERTIES, itemConfig), value);
-                    });
-                } else {
-                    resource = _.get(schemaConfig, constants.RESOURCE);
-
-                    if (!_.isNil(resource)) {
-                        self.addDatum(resource, config[key]);
-                    }
-                }
+            if (_.isArray(response[key])) {
+                self.parseArray(schemaConfig, response[key]);
             } else if (typeof schemaConfig === "object" && schemaConfig.constructor === Object) {
                 // First check if resource is available
-                resource = _.get(schemaConfig, constants.RESOURCE);
-
+                let resource = _.get(schemaConfig, constants.RESOURCE);
                 if (!_.isNil(resource)) {
-                    self.addDatum(resource, config[key]);
-                } else if (typeof config[key] === "object" && config[key].constructor === Object){
+                    self.addData(resource, response[key]);
+                } else if (typeof response[key] === "object" && response[key].constructor === Object){
                     // Expect that if Response has objects, then schema would have object
                     // It is much faster than checking each properties in schema
-                    self.parser(schemaConfig, config[key]);
+                    self.parser(schemaConfig, response[key]);
                 }
             }
         });
+    }
+
+    /*
+        Entry Point for this class.
+        It detects array over global response object, which is different that that of ParseObject
+     */
+    parser(schema, response) {
+
+        if (_.isArray(response)) {
+            this.parseArray(schema, response);
+        } else {
+            this.parseObject(schema, response);
+        }
 
         return true;
     }
 
-    addDatum(resourceKey, values) {
+    addData(resourceKey, values) {
         const newResources = new Set(_.isArray(values) ? values: [values]);
 
         if(!_.isEmpty(newResources)) {

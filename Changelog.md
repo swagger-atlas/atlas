@@ -1,6 +1,14 @@
 Changelog
 ========
 
+2.0.3
+-----
+
+*Bug Fixes*
+- Correctly parse array response
+- Fix issue with extraction of resources from response body
+
+
 2.0.2
 -----
 
