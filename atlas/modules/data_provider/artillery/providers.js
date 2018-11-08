@@ -332,6 +332,12 @@ class Provider {
 
     resolveObject(config, options) {
 
+        // Short-circuit return if Type is Array
+        let itemType = _.get(config, constants.TYPE);
+        if (itemType === constants.ARRAY) {
+            return this.resolveArray(config, options);
+        }
+
         // We want to respect empty properties and additional properties
         let properties = config[constants.PROPERTIES];
         let additionalProperties = config[constants.ADDITIONAL_PROPERTIES];

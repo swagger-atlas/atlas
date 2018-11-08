@@ -9,6 +9,8 @@ class DataConfig:
 
         self.include_read_only = False
 
+        self.is_top_level = True
+
     def resolve_item_config(self, item_config):
         item_data = {}
         for key, value in item_config.items():
@@ -49,6 +51,12 @@ class DataConfig:
 
         return data_body
 
+    def top_level_changes(self, config, data_body):
+        if self.is_top_level:
+            data_body[constants.TYPE] = config.get(constants.TYPE, constants.OBJECT)
+            self.is_top_level = False
+        return data_body
+
     def generate(self, config):
         """
         Generates the schema for Load testing file
@@ -76,6 +84,7 @@ class DataConfig:
         if properties or properties == {}:      # Properties could be blank dict, which is perfectly fine
             config = properties
 
+        data_body = self.top_level_changes(config, data_body)
         data_body = self.parse_properties(config, data_body)
         return data_body
 
