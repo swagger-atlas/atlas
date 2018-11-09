@@ -4,6 +4,7 @@ function setUp(context, event, done) {
     const profileName = Object.keys(profile)[0];
     context.vars["provider"] = new Provider(profileName);
     context.vars["respDataParser"] = new ResponseDataParser(profileName);
+    context.vars["profile"] = profile[profileName];
     defaultHeaders = profile[profileName].auth.headers;
     return done();
 }"""
