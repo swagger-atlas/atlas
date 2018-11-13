@@ -1,7 +1,7 @@
 from io import open
 import os
 
-from atlas.modules import utils, constants
+from atlas.modules import utils, constants, exceptions
 from atlas.conf import settings
 
 
@@ -49,5 +49,14 @@ class FileConfig:
         if not api_url:
             api_info = self.specs.get(constants.INFO, {})
             api_url = api_info.get(constants.API_URL, self.specs.get(constants.BASE_PATH, ""))
+
+        if api_url and host:
+            # Check that either API URL starts with / or host ends with /
+
+            if api_url.startswith("/") and host.endswith("/"):
+                raise exceptions.ImproperSwaggerException(f"Base URL is {host}{api_url} - Is this correct?")
+
+            if not api_url.startswith("/") and not host.endswith("/"):
+                raise exceptions.ImproperSwaggerException(f"Base URL is {host}{api_url} - Is this correct?")
 
         return f"{protocol}://{host}{api_url}"
