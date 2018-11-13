@@ -70,6 +70,10 @@ class DataConfig:
         """
 
         data_body = {}
+
+        if not config:
+            return data_body
+
         all_of_config = config.get(constants.ALL_OF, [])
 
         for element in all_of_config:
