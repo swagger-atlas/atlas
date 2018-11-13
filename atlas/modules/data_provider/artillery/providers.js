@@ -423,6 +423,11 @@ class ResponseDataParser {
         const self = this;
 
         _.forEach(schema, function (schemaConfig, key) {
+
+            if (_.isNil(response[key])) {
+                return;     // Short-circuit return
+            }
+
             if (_.isArray(response[key])) {
                 self.parseArray(schemaConfig, response[key]);
             } else if (typeof schemaConfig === "object" && schemaConfig.constructor === Object) {

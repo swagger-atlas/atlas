@@ -7,6 +7,7 @@ Changelog
 *Bug Fixes*
 - Fix Artillery Headers
 - Fix dummy request object generation
+- Fix breaking of Artillery Parser when it encountered Null value in response
 
 
 2.1.0
