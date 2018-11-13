@@ -114,7 +114,7 @@ class Task(models.Task):
             body.append("reqArgs[2].headers['Content-Length'] = reqArgs[1].length;")
 
         body.append("requestParams.url = reqArgs[0];")
-        body.append(f"requestParams.headers = reqArgs[{len(param_array) - 1}];")
+        body.append(f"requestParams.headers = reqArgs[{len(param_array) - 1}].headers;")
 
         return self.cache_operation_tasks(body)
 
