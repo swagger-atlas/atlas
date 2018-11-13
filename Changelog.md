@@ -1,6 +1,14 @@
 Changelog
 ========
 
+2.1.1
+-----
+
+*Bug Fixes*
+- Fix Artillery Headers
+- Fix dummy request object generation
+
+
 2.1.0
 -----
 
