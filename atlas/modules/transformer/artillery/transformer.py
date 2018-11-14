@@ -1,6 +1,7 @@
 from atlas.modules import mixins
 from atlas.modules.transformer.base import transformer
 from atlas.conf import settings
+from atlas.modules.transformer.artillery import templates
 
 
 class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
@@ -21,12 +22,7 @@ class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
         return "\n".join(imports)
 
     def get_global_vars(self):
-
-        return "\n".join([
-            "const hook = Hook.hook;",
-            "const Provider = utils.Provider, ResponseDataParser = utils.ResponseDataParser;",
-            "let provider, respDataParser, defaultHeaders;",
-        ])
+        return templates.GLOBAL_STATEMENTS
 
     def set_yaml_config(self):
         self.yaml_config = {
