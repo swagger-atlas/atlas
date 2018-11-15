@@ -20,6 +20,10 @@ settings = require('./settings');
 const singleton = Symbol();
 const singletonEnforcer = Symbol();
 
+const ALIAS_DATA = {{
+    {alias_data}
+}};
+
 exports.Resource = class Resource {{
     // Resource class is singleton
     // You have to use resource.instance to get resource, and not new Resource()
@@ -42,7 +46,11 @@ exports.Resource = class Resource {{
     }}
 
     static getKey(profile, resourceKey) {{
-        return profile + ":" + resourceKey;
+        return profile + ":" + Resource.resolveResource(resourceKey);
+    }}
+
+    static resolveResource(resourceKey) {{
+        return _.get(ALIAS_DATA, resourceKey, resourceKey);
     }}
 
     getResource(profile, resourceKey, options) {{
@@ -117,16 +125,22 @@ class Converter:
 
         profile_data = []
 
+        alias_file = os.path.join(_dir, settings.RESOURCE_ALIASES)
+        with open(alias_file) as yaml_file:
+            alias_data = yaml.safe_load(yaml_file)
+
+        indent_width = 2
+
         for profile in self.profiles:
             _file = os.path.join(_dir, profile+".yaml")
             with open(_file) as yaml_file:
                 data = yaml.safe_load(yaml_file)
-
-            indent_width = 2
-            profile_data.append(self.update_statements(profile, data, indent_width))
+            profile_data.append(self.update_statements(profile, data, alias_data, indent_width))
 
         profile_str = "\n".join(profile_data)
-        out_data = TEMPLATE.format(initial_resources=profile_str)
+        out_data = TEMPLATE.format(
+            initial_resources=profile_str, alias_data=self.alias_statements(alias_data, 1)
+        )
 
         out_file = os.path.join(
             self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_LIB_FOLDER, settings.ARTILLERY_RESOURCES
@@ -136,7 +150,15 @@ class Converter:
             js_file.write(out_data)
 
     @staticmethod
-    def update_statements(profile, data, indent_width):
+    def alias_statements(alias_data, indent_width):
+        indent = ' ' * 4 * indent_width
+        out_data = [
+            f"{key}: '{value}'" for key, value in alias_data.items()
+        ]
+        return f",\n{indent}".join(out_data)
+
+    @staticmethod
+    def update_statements(profile, data, alias_data, indent_width):
         """
         Convert the resources into Update Statements
         Assumption being that Resources are a single level dict, with each value being set
@@ -144,6 +166,7 @@ class Converter:
         indent = ' ' * 4 * indent_width
         out_data = [
             f"this.updateResource('{profile}', '{key}', new Set({list(value)}));" for key, value in data.items()
+            if key not in alias_data and value
         ]
         return f"\n{indent}".join(out_data)
 
