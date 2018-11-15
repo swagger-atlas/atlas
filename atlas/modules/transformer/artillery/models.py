@@ -47,10 +47,9 @@ class Task(models.Task):
         snake_case = re.sub("-", "_", self.open_api_op.func_name)
         return "".join([x.title() if idx > 0 else x for idx, x in enumerate(snake_case.split("_"))])
 
-    def get_format_url_params(self):
+    @staticmethod
+    def get_format_url_params():
         params = ['url', 'queryConfig', 'pathConfig', 'provider']
-        if self.open_api_op.method == constants.DELETE:
-            params.append("{'delete': true}")
         return ", ".join(params)
 
     def validate_tags(self):

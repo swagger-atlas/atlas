@@ -120,6 +120,10 @@ class Task:
         config = self.data_config.generate({name: config})
 
         if config:
+            if self.open_api_op.url_end_parameter() == name and self.open_api_op.method == constants.DELETE:
+                config[name]["options"] = {"delete": 1}
+                # Using 1 instead of true since this avoids Language issues. All languages treat 1 as same
+                # However, different languages have different truth values eg: True (Python), true (javascript)
             self.url_params[name] = (param_type, config[name])
 
     def convert(self, width):

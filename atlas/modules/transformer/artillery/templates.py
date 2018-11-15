@@ -20,8 +20,8 @@ function dynamicTemplate(string, vars) {
 
 
 FORMAT_URL_FUNCTION = """
-function formatURL(url, queryConfig, pathConfig, provider, options) {
-    const pathParams = provider.resolveObject(pathConfig, options);
+function formatURL(url, queryConfig, pathConfig, provider) {
+    const pathParams = provider.resolveObject(pathConfig);
     url = dynamicTemplate(url, pathParams);
     const queryParams = provider.resolveObject(queryConfig);
     const queryString = Object.keys(queryParams).map(key => key + '=' + queryParams[key]).join('&');
