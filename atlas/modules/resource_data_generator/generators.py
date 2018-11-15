@@ -17,6 +17,8 @@ class ResourceMapResolver(mixins.YAMLReadWriteMixin):
         self.resource_map = self.read_file_from_input(settings.MAPPING_FILE) or {}
         self.resource_config = {}
 
+        self.resource_alias = {}
+
         self.globals = {}
 
     def get_config(self, resource):
@@ -24,6 +26,13 @@ class ResourceMapResolver(mixins.YAMLReadWriteMixin):
 
     def set_config(self, resource, config):
         self.resource_config[resource] = config
+
+    def set_alias(self, resource, config, alias):
+        self.resource_alias[resource] = alias
+        config[resource_constants.ALIAS] = alias
+
+    def get_alias(self, resource):
+        return self.resource_alias.get(resource, self.get_config(resource).get(resource_constants.ALIAS, resource))
 
     def resolve(self, resource):
         """
@@ -35,6 +44,12 @@ class ResourceMapResolver(mixins.YAMLReadWriteMixin):
 
         if parent_resource:
             parent_config = self.resolve(parent_resource)
+
+            # if config is empty, i.e. it does not contain anything except reference to parent
+            # We treat it as alias, and use alias which it parent sends us
+            if not config:
+                self.set_alias(resource, config, self.get_alias(parent_resource))
+
             config = {**parent_config, **config}
 
         self.set_config(resource, config)
@@ -105,6 +120,9 @@ class ProfileResourceDataGenerator(mixins.ProfileMixin):
                 self.get_profile_resource_name(name, config), resources,
                 os.path.join(settings.OUTPUT_FOLDER, settings.RESOURCES_FOLDER), False, force_write=True
             )
+
+        self.write_file(settings.RESOURCE_ALIASES, self.resource_map_resolver.resource_alias,
+                        os.path.join(settings.OUTPUT_FOLDER, settings.RESOURCES_FOLDER), False, force_write=True)
 
     @staticmethod
     def construct_fetch_query(table, column, filters):
