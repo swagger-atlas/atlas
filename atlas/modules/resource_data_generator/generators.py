@@ -7,50 +7,73 @@ from atlas.modules.resource_data_generator.database import client as db_client
 from atlas.conf import settings
 
 
-class ResourceMap(mixins.ProfileMixin):
+class ResourceMapResolver(mixins.YAMLReadWriteMixin):
     """
-    Parse over Resource Map and create a cache of Resources
+    Resolves Resource Map, and returns resolved configs
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.resource_map = self.read_file_from_input(settings.MAPPING_FILE) or {}
+        self.resource_config = {}
+
+        self.globals = {}
+
+    def get_config(self, resource):
+        return self.resource_config.get(resource, self.resource_map.get(resource))
+
+    def set_config(self, resource, config):
+        self.resource_config[resource] = config
+
+    def resolve(self, resource):
+        """
+        Recursive function to resolve single resource
+        """
+        config = self.get_config(resource)
+
+        parent_resource = config.pop(resource_constants.RESOURCE, None)
+
+        if parent_resource:
+            parent_config = self.resolve(parent_resource)
+            config = {**parent_config, **config}
+
+        self.set_config(resource, config)
+
+        return config
+
+    def resolve_resources(self):
+
+        self.globals = self.resource_map.pop(resource_constants.GLOBALS, {})
+
+        for resource in self.resource_map:
+            if resource in self.resource_config:
+                continue
+
+            self.resolve(resource)
+
+
+class ProfileResourceDataGenerator(mixins.ProfileMixin):
+    """
+    Parse over Resource Map and generate data of resources for each Profile
     """
 
     def __init__(self, profiles=None):
 
         super().__init__()
-        self.map = self.read_file_from_input(settings.MAPPING_FILE) or {}
-        self.limit = 50
+        self.resource_map_resolver = ResourceMapResolver()
         self.client = db_client.Client()
 
         self.profiles = profiles or []
         self.active_profile_config = None
 
-    def inherit_resources(self, config):
-        """
-        Inherit resources as far as we want
-        """
+    def read_for_profile(self, resources):
 
-        final_config = config
-
-        while True:
-            parent_resource = config.pop(resource_constants.RESOURCE, None)
-
-            if parent_resource:
-                parent = self.map.get(parent_resource)
-                if not parent:
-                    raise exceptions.ResourcesException("Can not find Parent {}".format(parent_resource))
-                final_config = {**parent, **config}
-                config = parent
-            else:
-                break
-
-        return final_config
-
-    def read_for_profile(self, resources, global_settings):
-
-        for resource, config in self.map.items():
+        for resource, config in self.resource_map_resolver.resource_map.items():
             # We have already constructed this resource, so ignore this and move
             if resource in resources:
                 continue
 
-            config = self.inherit_resources(config)
+            config = self.resource_map_resolver.resource_config[resource]
 
             dummy_resource = config.get(resource_constants.DUMMY_DEF)
             if dummy_resource:
@@ -59,7 +82,7 @@ class ResourceMap(mixins.ProfileMixin):
                 source = config.get(resource_constants.SOURCE, resource_constants.DB_TABLE)
 
                 if source == resource_constants.DB_TABLE:
-                    result = self.parse_db_source(config, global_settings)
+                    result = self.parse_db_source(config, self.resource_map_resolver.globals)
                 elif source == resource_constants.SCRIPT:
                     result = self.parse_python_source(config)
                 else:
@@ -72,24 +95,25 @@ class ResourceMap(mixins.ProfileMixin):
 
     def parse(self):
 
-        global_settings = self.map.pop(resource_constants.GLOBALS, {})
+        self.resource_map_resolver.resolve_resources()
 
         for name, config in self.get_profiles().items():
             resources = {}
             self.active_profile_config = config
-            self.read_for_profile(resources, global_settings)
+            self.read_for_profile(resources)
             self.write_file(
                 self.get_profile_resource_name(name, config), resources,
                 os.path.join(settings.OUTPUT_FOLDER, settings.RESOURCES_FOLDER), False, force_write=True
             )
 
-    def construct_fetch_query(self, table, column, filters):
+    @staticmethod
+    def construct_fetch_query(table, column, filters):
         """
         Construct a simple SQL Fetch Query
         """
-        select_statement = "select {column} from {table}".format(column=column, table=table)
-        filter_statement = "where {filters}".format(filters=filters) if filters else ""
-        limit_statement = "limit {limit}".format(limit=self.limit)
+        select_statement = f"select {column} from {table}"
+        filter_statement = f"where {filters}" if filters else ""
+        limit_statement = f"limit {resource_constants.LIMIT}"
 
         return " ".join([select_statement, filter_statement, limit_statement])
 
