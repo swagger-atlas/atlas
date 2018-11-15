@@ -280,12 +280,12 @@ class Provider {
         return resourceProvider.getResources(this.profile, options);
     }
 
-    itemResolution(config, options) {
+    itemResolution(config) {
         const resource = _.get(config, constants.RESOURCE);
         let retValue;
 
         if (resource) {
-            retValue = this.getResource(resource, options);
+            retValue = this.getResource(resource, config.options);
         } else {
             let itemType = _.get(config, constants.TYPE);
 
@@ -294,9 +294,9 @@ class Provider {
             }
 
             if (itemType === constants.ARRAY) {
-                retValue = this.resolveArray(config, options);
+                retValue = this.resolveArray(config);
             } else if (itemType === constants.OBJECT) {
-                retValue = this.resolveObject(config, options);
+                retValue = this.resolveObject(config);
             } else {
                 retValue = Provider.getFakeData(config);
             }
@@ -306,7 +306,7 @@ class Provider {
 
     }
 
-    resolveArray(config, options) {
+    resolveArray(config) {
         const itemConfig = _.get(config, constants.ITEMS);
         const self = this;
 
@@ -317,25 +317,25 @@ class Provider {
         const minItems = _.get(config, constants.MIN_ITEMS, 0);
         const maxItems = _.get(config, constants.MAX_ITEMS, Math.max(10, minItems + 1));
 
-        let items = _.range(_.random(minItems, maxItems)).map(() => self.itemResolution(itemConfig, options));
+        let items = _.range(_.random(minItems, maxItems)).map(() => self.itemResolution(itemConfig));
 
         if (_.get(config, constants.UNIQUE_ITEMS, false)) {
             items = new Set(items);
             // If due to de-duplication, our array count decreases and is less than what is required
             while (items.length < minItems){
-                items.add(self.itemResolution(itemConfig, options));
+                items.add(self.itemResolution(itemConfig));
             }
             items = Array.from(items);
         }
         return items;
     }
 
-    resolveObject(config, options) {
+    resolveObject(config) {
 
         // Short-circuit return if Type is Array
         let itemType = _.get(config, constants.TYPE);
         if (itemType === constants.ARRAY) {
-            return this.resolveArray(config, options);
+            return this.resolveArray(config);
         }
 
         // We want to respect empty properties and additional properties
@@ -364,14 +364,14 @@ class Provider {
         let dataObject = {};
 
         _.forEach(properties, function(propConfig, name) {
-            const itemValue = self.itemResolution(propConfig, options);
+            const itemValue = self.itemResolution(propConfig);
             if (!_.isNil(itemValue)) {
                 dataObject[name] = itemValue;
             }
         });
 
         if (!_.isEmpty(additionalProperties)) {
-            const addPropMapper = self.itemResolution(additionalProperties, options);
+            const addPropMapper = self.itemResolution(additionalProperties);
             if (addPropMapper) {
                 // Generate minimum possible additional properties
                 _.forEach(_.range(_.get(additionalProperties, constants.MIN_PROPERTIES, 0)), function (index) {

@@ -106,3 +106,19 @@ class OpenAPITaskInterface:
     def consumes(self, value: list):
         if value:
             self._consumes = [element for element in value if element in constants.CONSUME_PRIORITY]
+
+    def url_end_parameter(self):
+        """
+        Find the Path parameter which appears at the end of the URL.
+        If there is no such parameter, returns None
+        """
+
+        ret_parameter = None
+
+        url_fragments = [fragment for fragment in self._url.split("/") if fragment]
+        last_fragment = url_fragments[-1]
+
+        if last_fragment.startswith("{") and last_fragment.endswith("}"):
+            ret_parameter = last_fragment[1: -1]
+
+        return ret_parameter
