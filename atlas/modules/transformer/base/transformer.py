@@ -25,7 +25,7 @@ class FileConfig:
             self.get_global_vars(),
             self.task_set.convert(width=1)
         ]
-        return "\n\n\n".join([component for component in file_components if component])
+        return "\n\n".join([component for component in file_components if component])
 
     def write_to_file(self, file_name=None):
         file_name = file_name or self.OUT_FILE

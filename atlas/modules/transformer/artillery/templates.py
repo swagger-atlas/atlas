@@ -35,3 +35,10 @@ function extractBody(response, requestParams, context) {
     if (!(body)) { body = {}; }
     return typeof body === 'object' ? body : JSON.parse(body);
 }"""
+
+
+GLOBAL_STATEMENTS = """
+const hook = Hook.hook;
+const Provider = utils.Provider, ResponseDataParser = utils.ResponseDataParser;
+let provider, respDataParser, defaultHeaders;
+"""

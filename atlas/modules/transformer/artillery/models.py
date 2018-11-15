@@ -17,8 +17,13 @@ class Task(models.Task):
 
         self.before_func_name = f"{self.func_name}PreReq"
         self.after_func_name = f"{self.func_name}PostRes"
+        self.if_true_func_name = f"{self.func_name}Condition"
 
         self.yaml_task = {}
+
+    @property
+    def tag_check(self):
+        return self.open_api_op.tags and settings.ONLY_TAG_API
 
     def error_template_list(self, try_statements: list) -> list:
         """
@@ -48,18 +53,28 @@ class Task(models.Task):
             params.append("{'delete': true}")
         return ", ".join(params)
 
+    def validate_tags(self):
+        body = []
+
+        if self.tag_check:
+            body.append("const tags = [{}];".format(", ".join(["'{}'".format(tag) for tag in self.open_api_op.tags])))
+            body.append("return (!_.isEmpty(_.intersection(tags, contextVars['profile'].tags || [])));")
+
+        return body
+
+    def if_true_function(self, width):
+        statements = [
+            f"function {self.if_true_func_name}(contextVars) {{",
+            "{w}{body}".format(w=' ' * width * 4, body="\n{w}".format(w=' ' * width * 4).join(self.validate_tags())),
+            "}"
+        ]
+        return "\n".join(statements)
+
     def body_definition(self):
         body = ["const provider = context.vars['provider'];"]
 
         if self.data_body:
             body.append("const bodyConfig = {config};".format(config=json.dumps(self.data_body)))
-
-        if self.open_api_op.tags and settings.ONLY_TAG_API:
-            body.append("const tags = [{}];".format(", ".join(["'{}'".format(tag) for tag in self.open_api_op.tags])))
-            body.append("if (_.isEmpty(_.intersection(tags, context.vars['profile'].tags || []))){")
-            body.append("{}ee.emit('error', 'Skipping for tag');".format(" "*4))
-            body.append("{}return next();".format(" "*4))
-            body.append("}")
 
         query_str, path_str = self.parse_url_params_for_body()
 
@@ -155,6 +170,9 @@ class Task(models.Task):
             }
         }
 
+        if self.tag_check:
+            self.yaml_task[self.open_api_op.method]["ifTrue"] = self.if_true_func_name
+
     def pre_request_function(self, width):
         statements = [
             f"function {self.before_func_name}(requestParams, context, ee, next) {{",
@@ -191,7 +209,12 @@ class Task(models.Task):
     def convert(self, width):
 
         self.set_yaml_definition()
-        return [self.pre_request_function(width), self.post_response_function(width)]
+        statements = [self.pre_request_function(width), self.post_response_function(width)]
+
+        if self.tag_check:
+            statements.append(self.if_true_function(width))
+
+        return statements
 
 
 class TaskSet(models.TaskSet):
@@ -219,10 +242,16 @@ class TaskSet(models.TaskSet):
 
     @staticmethod
     def func_exports(task, width):
-        return "\n".join([
+
+        statements = [
             "{w}{func}: {func},".format(w=' '*width*4, func=task.before_func_name),
             "{w}{func}: {func},".format(w=' '*width*4, func=task.after_func_name)
-        ])
+        ]
+
+        if task.tag_check:
+            statements.append("{w}{func}: {func},".format(w=' '*width*4, func=task.if_true_func_name))
+
+        return "\n".join(statements)
 
     def task_calls(self, width):
         return "\n".join([
