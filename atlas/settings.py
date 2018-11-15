@@ -32,3 +32,15 @@ class Settings:
     ARTILLERY_FILE = "processor.js"
     ARTILLERY_YAML = "artillery.yaml"
     ARTILLERY_HOOK_FILE = "hooks.js"
+
+    # ### Resource Auto-detection settings
+    # These suffixes if present determine whether the URL parameter is resource or not
+    URL_PARAM_RESOURCE_SUFFIX = {"_id", "Id", "_slug", "Slug", "pk"}
+
+    # These are direct names for Path parameters
+    PATH_PARAM_RESOURCES = {"id", "slug", "pk"}
+
+    # These are field names which if present in references are marked as resource with Reference name
+    REFERENCE_FIELD_RESOURCES = {"id", "slug", "pk"}
+
+    # #### End Resource Auto-detection constant settings

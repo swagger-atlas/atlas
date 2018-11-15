@@ -19,6 +19,8 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
     def __init__(self, swagger_file=None):
 
+        super().__init__()
+
         self.swagger_file = swagger_file or settings.SWAGGER_FILE
         self.specs = self.read_file_from_input(self.swagger_file, {})
         self.spec_definitions = self.format_references(self.specs.get(swagger_constants.DEFINITIONS, {}).keys())
@@ -88,9 +90,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
         resource_name = None
 
-        identifier_suffixes = {"_id", "Id", "_slug", "Slug", "pk"}
-
-        for suffix in identifier_suffixes:
+        for suffix in settings.URL_PARAM_RESOURCE_SUFFIX:
             if param_name.endswith(suffix):
                 resource_name = param_name[:-len(suffix)]
                 break
@@ -101,7 +101,10 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         # Resource Name not found by simple means.
         # Now, assume that resource could be available after the resource
         # For example: pets/{id} -- here most likely id refers to pet
-        if not resource_name and param_name in {"id", "slug", "pk"} and param_type == swagger_constants.PATH_PARAM:
+        if (
+                not resource_name and param_name in settings.PATH_PARAM_RESOURCES
+                and param_type == swagger_constants.PATH_PARAM
+        ):
             url_array = url_path.split("/")
             resource_index = url_array.index(f'{{{param_name}}}') - 1
             if resource_index >= 0:
@@ -178,7 +181,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
         for key, value in properties.items():
             resource = ""
-            if key in ["id", "slug", "pk"]:
+            if key in settings.REFERENCE_FIELD_RESOURCES:
                 resource = value.get(swagger_constants.RESOURCE, utils.convert_to_snake_case(ref_name))
                 value[swagger_constants.READ_ONLY] = True
             elif swagger_constants.REF in value:
