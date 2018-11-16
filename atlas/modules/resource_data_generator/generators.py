@@ -29,6 +29,10 @@ class ProfileResourceDataGenerator(mixins.ProfileMixin):
             if resource in resources:
                 continue
 
+            # Someone else is fetching this resource, so no need to do it again
+            if resource in self.resource_map_resolver.alias_map:
+                continue
+
             config = self.resource_map_resolver.resource_config[resource]
 
             dummy_resource = config.get(resource_constants.DUMMY_DEF)

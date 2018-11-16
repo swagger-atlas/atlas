@@ -16,7 +16,6 @@ class Settings:
     SWAGGER_FILE = "swagger.yaml"
     MAPPING_FILE = "resource_mapping.yaml"
     RES_MAPPING_HOOKS_FILE = "resource_hooks.py"
-    RESOURCE_ALIASES = "_aliases.yaml"
     PROFILES_FILE = "profiles.yaml"
     RESOURCES_FOLDER = "resources"
     DIST_FOLDER = "dist"
