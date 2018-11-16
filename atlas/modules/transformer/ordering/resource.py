@@ -1,5 +1,5 @@
 from atlas.modules import constants, exceptions, utils
-from atlas.modules.helpers.reference import ReferenceField
+from atlas.modules.helpers import open_api
 from atlas.modules.transformer.ordering.base import Node, DAG
 
 
@@ -41,7 +41,7 @@ class Reference:
 
         # Look through properties
         for name, config in self.config.get(constants.PROPERTIES, {}).items():
-            field = ReferenceField(name, config)
+            field = open_api.ReferenceField(name, config)
             self.add_connected_ref(field.ref)
             self.add_connected_resource(field.resource)
 
@@ -119,50 +119,58 @@ class ResourceGraph(DAG):
                     self.add_edge(resource, resource_key)
 
     @staticmethod
-    def get_ref_name(config):
-        schema = config.get(constants.SCHEMA, {})
-
-        # Search in simple direct ref or array ref
-        ref = schema.get(constants.REF)
-
-        if schema and not ref:
-            items = schema.get(constants.ITEMS, {})
-            if items and isinstance(items, dict):
-                ref = items.get(constants.REF)
-
-        return utils.get_ref_name(ref).lower() if ref else None
+    def get_schema_refs(config):
+        schema = open_api.Schema(config.get(constants.SCHEMA, {}))
+        return [utils.get_ref_name(ref).lower() for ref in schema.get_all_refs()]
 
     def parse_paths(self, interfaces):
 
         for operation in interfaces:
             op_id = operation.func_name
             ref_graph = {}
-            for response in operation.responses.values():
-                if operation.method in {constants.DELETE, constants.PATCH, constants.PUT}:
-                    continue
-                ref = self.get_ref_name(response)
-                if ref:
-                    ref_graph[ref] = "producer"
-            for parameter in operation.parameters.values():
-                # Try to find if it is Path Params Resource
-                # This should over-write any previous value
-
-                parameter_ref = parameter.get(constants.REF)
-                if parameter_ref:
-                    parameter = utils.resolve_reference(self.specs, parameter_ref)
-
-                resource = parameter.get(constants.RESOURCE)
-                if resource:
-                    # This time, it is Path Params, so we are sure that is is consumer
-                    ref_graph[resource] = "consumer"
-
-                ref = self.get_ref_name(parameter)
-                # If it is already claimed as producer/consumer, then respect that
-                if ref and ref not in ref_graph:
-                    ref_graph[ref] = "consumer"
+            self.parse_responses(operation, ref_graph)
+            self.parse_request_parameters(operation, ref_graph)
 
             for ref, ref_op in ref_graph.items():
                 resource_node = self.nodes.get(self.get_associated_resource_for_ref(ref))
                 ref_op = "add_consumer" if ref_op == "consumer" else "add_producer"
                 if resource_node:
                     getattr(resource_node, ref_op)(op_id)
+
+    def parse_responses(self, operation, ref_graph):
+        """
+        Parse Responses for a single operation and mark References w.r.t to Operation
+        """
+
+        for response in operation.responses.values():
+            if operation.method in {constants.DELETE, constants.PATCH, constants.PUT}:
+                continue
+            response_refs = self.get_schema_refs(response)
+            for ref in response_refs:
+                ref_graph[ref] = "producer"
+
+    def parse_request_parameters(self, operation, ref_graph):
+        """
+        Parse Request Parameters for a single operation and mark References w.r.t to Operation
+        """
+
+        for parameter in operation.parameters.values():
+            # Try to find if it is Path Params Resource
+            # This should over-write any previous value
+
+            parameter_ref = parameter.get(constants.REF)
+            if parameter_ref:
+                parameter = utils.resolve_reference(self.specs, parameter_ref)
+
+            resource = parameter.get(constants.RESOURCE)
+            if resource:
+                # This time, it is Path Params, so we are sure that is is consumer
+                ref_graph[resource] = "consumer"
+
+            if parameter.get(constants.TYPE) == constants.BODY_PARAM:
+                request_refs = self.get_schema_refs(parameter)
+
+                # If it is already claimed as producer/consumer, then respect that
+                for ref in request_refs:
+                    if ref not in ref_graph:
+                        ref_graph[ref] = "consumer"
