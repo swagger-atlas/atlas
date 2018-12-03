@@ -68,6 +68,7 @@ class Resource(Node):
 
         self.producers = set()
         self.consumers = set()
+        self.destructors = set()
         self.other_operations = set()
 
     def add_consumer(self, operation_id: str):
@@ -75,6 +76,11 @@ class Resource(Node):
 
     def add_producer(self, operation_id: str):
         self.producers.add(operation_id)
+
+    def add_destructor(self, operation_id: str):
+        # If some op is destroying resource, it must also consume them
+        self.destructors.add(operation_id)
+        self.consumers.add(operation_id)
 
 
 class ResourceGraph(DAG):
@@ -125,6 +131,12 @@ class ResourceGraph(DAG):
 
     def parse_paths(self, interfaces):
 
+        ref_op_map = {
+            "consumer": "add_consumer",
+            "producer": "add_producer",
+            "destructor": "add_destructor"
+        }
+
         for operation in interfaces:
             op_id = operation.func_name
             ref_graph = {}
@@ -133,9 +145,8 @@ class ResourceGraph(DAG):
 
             for ref, ref_op in ref_graph.items():
                 resource_node = self.nodes.get(self.get_associated_resource_for_ref(ref))
-                ref_op = "add_consumer" if ref_op == "consumer" else "add_producer"
                 if resource_node:
-                    getattr(resource_node, ref_op)(op_id)
+                    getattr(resource_node, ref_op_map.get(ref_op))(op_id)
 
     def parse_responses(self, operation, ref_graph):
         """
@@ -164,8 +175,11 @@ class ResourceGraph(DAG):
 
             resource = parameter.get(constants.RESOURCE)
             if resource:
-                # This time, it is Path Params, so we are sure that is is consumer
-                ref_graph[resource] = "consumer"
+                if self.is_delete_resource(operation, parameter):
+                    ref_graph[resource] = "destructor"
+                else:
+                    # This time, it is Path Params, so we are sure that is is consumer
+                    ref_graph[resource] = "consumer"
 
             if parameter.get(constants.TYPE) == constants.BODY_PARAM:
                 request_refs = self.get_schema_refs(parameter)
@@ -174,3 +188,10 @@ class ResourceGraph(DAG):
                 for ref in request_refs:
                     if ref not in ref_graph:
                         ref_graph[ref] = "consumer"
+
+    @staticmethod
+    def is_delete_resource(operation, parameter):
+        return (
+            operation.method == constants.DELETE and
+            parameter.get(constants.PARAMETER_NAME) == operation.url_end_parameter()
+        )
