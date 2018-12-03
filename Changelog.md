@@ -1,6 +1,17 @@
 Changelog
 ========
 
+2.2.0
+-----
+
+*Features*
+- Aliases (Resource synonyms) are now used at time of ordering, as well as at run time when resources are fetched dynamicallu
+- Made several resource auto-detection features configurable via settings
+
+*Bug Fixes*
+- Fix Artillery if it encounters "null" in response
+
+
 2.1.1
 -----
 

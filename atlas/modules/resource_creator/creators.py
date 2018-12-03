@@ -9,6 +9,7 @@ from atlas.modules import (
     mixins,
     utils
 )
+from atlas.modules.helpers import resource_map
 
 
 class AutoGenerator(mixins.YAMLReadWriteMixin):
@@ -19,12 +20,16 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
     def __init__(self, swagger_file=None):
 
+        super().__init__()
+
         self.swagger_file = swagger_file or settings.SWAGGER_FILE
         self.specs = self.read_file_from_input(self.swagger_file, {})
         self.spec_definitions = self.format_references(self.specs.get(swagger_constants.DEFINITIONS, {}).keys())
 
-        self.resources = self.read_file_from_input(settings.MAPPING_FILE, {})
-        self.resource_keys = self.format_references(self.resources.keys())
+        self.resource_map_resolver = resource_map.ResourceMapResolver()
+        self.resource_map_resolver.resolve_resources()
+
+        self.resource_keys = self.format_references(self.resource_map_resolver.resource_map.keys())
         self.new_resources = set()
 
         # Keep list of refs which are already processed to avoid duplicate processing
@@ -88,9 +93,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
         resource_name = None
 
-        identifier_suffixes = {"_id", "Id", "_slug", "Slug", "pk"}
-
-        for suffix in identifier_suffixes:
+        for suffix in settings.URL_PARAM_RESOURCE_SUFFIX:
             if param_name.endswith(suffix):
                 resource_name = param_name[:-len(suffix)]
                 break
@@ -101,7 +104,10 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         # Resource Name not found by simple means.
         # Now, assume that resource could be available after the resource
         # For example: pets/{id} -- here most likely id refers to pet
-        if not resource_name and param_name in {"id", "slug", "pk"} and param_type == swagger_constants.PATH_PARAM:
+        if (
+                not resource_name and param_name in settings.PATH_PARAM_RESOURCES
+                and param_type == swagger_constants.PATH_PARAM
+        ):
             url_array = url_path.split("/")
             resource_index = url_array.index(f'{{{param_name}}}') - 1
             if resource_index >= 0:
@@ -142,8 +148,10 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                     resource = self.extract_resource_name_from_param(name, url, param_type)
                     if resource:
                         resource = self.add_resource(resource)
-                        param[swagger_constants.RESOURCE] = resource
-                        self.add_reference_definition(resource, param)
+                        resource_alias = self.resource_map_resolver.get_alias(resource)
+                        param[swagger_constants.RESOURCE] = resource_alias
+                        if resource_alias == resource:
+                            self.add_reference_definition(resource, param)
 
             elif param_type == swagger_constants.BODY_PARAM:
                 self.resolve_body_param(param)
@@ -178,7 +186,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
         for key, value in properties.items():
             resource = ""
-            if key in ["id", "slug", "pk"]:
+            if key in settings.REFERENCE_FIELD_RESOURCES:
                 resource = value.get(swagger_constants.RESOURCE, utils.convert_to_snake_case(ref_name))
                 value[swagger_constants.READ_ONLY] = True
             elif swagger_constants.REF in value:
@@ -189,7 +197,8 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
             if resource:
                 resource = self.add_resource(resource)
-                value[swagger_constants.RESOURCE] = resource
+                resource_alias = self.resource_map_resolver.get_alias(resource)
+                value[swagger_constants.RESOURCE] = resource_alias
 
         self.processed_refs.add(ref_name)
 
@@ -221,4 +230,6 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
         # Update Resource Mapping File
         auto_resource = {resource: {"def": "# Add your definition here"} for resource in self.new_resources}
-        self.write_file_to_input(settings.MAPPING_FILE, {**self.resources, **auto_resource}, append_mode=False)
+        self.write_file_to_input(
+            settings.MAPPING_FILE, {**self.resource_map_resolver.resource_map, **auto_resource}, append_mode=False
+        )

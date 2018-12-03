@@ -19,3 +19,8 @@ FILTERS = "filters"
 DEFAULT_COLUMN = "id"
 
 DUMMY_DEF = "def"
+
+LIMIT = 50
+
+# Internal Constants
+ALIAS = "_alias"

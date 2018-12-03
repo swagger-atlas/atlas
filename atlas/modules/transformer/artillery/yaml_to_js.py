@@ -20,6 +20,7 @@ settings = require('./settings');
 const singleton = Symbol();
 const singletonEnforcer = Symbol();
 
+
 exports.Resource = class Resource {{
     // Resource class is singleton
     // You have to use resource.instance to get resource, and not new Resource()
@@ -117,12 +118,12 @@ class Converter:
 
         profile_data = []
 
+        indent_width = 2
+
         for profile in self.profiles:
             _file = os.path.join(_dir, profile+".yaml")
             with open(_file) as yaml_file:
                 data = yaml.safe_load(yaml_file)
-
-            indent_width = 2
             profile_data.append(self.update_statements(profile, data, indent_width))
 
         profile_str = "\n".join(profile_data)
@@ -144,6 +145,7 @@ class Converter:
         indent = ' ' * 4 * indent_width
         out_data = [
             f"this.updateResource('{profile}', '{key}', new Set({list(value)}));" for key, value in data.items()
+            if value
         ]
         return f"\n{indent}".join(out_data)
 

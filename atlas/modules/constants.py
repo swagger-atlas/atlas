@@ -13,7 +13,6 @@ PARAMETERS = "parameters"
 PARAMETER_NAME = "name"
 IN_ = "in"
 PATH_PARAM = "path"
-RESOURCE = "resource"
 BODY_PARAM = "body"
 QUERY_PARAM = "query"
 FORM_PARAM = "formData"
@@ -106,3 +105,6 @@ MULTIPART_CONSUMES = "multipart/form-data"
 
 # Lower ranked are prioritized higher
 CONSUME_PRIORITY = [JSON_CONSUMES, FORM_CONSUMES, MULTIPART_CONSUMES]
+
+# Internal Resource Constants
+RESOURCE = "resource"
