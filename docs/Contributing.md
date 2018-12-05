@@ -40,3 +40,4 @@ Coding Guidelines
 ======
 
 - Indentation Styles: Prefer Spaces (4) over Tab
+- Add your changes in Changelog.md

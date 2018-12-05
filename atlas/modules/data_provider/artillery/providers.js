@@ -127,7 +127,7 @@ const FakeData = {
     },
 
     getBase64: function(config) {
-        return btoa(FakeData.getString(config));
+        return Buffer.from(FakeData.getString(config)).toString('base64');
     },
 
     getEmail: function(config) {

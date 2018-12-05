@@ -29,6 +29,17 @@ class OperationGraph(DAG):
             for child in child_keys:
                 self.add_edge(parent, child)
 
+    def add_delete_consumer_cartesian_edges(self, parent_keys: set, child_keys: set):
+        """
+        Add multiple edges in Cartesian cross-multiplication style between set of consumer and delete nodes
+        Both sets contain keys required to add nodes
+
+        If delete node is also present in consumer node, it is not added again to prevent cycles
+        """
+
+        parent_keys = parent_keys - child_keys
+        self.add_cartesian_edges(parent_keys, child_keys)
+
     def transform_dfs(self, resource_key, parent_consumers, parent_producers, visited, resource_graph):
         """
         Transform Reference Graph to Operation Graph.
@@ -39,6 +50,7 @@ class OperationGraph(DAG):
 
         node_consumers = resource.consumers
         node_producers = resource.producers
+        node_destructors = resource.destructors
 
         if not node_consumers:
             dummy_key = "${}-CONSUMER".format(resource_key)
@@ -53,6 +65,7 @@ class OperationGraph(DAG):
         self.add_cartesian_edges(node_producers, node_consumers)
         self.add_cartesian_edges(parent_producers, node_producers)
         self.add_cartesian_edges(parent_consumers, node_consumers)
+        self.add_delete_consumer_cartesian_edges(node_consumers, node_destructors)
 
         if visited[resource_key] == self.BLACK:
             return

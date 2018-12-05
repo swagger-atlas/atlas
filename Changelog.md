@@ -1,11 +1,21 @@
 Changelog
 ========
 
+2.2.1
+-----
+
+*Bug Fixes*
+- Custom Global Configuration was being over-ridden by `dist` script. It is now fixed
+- Add an enhancement to improve delete operation ordering.
+Operation deleting the resource is now executed after all operations depending on the resource are finished.
+- Fixed Artillery byte provider
+
+
 2.2.0
 -----
 
 *Features*
-- Aliases (Resource synonyms) are now used at time of ordering, as well as at run time when resources are fetched dynamicallu
+- Aliases (Resource synonyms) are now used at time of ordering, as well as at run time when resources are fetched dynamically
 - Made several resource auto-detection features configurable via settings
 
 *Bug Fixes*
@@ -26,7 +36,7 @@ Changelog
 
 *Features*
 - Added a command line option to create new examples - `python atlas example <example_name>`
-- Added Petstore example
+- Added Pet-store example
 
 
 2.0.3
@@ -40,7 +50,7 @@ Changelog
 2.0.2
 -----
 
-- Security Updates. Updated Requests library where it  removes Authorization header from requests redirected from https to http on the same hostname. (CVE-2018-18074)
+- Security Updates. Updated Requests library where it removes Authorization header from requests redirected from https to http on the same hostname. (CVE-2018-18074)
 
 
 2.0.1
