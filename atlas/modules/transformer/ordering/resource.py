@@ -91,7 +91,6 @@ class ResourceGraph(DAG):
         super(ResourceGraph, self).__init__()
         self.resources = dict()
         self.references = {key.lower(): Reference(key.lower(), config) for key, config in references.items()}
-        # self.references = [Reference(key.lower(), config) for key, config in references.items()]
         self.specs = specs or {}
 
     def get_associated_resource_for_ref(self, ref_name: str) -> str:

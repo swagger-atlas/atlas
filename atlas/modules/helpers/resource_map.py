@@ -53,7 +53,7 @@ class ResourceMapResolver(mixins.YAMLReadWriteMixin):
 
     def resolve_resources(self):
 
-        self.globals = self.resource_map.pop(resource_constants.GLOBALS, {})
+        self.globals = self.resource_map.get(resource_constants.GLOBALS, {})
 
         for resource in self.resource_map:
             if resource in self.resource_config:

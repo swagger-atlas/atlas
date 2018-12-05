@@ -33,6 +33,9 @@ class ProfileResourceDataGenerator(mixins.ProfileMixin):
             if resource in self.resource_map_resolver.alias_map:
                 continue
 
+            if resource == resource_constants.GLOBALS:
+                continue
+
             config = self.resource_map_resolver.resource_config[resource]
 
             dummy_resource = config.get(resource_constants.DUMMY_DEF)

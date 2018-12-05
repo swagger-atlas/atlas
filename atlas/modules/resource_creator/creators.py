@@ -150,8 +150,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                         resource = self.add_resource(resource)
                         resource_alias = self.resource_map_resolver.get_alias(resource)
                         param[swagger_constants.RESOURCE] = resource_alias
-                        if resource_alias == resource:
-                            self.add_reference_definition(resource, param)
+                        self.add_reference_definition(resource_alias, param)
 
             elif param_type == swagger_constants.BODY_PARAM:
                 self.resolve_body_param(param)
