@@ -161,7 +161,7 @@ const FakeData = {
         */
 
         return {
-            "maximum": _.get(config, constants.MAX_LENGTH, 100)   // Arbitrarily set max length
+            "maximum": _.get(config, constants.MAX_LENGTH, 10)   // Arbitrarily set max length
         };
     },
 
@@ -170,10 +170,10 @@ const FakeData = {
         let choice = null;
 
         if (!_.isEmpty(enumOptions)) {
-            choice = _.sample(enumOptions)
+            choice = _.sample(enumOptions);
         }
 
-        return choice
+        return choice;
     },
 
     getRange: function(config) {
