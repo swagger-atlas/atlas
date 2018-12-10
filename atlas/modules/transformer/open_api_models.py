@@ -52,9 +52,11 @@ class Operation:
             user/{id}/action - (user_action with above logic)
         """
 
-        url_fragments = op_interface.url.split("/")
+        url_fragments = [fragment for fragment in op_interface.url.split("/") if fragment]
 
-        op_name_array = [url_element for url_element in url_fragments if not url_element.startswith("{")]
+        op_name_array = [
+            url_element for url_element in url_fragments if not url_element.startswith("{")
+        ]
 
         if op_interface.method == swagger_constants.DELETE:
             op_name_array.append("delete")
