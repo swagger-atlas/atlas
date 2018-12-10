@@ -1,6 +1,23 @@
 Changelog
 ========
 
+3.0.0
+-----
+
+*Breaking Changes*
+- Auto-generation of OperationID naming schema logic have been changed
+Impact: Custom Hooks would need to be renamed to use new Operation IDs.
+This will **only** affect you if you rely on ATLAS to generate your operation IDs and use them in your hooks
+If Your Swagger Schema contains Operation IDs, ATLAS will continue to respect that
+
+*Enhancements*
+- Changed default string length of randomly generated string in ATLAS to 10 from 100.
+
+*Bug Fixes*
+- Several issues which could produce cycle in ATLAS were identified and fixed
+- `ALL OF` property is now respected while generating resources
+
+
 2.2.1
 -----
 
@@ -61,6 +78,9 @@ Operation deleting the resource is now executed after all operations depending o
 
 2.0.0
 -----
+
+v2 is incompatible with v1 since it changes how profiles are selected and loaded internally.
+However, you should be able to simply migrate to v2 without any change on your end
 
 *Features*
 - Multiple Profiles support. Now, each VU is picked randomly from one of the profiles

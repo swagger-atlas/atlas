@@ -168,6 +168,15 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         if ref:
             self.get_ref_name_and_config(ref)
 
+    def resolve_all_of_element(self, ref_name, schema):
+
+        # Try resolving any references
+        self.resolve_schema(schema)
+
+        _type = schema.get(swagger_constants.TYPE)
+        if _type == swagger_constants.OBJECT:
+            self.parse_reference_properties(ref_name, schema.get(swagger_constants.PROPERTIES))
+
     def get_ref_name_and_config(self, ref):
         ref_config = utils.resolve_reference(self.specs, ref)
         ref_name = ref.split("/")[-1]
@@ -179,9 +188,11 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
             return      # This has already been processed, so need to do it again
 
         for element in ref_config.get(swagger_constants.ALL_OF, []):
-            self.resolve_schema(element)
+            self.resolve_all_of_element(ref_name, element)
 
-        properties = ref_config.get(swagger_constants.PROPERTIES, {})
+        self.parse_reference_properties(ref_name, ref_config.get(swagger_constants.PROPERTIES, {}))
+
+    def parse_reference_properties(self, ref_name, properties):
 
         for key, value in properties.items():
             resource = ""

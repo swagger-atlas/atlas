@@ -27,7 +27,8 @@ class Reference:
 
         # Only one candidate is there, so we have clear primary resource
         if len(candidates) == 1:
-            self.primary_resource = self.connected_resources.pop()
+            self.primary_resource = candidates.pop()
+            self.connected_resources.discard(self.primary_resource)
         elif not candidates:
             # There are no candidates, so just name resource after reference
             self.primary_resource = self.name

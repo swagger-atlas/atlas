@@ -25,20 +25,11 @@ class OperationGraph(DAG):
         Both sets contain keys required to add nodes
         """
 
+        parent_keys = parent_keys - child_keys
+
         for parent in parent_keys:
             for child in child_keys:
                 self.add_edge(parent, child)
-
-    def add_delete_consumer_cartesian_edges(self, parent_keys: set, child_keys: set):
-        """
-        Add multiple edges in Cartesian cross-multiplication style between set of consumer and delete nodes
-        Both sets contain keys required to add nodes
-
-        If delete node is also present in consumer node, it is not added again to prevent cycles
-        """
-
-        parent_keys = parent_keys - child_keys
-        self.add_cartesian_edges(parent_keys, child_keys)
 
     def transform_dfs(self, resource_key, parent_consumers, parent_producers, visited, resource_graph):
         """
@@ -65,7 +56,7 @@ class OperationGraph(DAG):
         self.add_cartesian_edges(node_producers, node_consumers)
         self.add_cartesian_edges(parent_producers, node_producers)
         self.add_cartesian_edges(parent_consumers, node_consumers)
-        self.add_delete_consumer_cartesian_edges(node_consumers, node_destructors)
+        self.add_cartesian_edges(node_consumers, node_destructors)
 
         if visited[resource_key] == self.BLACK:
             return
@@ -77,7 +68,9 @@ class OperationGraph(DAG):
         visited[resource_key] = self.GREY
 
         for adj_resource in resource.get_connections():
-            self.transform_dfs(adj_resource.get_id(), node_consumers, node_producers, visited, resource_graph)
+            adj_resource_key = adj_resource.get_id()
+            if visited[adj_resource_key] == self.WHITE:
+                self.transform_dfs(adj_resource_key, node_consumers, node_producers, visited, resource_graph)
 
         visited[resource_key] = self.BLACK
 
