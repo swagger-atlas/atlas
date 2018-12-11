@@ -5,6 +5,10 @@ Changelog
 4.0.0 - In progress
 -------------------
 
+*Breaking Changes*
+- Added new settings in Template
+- Changed Conf, Build and Dist folder structures
+
 *Features*
 - Collect Stats for each endpoint and write them to raw file
 - Allow end-users to add ordering in operations through settings

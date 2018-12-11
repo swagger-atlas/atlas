@@ -24,9 +24,10 @@ class Setup:
         self.path = os.path.join(root_path, settings.INPUT_FOLDER)
         self.touch("__init__.py")
 
-    def create_folder(self, folder_name):
+    def create_folder(self, folder_name, path=None):
 
-        folder = os.path.join(self.path, folder_name)
+        path = path or self.path
+        folder = os.path.join(path, folder_name)
 
         if not os.path.exists(folder):
             os.makedirs(folder)     # Create all folders and files in the path in nested fashion
