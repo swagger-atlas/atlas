@@ -1,6 +1,15 @@
 Changelog
 ========
 
+
+4.0.0 - In progress
+-------------------
+
+*Features*
+- Collect Stats for each endpoint and write them to raw file
+- Allow end-users to add ordering in operations through settings
+
+
 3.0.0
 -----
 
