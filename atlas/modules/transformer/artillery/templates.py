@@ -5,6 +5,7 @@ function setUp(context, event, done) {
     context.vars["provider"] = new Provider(profileName);
     context.vars["respDataParser"] = new ResponseDataParser(profileName);
     context.vars["profile"] = profile[profileName];
+    context.vars["stats"] = new StatsCollector();
     defaultHeaders = profile[profileName].auth.headers;
     return done();
 }"""
@@ -42,3 +43,11 @@ const hook = Hook.hook;
 const Provider = utils.Provider, ResponseDataParser = utils.ResponseDataParser;
 let provider, respDataParser, defaultHeaders;
 """
+
+
+STATS_WRITER = """
+function statsWrite(response, context) {
+    let stats = {url: response.request.path, method: response.request.method};
+    stats.isSuccess = (response.statusCode >= 200 && response.statusCode < 300);
+    context.vars["stats"].write(stats);
+}"""

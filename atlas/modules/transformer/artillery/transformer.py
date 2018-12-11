@@ -17,7 +17,8 @@ class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
             "_ = require('lodash');",
             f"Hook = require('./{settings.ARTILLERY_LIB_FOLDER}/{settings.ARTILLERY_HOOK_FILE}');",
             f"utils = require('./{settings.ARTILLERY_LIB_FOLDER}/providers');",
-            f"settings = require('./{settings.ARTILLERY_LIB_FOLDER}/settings');"
+            f"settings = require('./{settings.ARTILLERY_LIB_FOLDER}/settings');",
+            f"StatsCollector = require('./{settings.ARTILLERY_LIB_FOLDER}/statsCollector').StatsCollector;"
         ]
         return "\n".join(imports)
 

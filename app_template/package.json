@@ -3,6 +3,7 @@
   "private": true,
   "dependencies": {
     "lodash": "^4.17.11",
-    "faker": "git+https://github.com/JoshLabs/faker.js.git#master"
+    "faker": "git+https://github.com/JoshLabs/faker.js.git#master",
+    "csv-writer": "^1.2.0"
   }
 }

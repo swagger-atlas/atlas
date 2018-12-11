@@ -184,6 +184,7 @@ class Task(models.Task):
     def post_response_function(self, width):
         statements = [
             f"function {self.after_func_name}(requestParams, response, context, ee, next) {{",
+            "{w}statsWrite(response, context);".format(w=' ' * width * 4),
             "{w}const status = response.statusCode;".format(w=' ' * width * 4),
             "{w}if (!status || status < 200 || status > 300) {{".format(w=' ' * width * 4),
             "{w}ee.emit('error', 'Non 2xx Response');".format(w=' ' * (width + 1) * 4)
@@ -267,6 +268,7 @@ class TaskSet(models.TaskSet):
             templates.DYNAMIC_TEMPLATE_FUNCTION,
             templates.FORMAT_URL_FUNCTION,
             templates.EXTRACT_BODY_FUNCTION,
+            templates.STATS_WRITER,
             "\n",
             self.task_definitions(width)
         ]
