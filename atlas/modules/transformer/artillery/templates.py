@@ -1,12 +1,35 @@
+SELECT_PROFILE_FUNCTION = """
+function selectProfile(profiles) {
+    const profileName = _.sample(Object.keys(profiles));
+    let profile = profiles[profileName];
+    return {[profileName]: profile};
+}"""
+
+
+REGISTER_HOOKS_FUNCTION = """function registerHooks() {
+    _.forEach(hookRegister, function (_hook) {
+        hook.register(..._hook);
+    });
+}"""
+
+
 SETUP_FUNCTION = """
 function setUp(context, event, done) {
-    const profile = Hook.selectProfile();
-    const profileName = Object.keys(profile)[0];
+
+    registerHooks();
+
+    let _profiles = hook.call("$profileSelection", profiles);
+    let profileMap = selectProfile(_profiles);
+    const profileName = Object.keys(profileMap)[0];
+    let profile = profileMap[profileName];
+    profile = hook.call("$profileSetup", profile);
+
     context.vars["provider"] = new Provider(profileName);
     context.vars["respDataParser"] = new ResponseDataParser(profileName);
-    context.vars["profile"] = profile[profileName];
+    context.vars["profile"] = profile;
     context.vars["stats"] = new StatsCollector();
-    defaultHeaders = profile[profileName].auth.headers;
+    defaultHeaders = profile.auth.headers;
+
     return done();
 }"""
 
@@ -39,9 +62,8 @@ function extractBody(response, requestParams, context) {
 
 
 GLOBAL_STATEMENTS = """
-const hook = Hook.hook;
 const Provider = utils.Provider, ResponseDataParser = utils.ResponseDataParser;
-let provider, respDataParser, defaultHeaders;
+let respDataParser, defaultHeaders;
 """
 
 

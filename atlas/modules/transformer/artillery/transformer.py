@@ -15,10 +15,12 @@ class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
     def get_imports(self):
         imports = [
             "_ = require('lodash');",
-            f"Hook = require('./{settings.ARTILLERY_HOOK_FILE}');",
+            f"const hookRegister = require('./{settings.ARTILLERY_HOOK_FILE}').hookRegister;",
+            f"hook = require('./{settings.ARTILLERY_LIB_FOLDER}/hooks').hook;",
             f"utils = require('./{settings.ARTILLERY_LIB_FOLDER}/providers');",
             f"settings = require('./{settings.ARTILLERY_LIB_FOLDER}/settings');",
-            f"StatsCollector = require('./{settings.ARTILLERY_LIB_FOLDER}/statsCollector').StatsCollector;"
+            f"StatsCollector = require('./{settings.ARTILLERY_LIB_FOLDER}/statsCollector').StatsCollector;",
+            f"profiles = require('./{settings.ARTILLERY_LIB_FOLDER}/profiles').profiles;"
         ]
         return "\n".join(imports)
 

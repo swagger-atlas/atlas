@@ -264,6 +264,8 @@ class TaskSet(models.TaskSet):
     def convert(self, width):
         statements = [
             self.task_calls(width),
+            templates.SELECT_PROFILE_FUNCTION,
+            templates.REGISTER_HOOKS_FUNCTION,
             templates.SETUP_FUNCTION,
             templates.DYNAMIC_TEMPLATE_FUNCTION,
             templates.FORMAT_URL_FUNCTION,

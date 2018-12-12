@@ -1,49 +1,123 @@
 Hooks
 =====
 
-Users can change the request being sent for testing via hooks mechanism.
+(This is documentation for run time hooks for profiles are request.
+If you are looking for Resource Mapping Hooks, visit [Resources](docs/resources.md) page)
 
-To hook an API, you need to do two things:
-1. Define Hook. Hook definition is a JS function with:
-    - Signature `...args` where args is an array with parameters: URL, Body, Params for APIs which need body, and URL, Params for APIS which do not need one
-    - It must return `args`
-2. Register Hook
-    - Hooks must be registered against Operation ID for a method. You can find operationID for method in Swagger
+Hooks basically let you inject custom code at various places during Load Testing.
 
-Hooks are completely optional.
+Three types of Hooks are:
+1. Profile Selection Hooks
+2. Profile Setup Hooks
+3. Request Body Hooks
 
-Simple Hook
------------
+After defining hooks, you should export them via `hookRegister`
 
-Open `conf/hooks.js` and write this:
+
+Profile Selection Hooks
+----
+They are functions which you can write to filter out which profiles you want to select.
+Currently, the convention is to randomly pick one profile from list of all profiles
+
+Example of this type of hook:
 
 ```js
-function testHook(...args) {
-    console.log("I am a test hook");
-    return args;
+function filterByID(profiles) {
+    return _.map(profiles, function (profile) { profile.id < 10; });
 }
-
-hook.register("operationId", testHook);
 ```
 
-If your URL method operation ID is `operationID`, this ensures that whenever we load test, we hit this hook.
+Things to note:
+- It must take profiles and return profiles array
+- Its hookRegister ID is "$profileSelection"
 
 
-Hook with custom body
----------------------
+Profile Setup Hooks
+-----
+These are used to setup relevant data once the profile is selected.
+
+Example:
+```js
+function addHeaders(profile) {
+    profile.auth = {
+        "headers": {'Authorization': 'Token ' + profile.token}
+    };
+    return profile;
+}
+```
+
+Things to note:
+- It must take single profile object and return it
+- Its hookRegister ID is "$profileSetup"
+
+
+Request Hooks
+-----
+These could be used to manipulate request parameters before sending request.
+With this, for example, you can manipulate URL, request body etc
+
+Example:
+```js
+function removeUserField(...args) {
+    let body = args[1];
+    del body.user;
+    args[1] = body;
+    return ...args;
+}
+```
+
+Things to note:
+- Each hook thus defined must take ...args and must return args.
+- Number and order of arguments in return must not change
+- For requests which support body (eg: POST/PUT/PATCH), args are in order: URL, BODY, REQUEST PARAMS
+- For requests which do NOT support body (eg: GET), args are in order: URL, REQUEST PARAMS
+- Relevant HookRegister ID is Swagger OPERATION ID for the request. This can be found in Swagger file of request
+
+
+Hook Registration
+-----
+
+Once you define functions, you must register them via HookRegister.
+
+For example, for above examples,
 
 ```js
-function customBody(...args) {
-    let body = args[1];
+exports.hookRegister = [
+    ["$profileSelection", filterByID],
+    ["$profileSetup", addHeaders],
+    ["my_swagger_operation", removeUserField]
+];
+```
 
-    del body.a;
-    del body.b;
+You can associate multiple hooks to a single operation.
+In the case, hooks would be run in the order as they are defined in hookRegister.
 
-    body.c = 1;
 
-    args[1] = body;
-    return body;
+Hook Chaining
+-------------
+
+This illustrates how a single operation can have multiple hooks associated with it
+
+
+```js
+function filterByID(profiles) {
+    return _.filter(profiles, function (profile) { profile.id < 10; });
 }
 
-hook.register("myOperation", customBody);
+function selectiveWeight(profiles) {
+    // Profile with frequency "heavy" to be weighed twice as much as others.
+    let newProfiles = profiles;
+    _.forEach(profiles, function(profile) {
+        if (profile.frequency === "heavy") {
+            newProfiles.push(profile);
+        }
+    };
+    return newProfiles;
+}
+
+// In this case, first profiles would be filtered and then weighed
+exports.hookRegister = [
+    ["$profileSelection", filterByID],
+    ["$profileSelection", selectiveWeight]
+];
 ```
