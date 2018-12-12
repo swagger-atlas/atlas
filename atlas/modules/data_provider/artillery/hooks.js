@@ -1,4 +1,4 @@
-exports.ArtilleryHook = class ArtilleryHook {
+class Hook {
 
     constructor() {
         this.hooks = {};
@@ -19,4 +19,6 @@ exports.ArtilleryHook = class ArtilleryHook {
         }
         return args;
     }
-};
+}
+
+exports.hook = new Hook();

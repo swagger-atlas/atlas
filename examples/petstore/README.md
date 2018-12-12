@@ -22,7 +22,7 @@ With Artillery
 (Make sure you have ATLAS installed in your virtualenv)
 
 - Run `python manage.py dist artillery`
-- `artillery run dist/artillery.yaml`
+- `artillery run dist/artillery/artillery.yaml`
 
 
 Customization covered in this example

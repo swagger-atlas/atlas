@@ -14,6 +14,7 @@ class ArtilleryDist(project_setup.Setup):
     def start(self):
         self.path = utils.get_project_path()
         self.create_folder(settings.DIST_FOLDER)
+        self.create_folder(settings.ARTILLERY_FOLDER, os.path.join(self.path, settings.DIST_FOLDER))
 
         self.copy_folders()
         self.copy_files()
@@ -21,29 +22,44 @@ class ArtilleryDist(project_setup.Setup):
     def copy_files(self):
 
         source_files = [
-            os.path.join(self.path, settings.INPUT_FOLDER, settings.ARTILLERY_HOOK_FILE),
             os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery", "providers.js"),
-            os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery", "hookSetup.js"),
+            os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery", "hooks.js"),
+            os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery", "statsCollector.js"),
         ]
 
         for _file in source_files:
-            shutil.copy(_file, os.path.join(self.path, settings.DIST_FOLDER, settings.ARTILLERY_LIB_FOLDER))
+            shutil.copy(
+                _file,
+                os.path.join(self.path, settings.DIST_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_LIB_FOLDER)
+            )
 
         artillery_source_files = [
-            os.path.join(self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_FILE),
-            os.path.join(self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_YAML),
+            os.path.join(self.path, settings.INPUT_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_HOOK_FILE),
+            os.path.join(self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_FILE),
+            os.path.join(self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_YAML),
         ]
 
         for _file in artillery_source_files:
-            shutil.copy(_file, os.path.join(self.path, settings.DIST_FOLDER))
+            shutil.copy(_file, os.path.join(self.path, settings.DIST_FOLDER, settings.ARTILLERY_FOLDER))
+
+        base_files = [
+            os.path.join(self.path, settings.OUTPUT_FOLDER, settings.SWAGGER_FILE)
+        ]
+
+        for _file in base_files:
+            shutil.copy(_file, settings.DIST_FOLDER)
 
     def copy_folders(self):
 
         CopyFolder = namedtuple("copy_folder", ["source_path", "destination_path"])
 
         folders = [
-            CopyFolder(os.path.join(self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_LIB_FOLDER),
-                       os.path.join(self.path, settings.DIST_FOLDER, settings.ARTILLERY_LIB_FOLDER))
+            CopyFolder(
+                os.path.join(
+                    self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_LIB_FOLDER
+                ),
+                os.path.join(self.path, settings.DIST_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_LIB_FOLDER)
+            )
         ]
 
         # Remove destination folder(s) if already exists

@@ -49,7 +49,7 @@ See: [Resources](resources.md) for in-depth discussion of the same
 
 Authenticating the APIs
 ======
-If your APIs need authentication, you can leverage the `conf/hooks.js` for same.
+If your APIs need authentication, you can leverage the `conf/artillery/hooks.js` for same.
 - Your default file would have a function called `setHeaders` which assume you have added a token value in profiles.yaml file, and authenticates to Token Authentication
 - However, you can change this function definition to enable or disable any kind of auth mechanism
 - You can add or remove other hooks also and register them with `profile.register(<your_func_name>)` which would be run for each of your test user once.
@@ -78,4 +78,4 @@ FAQ
 =====
 
 1. ATLAS is not creating proper data body for my APIs, which results in 400 failure. What are alternatives?
-You can change any request body created by ATLAS prior to its hit. See `conf/hooks.js` for more details. Your operation ID is defined in Swagger.
+You can change any request body created by ATLAS prior to its hit. See `conf/artillery/hooks.js` for more details. Your operation ID is defined in Swagger.

@@ -31,3 +31,8 @@ class Settings:
 
     # Only hit APIs which match Tags
     ONLY_TAG_API = False
+
+    # Custom Ordering Dependency
+    # This is an array of 2-pair tuples, with second operation being dependent on first operation
+    # These are operation IDs --> Eg: [ (petCreate, petList), (petCreate, petRetrieve) ]
+    ORDERING_DEPENDENCY = []

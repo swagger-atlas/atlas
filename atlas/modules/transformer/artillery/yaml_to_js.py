@@ -107,7 +107,8 @@ class Converter:
         out_data = "exports.profiles = {};\n".format(json.dumps(data, indent=4))
 
         out_file = os.path.join(
-            self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_LIB_FOLDER, settings.ARTILLERY_PROFILES
+            self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_LIB_FOLDER,
+            settings.ARTILLERY_PROFILES
         )
 
         with open(out_file, 'w') as js_file:
@@ -130,7 +131,8 @@ class Converter:
         out_data = TEMPLATE.format(initial_resources=profile_str)
 
         out_file = os.path.join(
-            self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_LIB_FOLDER, settings.ARTILLERY_RESOURCES
+            self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_LIB_FOLDER,
+            settings.ARTILLERY_RESOURCES
         )
 
         with open(out_file, 'w') as js_file:

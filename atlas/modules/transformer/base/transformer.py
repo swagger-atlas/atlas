@@ -27,9 +27,14 @@ class FileConfig:
         ]
         return "\n\n".join([component for component in file_components if component])
 
-    def write_to_file(self, file_name=None):
+    def write_to_file(self, file_name=None, sub_path=None):
         file_name = file_name or self.OUT_FILE
-        _file = os.path.join(utils.get_project_path(), settings.OUTPUT_FOLDER, file_name)
+        _path = os.path.join(utils.get_project_path(), settings.OUTPUT_FOLDER)
+
+        if sub_path:
+            _path = os.path.join(_path, sub_path)
+
+        _file = os.path.join(_path, file_name)
 
         with open(_file, 'w') as write_file:
             write_file.write(self.convert() + "\n")  # Append EOF New line

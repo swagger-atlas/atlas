@@ -16,7 +16,22 @@ BOOL_MAP = {
 class ArtillerySetup:
 
     def __init__(self):
-        self.js_lib_path = os.path.join(os.getcwd(), settings.OUTPUT_FOLDER, settings.ARTILLERY_LIB_FOLDER)
+        self.js_lib_path = self.create_folder()
+
+    @staticmethod
+    def create_folder():
+
+        _path = os.path.join(os.getcwd(), settings.OUTPUT_FOLDER, settings.ARTILLERY_FOLDER)
+
+        if not os.path.exists(_path):
+            os.makedirs(_path)
+
+        _path = os.path.join(_path, settings.ARTILLERY_LIB_FOLDER)
+
+        if not os.path.exists(_path):
+            os.makedirs(_path)
+
+        return _path
 
     def convert_python_value_to_js_value(self, python_value, var_name, stringify=True):
         js_val = None

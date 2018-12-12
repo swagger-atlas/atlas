@@ -33,6 +33,6 @@ Install Artillery and dependencies:
 
 Build and Run Artillery:
     - `python manage.py dist artillery`
-    - `artillery run dist/artillery.yaml`
+    - `artillery run dist/artillery/artillery.yaml`
 
 You should see [Artillery Guide](https://code.jtg.tools/jtg/atlas/docs/artillery.md) for details.

@@ -1,6 +1,26 @@
 Changelog
 ========
 
+
+4.0.0
+-------------------
+
+*Breaking Changes*
+- Added new settings in Template
+- Changed Conf, Build and Dist folder structures
+- Changed Profile and Operation Hooks Interface
+
+*Migration Guide*
+1. Create a new project with ATLAS
+2. Copy Swagger and Profiles
+3. Use new hook registration format for operation hooks
+4. Change the profile hooks as needed
+
+*Features*
+- Collect Stats for each endpoint and write them to raw file
+- Allow end-users to add ordering in operations through settings
+
+
 3.0.0
 -----
 

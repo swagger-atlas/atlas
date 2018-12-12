@@ -58,5 +58,6 @@ class Dist(TransformerBaseCommand):
         print("Preparing your distribution package")
         self.artillery_dist()
 
-        print("Successfully finished. \n\nYou can start the test on local by `artillery run dist/artillery.yaml`\n"
+        print("Successfully finished. \n\n"
+              "You can start the test on local by `artillery run dist/artillery/artillery.yaml`\n"
               "If needed, you can adjust duration and user-spawn rate in dist/artillery.yaml - in config/phases\n")

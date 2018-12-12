@@ -1,5 +1,6 @@
 from atlas.modules import constants, exceptions
 from atlas.modules.transformer.ordering.base import Node, DAG
+from atlas.conf import settings
 
 
 class Operation(Node):
@@ -74,6 +75,15 @@ class OperationGraph(DAG):
 
         visited[resource_key] = self.BLACK
 
+    def add_custom_ordering_dependencies(self):
+        """
+        Add the user dependencies
+        """
+
+        for ordering in settings.ORDERING_DEPENDENCY:
+            parent, child = ordering
+            self.add_edge(parent, child)
+
     def transform(self, resource_graph):
         """
         Transforms Resource graph to Operation Graph.
@@ -88,6 +98,7 @@ class OperationGraph(DAG):
         for node in resource_graph.get_vertices():
             if visited[node] == self.WHITE:
                 self.transform_dfs(node, set(), set(), visited, resource_graph)
+        self.add_custom_ordering_dependencies()
 
     def topological_sort(self):
         """

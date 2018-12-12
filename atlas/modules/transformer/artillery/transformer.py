@@ -15,9 +15,12 @@ class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
     def get_imports(self):
         imports = [
             "_ = require('lodash');",
-            f"Hook = require('./{settings.ARTILLERY_LIB_FOLDER}/{settings.ARTILLERY_HOOK_FILE}');",
+            f"const hookRegister = require('./{settings.ARTILLERY_HOOK_FILE}').hookRegister;",
+            f"hook = require('./{settings.ARTILLERY_LIB_FOLDER}/hooks').hook;",
             f"utils = require('./{settings.ARTILLERY_LIB_FOLDER}/providers');",
-            f"settings = require('./{settings.ARTILLERY_LIB_FOLDER}/settings');"
+            f"settings = require('./{settings.ARTILLERY_LIB_FOLDER}/settings');",
+            f"StatsCollector = require('./{settings.ARTILLERY_LIB_FOLDER}/statsCollector').StatsCollector;",
+            f"profiles = require('./{settings.ARTILLERY_LIB_FOLDER}/profiles').profiles;"
         ]
         return "\n".join(imports)
 
@@ -41,8 +44,10 @@ class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
             ]
         }
 
-    def write_to_file(self, file_name=None):
-        super().write_to_file(file_name)
+    def write_to_file(self, file_name=None, sub_path=None):
+        super().write_to_file(file_name, settings.ARTILLERY_FOLDER)
 
         self.set_yaml_config()
-        self.write_file_to_output(settings.ARTILLERY_YAML, self.yaml_config, append_mode=False)
+        self.write_file_to_output(
+            settings.ARTILLERY_YAML, self.yaml_config, append_mode=False, project_sub_folder=settings.ARTILLERY_FOLDER
+        )

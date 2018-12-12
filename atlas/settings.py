@@ -15,7 +15,7 @@ class Settings:
 
     SWAGGER_FILE = "swagger.yaml"
     MAPPING_FILE = "resource_mapping.yaml"
-    RES_MAPPING_HOOKS_FILE = "resource_hooks.py"
+    RES_MAPPING_HOOKS_FILE = "hooks.py"
     PROFILES_FILE = "profiles.yaml"
     RESOURCES_FOLDER = "resources"
     DIST_FOLDER = "dist"
@@ -26,6 +26,7 @@ class Settings:
     # Generated Output files for Artillery
     # Do not change these names, as they are imported as it is in JS
     ARTILLERY_LIB_FOLDER = "libs"
+    ARTILLERY_FOLDER = "artillery"
     ARTILLERY_PROFILES = "profiles.js"
     ARTILLERY_RESOURCES = "resources.js"
     ARTILLERY_FILE = "processor.js"
