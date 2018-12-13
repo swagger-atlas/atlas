@@ -2,6 +2,12 @@ Changelog
 ========
 
 
+5.0.1
+-----
+
+Updated Pet-store example to reflect all new changes
+
+
 5.0.0
 -----
 

@@ -29,4 +29,4 @@ Customization covered in this example
 =====================================
 
 - See `conf/profiles.yaml` for example of Multiple Profiles
-- See `conf/resource_hooks.py` and conf/resource_mapping.yaml` for example of Resource Hooks
+- See `conf/hooks.py` and conf/resource_mapping.yaml` for example of Resource Hooks
