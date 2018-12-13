@@ -24,3 +24,6 @@ LIMIT = 50
 
 # Internal Constants
 ALIAS = "_alias"
+
+# Do not update Dynamic Resources
+RESOURCE_UPDATE_RUN_TIME = "update_at_run_time"

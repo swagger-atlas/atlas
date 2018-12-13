@@ -24,6 +24,8 @@ class ProfileResourceDataGenerator(mixins.ProfileMixin):
 
     def read_for_profile(self, resources):
 
+        not_run_time_update_resources = set()
+
         for resource, config in self.resource_map_resolver.resource_map.items():
             # We have already constructed this resource, so ignore this and move
             if resource in resources:
@@ -38,23 +40,36 @@ class ProfileResourceDataGenerator(mixins.ProfileMixin):
 
             config = self.resource_map_resolver.resource_config[resource]
 
-            dummy_resource = config.get(resource_constants.DUMMY_DEF)
-            if dummy_resource:
-                result = []
+            update_at_run_time = config.get(resource_constants.RESOURCE_UPDATE_RUN_TIME, True)
+            if not update_at_run_time:
+                not_run_time_update_resources.add(resource)
+
+            resources[resource] = set(self.parse_for_resource(resource, config))
+
+        setattr(settings, "NOT_UPDATE_RUN_TIME_RESOURCES", not_run_time_update_resources)
+
+    def parse_for_resource(self, resource, config):
+        """
+        Parse for Single Resource
+        """
+
+        dummy_resource = config.get(resource_constants.DUMMY_DEF)
+        if dummy_resource:
+            result = []
+        else:
+            source = config.get(resource_constants.SOURCE, resource_constants.DB_TABLE)
+
+            if source == resource_constants.DB_TABLE:
+                result = self.parse_db_source(config, self.resource_map_resolver.globals)
+            elif source == resource_constants.SCRIPT:
+                result = self.parse_python_source(config)
             else:
-                source = config.get(resource_constants.SOURCE, resource_constants.DB_TABLE)
+                raise exceptions.ResourcesException("Incorrect source defined for {}".format(resource))
 
-                if source == resource_constants.DB_TABLE:
-                    result = self.parse_db_source(config, self.resource_map_resolver.globals)
-                elif source == resource_constants.SCRIPT:
-                    result = self.parse_python_source(config)
-                else:
-                    raise exceptions.ResourcesException("Incorrect source defined for {}".format(resource))
+            if not isinstance(result, (list, tuple, set)):
+                raise exceptions.ResourcesException("Result for {} must be Built-in iterable".format(resource))
 
-                if not isinstance(result, (list, tuple, set)):
-                    raise exceptions.ResourcesException("Result for {} must be Built-in iterable".format(resource))
-
-            resources[resource] = set(result)
+        return result
 
     def parse(self):
 

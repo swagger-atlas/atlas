@@ -2,8 +2,16 @@ Changelog
 ========
 
 
+4.1.0
+-----
+
+*Features*
+- Write Auto-generated Operation ID to Swagger
+- Add the option to allow resources to be not updated at run-time
+
+
 4.0.0
--------------------
+------
 
 *Breaking Changes*
 - Added new settings in Template
