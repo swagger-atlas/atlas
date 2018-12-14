@@ -7,6 +7,7 @@ class StatsRow {
         this.url = row.url;
         this.method = row.method;
         this._isSuccess = row.isSuccess;
+        this.statusCode = row.statusCode;
     }
 
     get isSuccess() {
@@ -35,8 +36,10 @@ exports.StatsCollector = class Stats {
     }
 
     processRowStats(rowStats) {
-        this.endpointReport[rowStats.rowKey] = {"success": rowStats.isSuccess};
-        this.publisher.publishRow({id: rowStats.rowKey, isSuccess: rowStats.isSuccess});
+        this.endpointReport[rowStats.rowKey] = {"success": rowStats.isSuccess, "statusCode": rowStats.statusCode};
+        this.publisher.publishRow(
+            {id: rowStats.rowKey, isSuccess: rowStats.isSuccess, statusCode: rowStats.statusCode}
+        );
     }
 };
 
@@ -47,7 +50,8 @@ class CSVStatsPublisher {
             path: 'report.csv',
             header: [
                 {id: "id", title: "KEY"},
-                {id: "isSuccess", title: "Is Success?"}
+                {id: "isSuccess", title: "Is Success?"},
+                {id: "statusCode", title: "Status Code"}
             ]
         });
     }

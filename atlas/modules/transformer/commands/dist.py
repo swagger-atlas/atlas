@@ -5,6 +5,7 @@ from atlas.modules.resource_creator.commands import generate as create_resource
 from atlas.modules.transformer.commands.base import TransformerBaseCommand
 from atlas.modules.transformer.artillery.dist import ArtilleryDist
 from atlas.modules.transformer.commands import converter, setup
+from atlas.conf import settings
 
 
 VALID_TYPES = {"artillery"}
@@ -54,10 +55,12 @@ class Dist(TransformerBaseCommand):
         print("Converting your Swagger file to Artillery Load Test...")
         converter.Converter().handle(type="artillery")
 
+        artillery_dist_file = f"{settings.DIST_FOLDER}/{settings.ARTILLERY_FOLDER}/{settings.ARTILLERY_YAML}"
+
         # Now package it for distribution
         print("Preparing your distribution package")
         self.artillery_dist()
 
         print("Successfully finished. \n\n"
-              "You can start the test on local by `artillery run dist/artillery/artillery.yaml`\n"
-              "If needed, you can adjust duration and user-spawn rate in dist/artillery.yaml - in config/phases\n")
+              f"You can start the test on local by `{artillery_dist_file}`\n"
+              f"If needed, you can adjust duration and user-spawn rate in {artillery_dist_file} - in config/phases\n")

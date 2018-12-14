@@ -223,6 +223,6 @@ class SwaggerResourceValidator:
 
         if no_producer_resources:
             print(
-                f"\nHINT: We cannot find API which produces the resources: '{', '.join(no_producer_resources)}'. "
+                f"\nHINT: ATLAS cannot find API which produces the resources: '{', '.join(no_producer_resources)}'. "
                 f"You may need to add their DB mapping in conf/resource_mapping.yaml\n"
             )
