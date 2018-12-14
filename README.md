@@ -32,7 +32,7 @@ It may be possible that you need to provide Authentication Information with APIs
 With ATLAS, you can provide Header Authentication by:
 
 - Editing `conf/profiles.yaml` and adding authentication key value pairs
-- In `conf/hooks.js` change `setHeader()` function as needed.
+- In `conf/artillery//hooks.js` change `setHeader()` function as needed.
 
 *Example*
 ```yaml
@@ -43,15 +43,11 @@ With ATLAS, you can provide Header Authentication by:
 
 ```js
 // hooks.js
-function selectProfile() {
-    const profileName = _.sample(Object.keys(profiles));
-    let profile = profiles[profileName];
-
-    // You can change the statements as needed
+function addHeaders(profile) {
     profile.auth = {
         "headers": {'Authorization': 'Token ' + profile.token}
     };
-    return {[profileName]: profile};
+    return profile;
 }
 ```
 
