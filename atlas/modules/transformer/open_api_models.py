@@ -41,35 +41,9 @@ class Operation:
 
             self.parameters[name] = parameter
 
-    @staticmethod
-    def operation_id_name(op_interface) -> str:
-        """
-        Generate the name for Operation ID
-
-        Logic:
-            user/       - (user_create, user_list)
-            user/{id}   - (user_read, user_update, user_delete)
-            user/{id}/action - (user_action with above logic)
-        """
-
-        url_fragments = [fragment for fragment in op_interface.url.split("/") if fragment]
-
-        op_name_array = [
-            url_element for url_element in url_fragments if not url_element.startswith("{")
-        ]
-
-        if op_interface.method == swagger_constants.DELETE:
-            op_name_array.append("delete")
-        elif url_fragments[-1].startswith("{"):
-            op_name_array.append("read" if op_interface.method == swagger_constants.GET else "update")
-        else:
-            op_name_array.append("list" if op_interface.method == swagger_constants.GET else "create")
-
-        return "_".join(op_name_array)
-
     def add_to_interface(self, op_interface):
 
-        op_interface.func_name = self.config.get(swagger_constants.OPERATION, self.operation_id_name(op_interface))
+        op_interface.func_name = self.config.get(swagger_constants.OPERATION)
         self.add_parameters(self.config.get(swagger_constants.PARAMETERS, []))
         op_interface.parameters = self.parameters
         op_interface.tags = self.config.get(swagger_constants.TAGS, [])

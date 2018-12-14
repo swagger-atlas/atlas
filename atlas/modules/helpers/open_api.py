@@ -37,7 +37,7 @@ class ReferenceField(ElementConfig):
         Determine whether this field can contain primary resource for this reference
         """
 
-        return self.resource and self.name in settings.REFERENCE_FIELD_RESOURCES
+        return self.resource and self.name in settings.SWAGGER_REFERENCE_FIELD_RESOURCE_IDENTIFIERS
 
 
 class Schema:

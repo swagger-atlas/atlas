@@ -35,4 +35,4 @@ class Settings:
     # Custom Ordering Dependency
     # This is an array of 2-pair tuples, with second operation being dependent on first operation
     # These are operation IDs --> Eg: [ (petCreate, petList), (petCreate, petRetrieve) ]
-    ORDERING_DEPENDENCY = []
+    SWAGGER_OPERATION_DEPENDENCIES = []

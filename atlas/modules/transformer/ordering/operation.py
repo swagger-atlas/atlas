@@ -80,7 +80,7 @@ class OperationGraph(DAG):
         Add the user dependencies
         """
 
-        for ordering in settings.ORDERING_DEPENDENCY:
+        for ordering in settings.SWAGGER_OPERATION_DEPENDENCIES:
             parent, child = ordering
             self.add_edge(parent, child)
 

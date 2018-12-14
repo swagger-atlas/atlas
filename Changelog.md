@@ -2,8 +2,35 @@ Changelog
 ========
 
 
+5.0.1
+-----
+
+Updated Pet-store example to reflect all new changes
+
+
+5.0.0
+-----
+
+*Breaking Changes*
+- Changed the following settings name:
+    1. `URL_PARAM_RESOURCE_SUFFIX` to `SWAGGER_URL_PARAM_RESOURCE_SUFFIXES`
+    2. `PATH_PARAM_RESOURCES` to `SWAGGER_PATH_PARAM_RESOURCE_IDENTIFIERS`
+    3. `REFERENCE_FIELD_RESOURCES` to `SWAGGER_REFERENCE_FIELD_RESOURCE_IDENTIFIERS`
+    4. `ORDERING_DEPENDENCY` to `SWAGGER_OPERATION_DEPENDENCIES`
+These new identifiers mark settings clearly Swagger settings
+Also, it reflects better that these settings reflect that they are plural values
+
+
+4.1.0
+-----
+
+*Features*
+- Write Auto-generated Operation ID to Swagger
+- Add the option to allow resources to be not updated at run-time
+
+
 4.0.0
--------------------
+-----
 
 *Breaking Changes*
 - Added new settings in Template
@@ -113,7 +140,7 @@ However, you should be able to simply migrate to v2 without any change on your e
 
 
 1.2.0
-----
+-----
 
 *Features*
 - Automatically mark IDs and Slugs as Read only in references
@@ -121,7 +148,7 @@ However, you should be able to simply migrate to v2 without any change on your e
 
 
 1.1.0
----
+-----
 
 *Features*
 - Dist Command Output message enhancements

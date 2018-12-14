@@ -2,6 +2,7 @@ _ = require("lodash");
 faker = require("faker");
 
 constants = require('./constants');
+settings = require('./settings');
 Resource = require("./resources").Resource;
 
 /*
@@ -462,7 +463,7 @@ class ResponseDataParser {
     addData(resourceKey, values) {
         const newResources = new Set(_.isArray(values) ? values: [values]);
 
-        if(!_.isEmpty(newResources)) {
+        if(!_.isEmpty(newResources) && !settings.NOT_UPDATE_RUN_TIME_RESOURCES.has(resourceKey)) {
             this.resourceInstance.updateResource(this.profile, resourceKey, newResources);
         }
     }

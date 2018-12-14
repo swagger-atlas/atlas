@@ -13,7 +13,7 @@ class Settings:
     EXCLUDE_URLS = ["/logout", "/login"]
 
     SERVER_URL = {
-        "protocol": "",
+        "protocol": "",       # If left empty, would be picked from swagger. If not in swagger, would be "http"
         "host": "",           # if left empty, would be picked from swagger. If not there, would be localhost
 
         # In swagger, we search for info/url and basePath  for this setting
@@ -31,3 +31,8 @@ class Settings:
 
     # Only hit APIs which match Tags
     ONLY_TAG_API = False
+
+    # Custom Ordering Dependency
+    # This is an array of 2-pair tuples, with second operation being dependent on first operation
+    # These are operation IDs --> Eg: [ (petCreate, petList), (petCreate, petRetrieve) ]
+    SWAGGER_OPERATION_DEPENDENCIES = []

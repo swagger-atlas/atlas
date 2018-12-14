@@ -35,12 +35,12 @@ class Settings:
 
     # ### Resource Auto-detection settings
     # These suffixes if present determine whether the URL parameter is resource or not
-    URL_PARAM_RESOURCE_SUFFIX = {"_id", "Id", "_slug", "Slug", "pk"}
+    SWAGGER_URL_PARAM_RESOURCE_SUFFIXES = {"_id", "Id", "_slug", "Slug", "pk"}
 
     # These are direct names for Path parameters
-    PATH_PARAM_RESOURCES = {"id", "slug", "pk"}
+    SWAGGER_PATH_PARAM_RESOURCE_IDENTIFIERS = {"id", "slug", "pk"}
 
     # These are field names which if present in references are marked as resource with Reference name
-    REFERENCE_FIELD_RESOURCES = {"id", "slug", "pk"}
+    SWAGGER_REFERENCE_FIELD_RESOURCE_IDENTIFIERS = {"id", "slug", "pk"}
 
     # #### End Resource Auto-detection constant settings

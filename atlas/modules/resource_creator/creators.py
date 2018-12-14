@@ -93,7 +93,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
         resource_name = None
 
-        for suffix in settings.URL_PARAM_RESOURCE_SUFFIX:
+        for suffix in settings.SWAGGER_URL_PARAM_RESOURCE_SUFFIXES:
             if param_name.endswith(suffix):
                 resource_name = param_name[:-len(suffix)]
                 break
@@ -105,7 +105,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         # Now, assume that resource could be available after the resource
         # For example: pets/{id} -- here most likely id refers to pet
         if (
-                not resource_name and param_name in settings.PATH_PARAM_RESOURCES
+                not resource_name and param_name in settings.SWAGGER_PATH_PARAM_RESOURCE_IDENTIFIERS
                 and param_type == swagger_constants.PATH_PARAM
         ):
             url_array = url_path.split("/")
@@ -196,7 +196,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
         for key, value in properties.items():
             resource = ""
-            if key in settings.REFERENCE_FIELD_RESOURCES:
+            if key in settings.SWAGGER_REFERENCE_FIELD_RESOURCE_IDENTIFIERS:
                 resource = value.get(swagger_constants.RESOURCE, utils.convert_to_snake_case(ref_name))
                 value[swagger_constants.READ_ONLY] = True
             elif swagger_constants.REF in value:
@@ -226,11 +226,43 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 if method in swagger_constants.VALID_METHODS:
                     parameters = method_config.get(swagger_constants.PARAMETERS)
 
+                    # Detect Operation ID in swagger, and if not present, generate and write back in Swagger
+                    # Operation IDs are used as primary key throughout application
+                    op_id = method_config.get(swagger_constants.OPERATION)
+                    if not op_id:
+                        method_config[swagger_constants.OPERATION] = self.operation_id_name(url, method)
+
                     if parameters:
                         self.parse_params(parameters, url)
 
         for ref_name, ref_config in self.specs.get(swagger_constants.DEFINITIONS, {}).items():
             self.parse_reference(ref_name, ref_config)
+
+    @staticmethod
+    def operation_id_name(url, method) -> str:
+        """
+        Generate the name for Operation ID
+
+        Logic:
+            user/       - (user_create, user_list)
+            user/{id}   - (user_read, user_update, user_delete)
+            user/{id}/action - (user_action with above logic)
+        """
+
+        url_fragments = [fragment for fragment in url.split("/") if fragment]
+
+        op_name_array = [
+            url_element for url_element in url_fragments if not url_element.startswith("{")
+        ]
+
+        if method == swagger_constants.DELETE:
+            op_name_array.append("delete")
+        elif url_fragments[-1].startswith("{"):
+            op_name_array.append("read" if method == swagger_constants.GET else "update")
+        else:
+            op_name_array.append("list" if method == swagger_constants.GET else "create")
+
+        return "_".join(op_name_array)
 
     def update(self):
 
