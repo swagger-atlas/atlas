@@ -181,7 +181,7 @@ class ResourceGraph(DAG):
                     # This time, it is Path Params, so we are sure that is is consumer
                     ref_graph[resource] = "consumer"
 
-            if parameter.get(constants.TYPE) == constants.BODY_PARAM:
+            if parameter.get(constants.IN_) == constants.BODY_PARAM:
                 request_refs = self.get_schema_refs(parameter)
 
                 # If it is already claimed as producer/consumer, then respect that
@@ -195,3 +195,34 @@ class ResourceGraph(DAG):
             operation.method == constants.DELETE and
             parameter.get(constants.PARAMETER_NAME) == operation.url_end_parameter()
         )
+
+
+class SwaggerResourceValidator:
+
+    def __init__(self, resource_graph, interfaces):
+        self.resource_graph = resource_graph
+        self.interfaces = interfaces
+
+    def validate(self):
+
+        resources = set()
+
+        for operation in self.interfaces:
+            for parameter in operation.parameters.values():
+                resource = parameter.get(constants.RESOURCE)
+                if resource and parameter.get(constants.IN_) == constants.PATH_PARAM:
+                    resources.add(resource)
+
+        no_producer_resources = set()
+
+        for resource in self.resource_graph:
+            if resource.key in resources:
+                resource_pure_producers = resource.producers - resource.consumers
+                if not resource_pure_producers:
+                    no_producer_resources.add(resource.key)
+
+        if no_producer_resources:
+            print(
+                f"\nHINT: We cannot find API which produces the resources: '{', '.join(no_producer_resources)}'. "
+                f"You may need to add their DB mapping in conf/resource_mapping.yaml\n"
+            )

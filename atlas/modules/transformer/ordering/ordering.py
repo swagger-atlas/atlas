@@ -31,5 +31,7 @@ class Ordering:
 
     def order(self):
         res_graph = self.get_resource_graph()
+        validator = resource.SwaggerResourceValidator(res_graph, self.interfaces)
+        validator.validate()
         op_graph = self.construct_order_graph(res_graph)
         return op_graph.topological_sort()
