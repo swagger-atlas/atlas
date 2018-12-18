@@ -51,3 +51,11 @@ class SpecsFile:
             ret_stream = self.CONVERTER[self.converter](open_api_file)
 
         return ret_stream
+
+    def inp_file_load(self):
+        _file = os.path.join(utils.get_project_path(), settings.INPUT_FOLDER, self.spec_file)
+
+        with open(_file) as open_api_file:
+            ret_stream = self.CONVERTER[self.converter](open_api_file)
+
+        return ret_stream

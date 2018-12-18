@@ -1,5 +1,5 @@
 from atlas.modules import constants
-from atlas.modules.transformer.open_api_reader import SpecsFile
+from atlas.modules.helpers.open_api_reader import SpecsFile
 from atlas.modules.transformer import open_api_models
 from atlas.modules.transformer.ordering import resource, operation
 
