@@ -2,6 +2,17 @@ Changelog
 ========
 
 
+5.1.1
+-----
+
+*Features*
+- Add basic swagger validations. This will automatically run as part of `dist` process
+- Add basic hints on integration process, and added documentation for bets practices in integration.
+
+*Bug fixes*
+- Pre-existing resource names in URL params in Swagger were not given their own references. This has been resolved
+
+
 5.0.1
 -----
 
