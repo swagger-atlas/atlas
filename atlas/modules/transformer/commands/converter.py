@@ -1,4 +1,5 @@
 from atlas.modules.commands.base import CommandError
+from atlas.modules.helpers import open_api_reader
 from atlas.modules.transformer.commands.base import TransformerBaseCommand
 from atlas.modules.transformer.artillery import (
     models as artillery_models,
@@ -6,7 +7,7 @@ from atlas.modules.transformer.artillery import (
     yaml_to_js
 )
 from atlas.modules.transformer.locust import models as locust_models, transformer as locust_transformer
-from atlas.modules.transformer import open_api_models, open_api_reader
+from atlas.modules.transformer import open_api_models
 from atlas.modules.transformer.ordering import ordering
 
 

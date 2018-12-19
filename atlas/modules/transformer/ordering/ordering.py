@@ -1,5 +1,5 @@
 from atlas.modules import constants
-from atlas.modules.transformer.open_api_reader import SpecsFile
+from atlas.modules.helpers.open_api_reader import SpecsFile
 from atlas.modules.transformer import open_api_models
 from atlas.modules.transformer.ordering import resource, operation
 
@@ -31,5 +31,7 @@ class Ordering:
 
     def order(self):
         res_graph = self.get_resource_graph()
+        validator = resource.SwaggerResourceValidator(res_graph, self.interfaces)
+        validator.validate()
         op_graph = self.construct_order_graph(res_graph)
         return op_graph.topological_sort()

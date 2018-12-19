@@ -23,6 +23,8 @@ Project Setup
     - Resource mapping in resource_mapping.yaml
     - Task hooks as per task (For example, Artillery hooks are hooks.js)
 
+    See: [Integration Use Cases](https://code.jtg.tools/jtg/atlas/docs/use_cases.md)
+
 
 Running Artillery
 ========

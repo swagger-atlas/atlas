@@ -6,7 +6,8 @@ function selectProfile(profiles) {
 }"""
 
 
-REGISTER_HOOKS_FUNCTION = """function registerHooks() {
+REGISTER_HOOKS_FUNCTION = """
+function registerHooks() {
     _.forEach(hookRegister, function (_hook) {
         hook.register(..._hook);
     });
@@ -71,5 +72,28 @@ STATS_WRITER = """
 function statsWrite(response, context) {
     let stats = {url: response.request.path, method: response.request.method};
     stats.isSuccess = (response.statusCode >= 200 && response.statusCode < 300);
+    stats.statusCode = response.statusCode;
     context.vars["stats"].write(stats);
+}"""
+
+
+AFTER_RESPONSE_FUNCTION = """
+function statsEndResponse(context, event, done) {
+    let statusCodeCounter = {};
+    _.forEach(context.vars.stats.endpointReport, function (value) {
+        const statusCode = value.statusCode;
+        const val = statusCodeCounter[statusCode];
+        statusCodeCounter[statusCode] = _.isUndefined(val) ? 1: val + 1;
+    });
+
+    if (statusCodeCounter["400"]) {
+        console.log("HINT: Some APIs returned Bad Request (400). You may be able to fix them in hooks.js file");
+    }
+
+    if (statusCodeCounter["401"]) {
+        console.log("HINT: Some APIs were not authenticated (401). You can authenticate your APIs through Profiles." +
+            "See https://code.jtg.tools/jtg/atlas/docs/use_cases.md for Authentication guide");
+    }
+
+    done();
 }"""

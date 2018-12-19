@@ -229,6 +229,7 @@ class TaskSet(models.TaskSet):
     def set_yaml_flow(self):
         flow_definition = [{"function": "setUp"}]
         flow_definition.extend([_task.yaml_task for _task in self.tasks])
+        flow_definition.append({"function": "endResponse"})
         self.yaml_flow = {
             "flow": flow_definition
         }
@@ -258,6 +259,7 @@ class TaskSet(models.TaskSet):
             "module.exports = {",
             "{w}setUp: setUp,".format(w=' '*width*4),
             "\n".join([self.func_exports(_task, width) for _task in self.tasks]),
+            "{w}endResponse: statsEndResponse".format(w=' '*width*4),
             "};"
         ])
 
@@ -271,6 +273,7 @@ class TaskSet(models.TaskSet):
             templates.FORMAT_URL_FUNCTION,
             templates.EXTRACT_BODY_FUNCTION,
             templates.STATS_WRITER,
+            templates.AFTER_RESPONSE_FUNCTION,
             "\n",
             self.task_definitions(width)
         ]
