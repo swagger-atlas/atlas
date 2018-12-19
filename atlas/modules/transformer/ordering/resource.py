@@ -203,8 +203,7 @@ class SwaggerResourceValidator:
         self.resource_graph = resource_graph
         self.interfaces = interfaces
 
-    def validate(self):
-
+    def get_resources_with_no_producers(self):
         resources = set()
 
         for operation in self.interfaces:
@@ -220,6 +219,12 @@ class SwaggerResourceValidator:
                 resource_pure_producers = resource.producers - resource.consumers
                 if not resource_pure_producers:
                     no_producer_resources.add(resource.key)
+
+        return no_producer_resources
+
+    def validate(self):
+
+        no_producer_resources = self.get_resources_with_no_producers()
 
         if no_producer_resources:
             print(

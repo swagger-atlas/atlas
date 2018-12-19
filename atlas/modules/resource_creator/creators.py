@@ -142,15 +142,15 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 # Check if resource is defined
                 resource = param.get(swagger_constants.RESOURCE)
 
-                if resource is not None:    # Empty strings should be respected
-                    self.add_resource(resource)
-                elif not resource:          # If resource is explicitly empty string, we should not generate them
+                # Generate resources if none found. Do not generate if empty string
+                if resource is None:
                     resource = self.extract_resource_name_from_param(name, url, param_type)
-                    if resource:
-                        resource = self.add_resource(resource)
-                        resource_alias = self.resource_map_resolver.get_alias(resource)
-                        param[swagger_constants.RESOURCE] = resource_alias
-                        self.add_reference_definition(resource_alias, param)
+
+                if resource:
+                    resource = self.add_resource(resource)
+                    resource_alias = self.resource_map_resolver.get_alias(resource)
+                    param[swagger_constants.RESOURCE] = resource_alias
+                    self.add_reference_definition(resource_alias, param)
 
             elif param_type == swagger_constants.BODY_PARAM:
                 self.resolve_body_param(param)
