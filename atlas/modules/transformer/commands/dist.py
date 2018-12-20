@@ -1,6 +1,6 @@
 from atlas.modules.commands.base import CommandError
 from atlas.modules.commands.utils import add_bool_arg
-from atlas.modules.helpers import open_api_reader, swagger
+from atlas.modules.helpers.commands import validate
 from atlas.modules.resource_data_generator.commands import generate as fetch_data
 from atlas.modules.resource_creator.commands import generate as create_resource
 from atlas.modules.transformer.commands.base import TransformerBaseCommand
@@ -19,6 +19,7 @@ class Dist(TransformerBaseCommand):
     def add_arguments(self, parser):
         super(Dist, self).add_arguments(parser)
 
+        add_bool_arg(parser, "validate", default=True)
         add_bool_arg(parser, "setup", default=True)
         add_bool_arg(parser, "detect_resources", default=True)
         add_bool_arg(parser, "fetch_data", default=True)
@@ -38,9 +39,10 @@ class Dist(TransformerBaseCommand):
 
     def artillery_pipeline(self, **options):
 
-        specs = open_api_reader.SpecsFile().inp_file_load()
-        validator = swagger.Swagger(specs)
-        validator.validate()
+        # Validates the Swagger file
+        if options.get("validate"):
+            print("\nSwagger Validation Started...")
+            validate.Validate().handle()
 
         # Create Data Types and then fetch it
         if options.get("detect_resources"):
