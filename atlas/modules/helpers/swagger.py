@@ -154,12 +154,14 @@ class Parameter:
         self.writer = SwaggerOutputWriter()
 
     def validate(self, url, resources):
-        resource = self.config.get(
-            constants.RESOURCE, utils.extract_resource_name_from_param(self.name, url, self.in_)
-        )
-        if resource not in resources:
-            self.writer.warning(f"{self.name} parameter resolves to resource {resource}."
-                                f" ATLAS will either generate one or pick up from resource_mapping")
+
+        if self.in_ in constants.URL_PARAMS:
+            resource = self.config.get(
+                constants.RESOURCE, utils.extract_resource_name_from_param(self.name, url, self.in_)
+            )
+            if resource not in resources:
+                self.writer.warning(f"{self.name} parameter resolves to resource {resource}."
+                                    f" ATLAS will either generate one or pick up from resource_mapping")
 
 
 class Response:
@@ -177,7 +179,7 @@ class Response:
         if not schema:
             self.writer.warning(f"Response Schema not defined for {self.url}: {self.method} - Status Code: {self.code}")
 
-        if not self.get_ref(schema):
+        elif not self.get_ref(schema):
             self.writer.warning(
                 f"Response Schema should be defined via reference: {self.url}: {self.method} - Status Code: {self.code}"
             )

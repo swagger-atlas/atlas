@@ -2,6 +2,14 @@ Changelog
 ========
 
 
+5.1.2
+-----
+
+*Features*
+- Added more validations
+- Updated documentation
+
+
 5.1.1
 -----
 
