@@ -1,7 +1,5 @@
 import re
 
-import inflection
-
 from atlas.conf import settings
 from atlas.modules import (
     constants as swagger_constants,
@@ -91,28 +89,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         Return None if no such resource could be found
         """
 
-        resource_name = None
-
-        for suffix in settings.SWAGGER_URL_PARAM_RESOURCE_SUFFIXES:
-            if param_name.endswith(suffix):
-                resource_name = param_name[:-len(suffix)]
-                break
-
-        # We need to convert Param Name only after subjecting it to CamelCase Checks
-        param_name = "".join([x.lower() for x in re.sub("-", "_", param_name).split("_")])
-
-        # Resource Name not found by simple means.
-        # Now, assume that resource could be available after the resource
-        # For example: pets/{id} -- here most likely id refers to pet
-        if (
-                not resource_name and param_name in settings.SWAGGER_PATH_PARAM_RESOURCE_IDENTIFIERS
-                and param_type == swagger_constants.PATH_PARAM
-        ):
-            url_array = url_path.split("/")
-            resource_index = url_array.index(f'{{{param_name}}}') - 1
-            if resource_index >= 0:
-                # Singularize the resource
-                resource_name = inflection.singularize(url_array[resource_index])
+        resource_name = utils.extract_resource_name_from_param(param_name, url_path, param_type)
 
         if not resource_name and param_name in self.resource_keys:
             resource_name = param_name

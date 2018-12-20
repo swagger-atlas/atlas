@@ -1,4 +1,5 @@
-from atlas.modules import constants
+from atlas.modules import constants, utils
+from atlas.conf import settings
 
 
 class SwaggerOutputWriter:
@@ -22,6 +23,8 @@ class Swagger:
     def __init__(self, specs):
         self.specs = specs
         self.writer = SwaggerOutputWriter()
+
+        self.resources = set()
 
     def validate_path(self):
 
@@ -47,10 +50,51 @@ class Swagger:
         if not valid_consumes.intersection(consumes):
             self.writer.warning("No valid Consumers")
 
+    def get_all_resources(self):
+        """
+        Get all resources from definitions
+        """
+
+        definitions = self.specs.get(constants.DEFINITIONS, {})
+
+        for definition, config in definitions.items():
+            _type = config.get(constants.TYPE)
+
+            if _type == constants.OBJECT:
+                properties = config.get(constants.PROPERTIES, {})
+                for name, name_config in properties.items():
+                    if name in settings.SWAGGER_REFERENCE_FIELD_RESOURCE_IDENTIFIERS:
+                        resource = name_config.get(constants.RESOURCE, utils.convert_to_snake_case(definition))
+                        if resource:
+                            self.resources.add(resource)
+
+    def validate_parameters(self, parameters, url, method=None):
+
+        for parameter in parameters:
+
+            ref = parameter.get(constants.REF)
+            if ref:
+                parameter = self.resolve_reference(ref)
+
+            name = parameter.get(constants.PARAMETER_NAME)
+            in_ = parameter.get(constants.IN_)
+            type_ = parameter.get(constants.TYPE)
+            required = parameter.get(constants.REQUIRED, False)
+
+            if not (name and in_ and type_):
+                key = f"URL {url}: {method}" if method else f"URL {url}"
+                self.writer.error(f"{key} has invalid parameter configuration")
+                return
+
+            param = Parameter(parameter, name, in_, type_, required)
+            param.validate(url, self.resources)
+
     def validate(self):
 
         self.validate_path()
         self.validate_consumes()
+
+        self.get_all_resources()
 
         operations = self.specs.get(constants.PATHS, {})
         for url, config in operations.items():
@@ -58,6 +102,11 @@ class Swagger:
                 if method in constants.VALID_METHODS:
                     _op = Operation(url, method, method_config)
                     _op.validate()
+                elif method == constants.PARAMETERS:
+                    self.validate_parameters(method_config, url)
+
+    def resolve_reference(self, reference_name):
+        return utils.resolve_reference(self.specs, reference_name)
 
 
 class Operation:
@@ -91,6 +140,26 @@ class Operation:
 
         if not valid_status_codes:
             self.writer.error(f"At least one success code must be defined for {self.url}: {self.method}")
+
+
+class Parameter:
+
+    def __init__(self, config, name, _in, _type, required=False):
+        self.name = name
+        self.in_ = _in
+        self.type = _type
+        self.required = required
+        self.config = config
+
+        self.writer = SwaggerOutputWriter()
+
+    def validate(self, url, resources):
+        resource = self.config.get(
+            constants.RESOURCE, utils.extract_resource_name_from_param(self.name, url, self.in_)
+        )
+        if resource not in resources:
+            self.writer.warning(f"{self.name} parameter resolves to resource {resource}."
+                                f" ATLAS will either generate one or pick up from resource_mapping")
 
 
 class Response:
