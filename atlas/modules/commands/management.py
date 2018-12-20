@@ -9,6 +9,7 @@ COMMANDS = {
     "newproject": 'atlas.modules.commands.new_project.StartProjectCommand',
     "example": 'atlas.modules.commands.example.ExampleProjectCommand',
     "build": "atlas.modules.transformer.commands.converter.Converter",
+    "validate": "atlas.modules.helpers.commands.validate.Validate",
     "detect_resources": "atlas.modules.resource_creator.commands.generate.Generate",
     "fetch_data": "atlas.modules.resource_data_generator.commands.generate.Generate",
     "setup": "atlas.modules.transformer.commands.setup.Setup",
