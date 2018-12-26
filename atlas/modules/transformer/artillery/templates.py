@@ -80,11 +80,17 @@ function statsWrite(response, context) {
 AFTER_RESPONSE_FUNCTION = """
 function statsEndResponse(context, event, done) {
     let statusCodeCounter = {};
-    _.forEach(context.vars.stats.endpointReport, function (value) {
+    let influxReport = [];
+
+    _.forEach(context.vars.stats.endpointReport, function (value, key) {
         const statusCode = value.statusCode;
         const val = statusCodeCounter[statusCode];
         statusCodeCounter[statusCode] = _.isUndefined(val) ? 1: val + 1;
+
+        influxReport.push({tags: {url: key}, fields: value});
     });
+
+    influx.writeMeasurement('latencies', influxReport);
 
     if (statusCodeCounter["400"]) {
         console.log("HINT: Some APIs returned Bad Request (400). You may be able to fix them in hooks.js file");

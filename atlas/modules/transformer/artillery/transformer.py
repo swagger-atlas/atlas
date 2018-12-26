@@ -20,7 +20,8 @@ class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
             f"utils = require('./{settings.ARTILLERY_LIB_FOLDER}/providers');",
             f"settings = require('./{settings.ARTILLERY_LIB_FOLDER}/settings');",
             f"StatsCollector = require('./{settings.ARTILLERY_LIB_FOLDER}/statsCollector').StatsCollector;",
-            f"profiles = require('./{settings.ARTILLERY_LIB_FOLDER}/profiles').profiles;"
+            f"profiles = require('./{settings.ARTILLERY_LIB_FOLDER}/profiles').profiles;",
+            f"influx = require('./{settings.ARTILLERY_LIB_FOLDER}/influx').client"
         ]
         return "\n".join(imports)
 

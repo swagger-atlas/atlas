@@ -35,11 +35,13 @@ exports.StatsCollector = class Stats {
         this.processRowStats(rowStats);
     }
 
+    static processStats(row) {
+        return {"success": row.isSuccess, "statusCode": row.statusCode};
+    }
+
     processRowStats(rowStats) {
-        this.endpointReport[rowStats.rowKey] = {"success": rowStats.isSuccess, "statusCode": rowStats.statusCode};
-        this.publisher.publishRow(
-            {id: rowStats.rowKey, isSuccess: rowStats.isSuccess, statusCode: rowStats.statusCode}
-        );
+        this.endpointReport[rowStats.rowKey] = Stats.processStats(rowStats);
+        this.publisher.publishRow({id: rowStats.rowKey, ...Stats.processStats(rowStats)});
     }
 };
 
@@ -50,7 +52,7 @@ class CSVStatsPublisher {
             path: 'report.csv',
             header: [
                 {id: "id", title: "KEY"},
-                {id: "isSuccess", title: "Is Success?"},
+                {id: "success", title: "Is Success?"},
                 {id: "statusCode", title: "Status Code"}
             ]
         });
