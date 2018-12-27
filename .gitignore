@@ -63,3 +63,5 @@ js_libs/
 
 # PyCharm
 .idea/
+
+dump.rdb

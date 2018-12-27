@@ -69,8 +69,13 @@ let respDataParser, defaultHeaders;
 
 
 STATS_WRITER = """
-function statsWrite(response, context) {
-    let stats = {url: response.request.path, method: response.request.method};
+function statsWrite(response, context, ee) {
+    if (context.vars._startTime) {
+        let delta = Date.now() - context.vars._startTime;
+        ee.emit('customStat',
+                {stat: `Stats for ${context.vars._rawURL + ':' + response.request.method}`,  value: delta }); 
+    }
+    let stats = {url: context.vars._rawURL, method: response.request.method};
     stats.isSuccess = (response.statusCode >= 200 && response.statusCode < 300);
     stats.statusCode = response.statusCode;
     context.vars["stats"].write(stats);

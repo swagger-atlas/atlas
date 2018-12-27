@@ -78,6 +78,7 @@ class Task(models.Task):
         query_str, path_str = self.parse_url_params_for_body()
 
         body.append(f"let url = '{self.open_api_op.url}';")
+        body.append(f"context.vars._rawURL = url;")
 
         if query_str != "{}" or path_str != "{}":
             body.append("let urlConfig = [];")
@@ -129,6 +130,8 @@ class Task(models.Task):
 
         body.append("requestParams.url = reqArgs[0];")
         body.append(f"requestParams.headers = reqArgs[{len(param_array) - 1}].headers;")
+
+        body.append(f"context.vars._startTime = Date.now();")
 
         return self.cache_operation_tasks(body)
 
@@ -184,7 +187,7 @@ class Task(models.Task):
     def post_response_function(self, width):
         statements = [
             f"function {self.after_func_name}(requestParams, response, context, ee, next) {{",
-            "{w}statsWrite(response, context);".format(w=' ' * width * 4),
+            "{w}statsWrite(response, context, ee);".format(w=' ' * width * 4),
             "{w}const status = response.statusCode;".format(w=' ' * width * 4),
             "{w}if (!status || status < 200 || status > 300) {{".format(w=' ' * width * 4),
             "{w}ee.emit('error', 'Non 2xx Response');".format(w=' ' * (width + 1) * 4)
