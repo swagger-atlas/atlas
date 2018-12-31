@@ -70,13 +70,13 @@ let respDataParser, defaultHeaders;
 
 STATS_WRITER = """
 function statsWrite(response, context, ee) {
-    if (context.vars._startTime) {
-        let delta = Date.now() - context.vars._startTime;
-        ee.emit('customStat',
-                {stat: `Stats for ${context.vars._rawURL + ':' + response.request.method}`,  value: delta }); 
-    }
     let stats = {url: context.vars._rawURL, method: response.request.method};
-    stats.isSuccess = (response.statusCode >= 200 && response.statusCode < 300);
+    if (context.vars._startTime) {
+        let responseTime = Date.now() - context.vars._startTime;
+        stats.startTime = context.vars._startTime;
+        stats.responseTime = responseTime;
+    }
+    stats.isSuccess = (response.statusCode >= 200 && response.statusCode < 300) ? 1: 0;
     stats.statusCode = response.statusCode;
     context.vars["stats"].write(stats);
 }"""
@@ -92,10 +92,10 @@ function statsEndResponse(context, event, done) {
         const val = statusCodeCounter[statusCode];
         statusCodeCounter[statusCode] = _.isUndefined(val) ? 1: val + 1;
 
-        influxReport.push({tags: {url: key}, fields: value});
+        influxReport.push({tags: {requestName: key}, fields: value});
     });
 
-    influx.writeMeasurement('latencies', influxReport);
+    influx.writeMeasurement('requestsRaw', influxReport);
 
     if (statusCodeCounter["400"]) {
         console.log("HINT: Some APIs returned Bad Request (400). You may be able to fix them in hooks.js file");

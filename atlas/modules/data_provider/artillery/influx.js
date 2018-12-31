@@ -7,17 +7,5 @@ exports.client = new Influx.InfluxDB({
   host: settings.INFLUX.host || "localhost",
   port: settings.INFLUX.port || 8086,
   username: settings.INFLUX.username,
-  password: settings.INFLUX.password,
-  schema: [
-    {
-      measurement: 'endpoint_stats',
-      fields: {
-        statusCode: Influx.FieldType.INTEGER,
-        success: Influx.FieldType.BOOLEAN
-      },
-      tags: [
-        'url'
-      ]
-    }
-  ]
+  password: settings.INFLUX.password
 });

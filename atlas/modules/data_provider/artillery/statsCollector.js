@@ -8,6 +8,9 @@ class StatsRow {
         this.method = row.method;
         this._isSuccess = row.isSuccess;
         this.statusCode = row.statusCode;
+
+        this.startTime = row.startTime;
+        this.responseTime = row.responseTime;
     }
 
     get isSuccess() {
@@ -36,7 +39,7 @@ exports.StatsCollector = class Stats {
     }
 
     static processStats(row) {
-        return {"success": row.isSuccess, "statusCode": row.statusCode};
+        return {"success": row.isSuccess, "statusCode": row.statusCode, "responseTime": row.responseTime};
     }
 
     processRowStats(rowStats) {
