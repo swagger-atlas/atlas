@@ -92,10 +92,11 @@ function statsEndResponse(context, event, done) {
         const val = statusCodeCounter[statusCode];
         statusCodeCounter[statusCode] = _.isUndefined(val) ? 1: val + 1;
 
-        influxReport.push({tags: {requestName: key}, fields: value});
+        influxReport.push({tags: {requestName: key}, fields: value, timestamp: value.time});
     });
 
-    influx.writeMeasurement('requestsRaw', influxReport);
+    influx.writeMeasurement("virtualUsers", [{fields: {id: context._uid}}]);
+    influx.writeMeasurement('requestsRaw', influxReport, {precision: 'ms'});
 
     if (statusCodeCounter["400"]) {
         console.log("HINT: Some APIs returned Bad Request (400). You may be able to fix them in hooks.js file");

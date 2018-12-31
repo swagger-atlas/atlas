@@ -20,6 +20,10 @@ class StatsRow {
     get rowKey() {
         return this.method + " : " + this.url;
     }
+
+    get time() {
+        return this.startTime;
+    }
 }
 
 
@@ -39,7 +43,10 @@ exports.StatsCollector = class Stats {
     }
 
     static processStats(row) {
-        return {"success": row.isSuccess, "statusCode": row.statusCode, "responseTime": row.responseTime};
+        return {
+            "success": row.isSuccess, "statusCode": row.statusCode, "responseTime": row.responseTime,
+            "time": row.time
+        };
     }
 
     processRowStats(rowStats) {
