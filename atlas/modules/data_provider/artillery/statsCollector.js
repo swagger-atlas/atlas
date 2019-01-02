@@ -1,5 +1,4 @@
 _ = require('lodash');
-createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
 
 class StatsRow {
@@ -30,7 +29,6 @@ class StatsRow {
 exports.StatsCollector = class Stats {
     constructor() {
         this.endpointReport = {};
-        this.publisher = new CSVStatsPublisher();
         this.reset();
     }
 
@@ -51,24 +49,5 @@ exports.StatsCollector = class Stats {
 
     processRowStats(rowStats) {
         this.endpointReport[rowStats.rowKey] = Stats.processStats(rowStats);
-        this.publisher.publishRow({id: rowStats.rowKey, ...Stats.processStats(rowStats)});
     }
 };
-
-
-class CSVStatsPublisher {
-    constructor() {
-        this.csvWriter = createCsvWriter({
-            path: 'report.csv',
-            header: [
-                {id: "id", title: "KEY"},
-                {id: "success", title: "Is Success?"},
-                {id: "statusCode", title: "Status Code"}
-            ]
-        });
-    }
-
-    publishRow(row) {
-        this.csvWriter.writeRecords([row]);
-    }
-}

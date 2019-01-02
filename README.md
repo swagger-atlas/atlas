@@ -22,6 +22,7 @@ Features
     - Order the APIs so that CREATE API comes before any API which wants to use the IDs
     - Transfer the resource dependency
     - This works with arbitrarily with any complex relationships between APIs as long it is not cyclic
+- Generate beautiful graphics and statistics
 
 Do Read [Best Practices](docs/best_practices.md) for swagger practices to get the most out of ATLAS Automation systems.
 

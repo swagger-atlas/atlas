@@ -31,6 +31,8 @@ function setUp(context, event, done) {
     context.vars["stats"] = new StatsCollector();
     defaultHeaders = profile.auth.headers;
 
+    influx.writeMeasurement("virtualUsers", [{fields: {id: context._uid}}]);
+
     return done();
 }"""
 
@@ -78,6 +80,7 @@ function statsWrite(response, context, ee) {
     }
     stats.isSuccess = (response.statusCode >= 200 && response.statusCode < 300) ? 1: 0;
     stats.statusCode = response.statusCode;
+    stats.uid = context._uid;
     context.vars["stats"].write(stats);
 }"""
 
@@ -92,10 +95,10 @@ function statsEndResponse(context, event, done) {
         const val = statusCodeCounter[statusCode];
         statusCodeCounter[statusCode] = _.isUndefined(val) ? 1: val + 1;
 
-        influxReport.push({tags: {requestName: key}, fields: value, timestamp: value.time});
+        let fields = {...value, uid: context._uid}
+        influxReport.push({tags: {requestName: key}, fields: fields, timestamp: value.time});
     });
 
-    influx.writeMeasurement("virtualUsers", [{fields: {id: context._uid}}]);
     influx.writeMeasurement('requestsRaw', influxReport, {precision: 'ms'});
 
     if (statusCodeCounter["400"]) {

@@ -2,7 +2,6 @@
   "name": "",
   "private": true,
   "dependencies": {
-    "csv-writer": "^1.2.0",
     "lodash": "^4.17.11",
     "influx": "^5.0.7",
     "faker": "git+https://github.com/JoshLabs/faker.js.git#master"
