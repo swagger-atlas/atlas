@@ -19,7 +19,7 @@ function setUp(context, event, done) {
 
     registerHooks();
 
-    let _profiles = hook.call("$profileSelection", profiles);
+    let _profiles = hook.call("$profileSelection", profiles)[0];
     let profileMap = selectProfile(_profiles);
     const profileName = Object.keys(profileMap)[0];
     let profile = profileMap[profileName];
@@ -30,6 +30,8 @@ function setUp(context, event, done) {
     context.vars["profile"] = profile;
     context.vars["stats"] = new StatsCollector();
     defaultHeaders = profile.auth.headers;
+
+    influx.writeMeasurement("virtualUsers", [{fields: {id: context._uid}}]);
 
     return done();
 }"""
@@ -69,10 +71,16 @@ let respDataParser, defaultHeaders;
 
 
 STATS_WRITER = """
-function statsWrite(response, context) {
-    let stats = {url: response.request.path, method: response.request.method};
-    stats.isSuccess = (response.statusCode >= 200 && response.statusCode < 300);
+function statsWrite(response, context, ee) {
+    let stats = {url: context.vars._rawURL, method: response.request.method};
+    if (context.vars._startTime) {
+        let responseTime = Date.now() - context.vars._startTime;
+        stats.startTime = context.vars._startTime;
+        stats.responseTime = responseTime;
+    }
+    stats.isSuccess = (response.statusCode >= 200 && response.statusCode < 300) ? 1: 0;
     stats.statusCode = response.statusCode;
+    stats.uid = context._uid;
     context.vars["stats"].write(stats);
 }"""
 
@@ -80,11 +88,18 @@ function statsWrite(response, context) {
 AFTER_RESPONSE_FUNCTION = """
 function statsEndResponse(context, event, done) {
     let statusCodeCounter = {};
-    _.forEach(context.vars.stats.endpointReport, function (value) {
+    let influxReport = [];
+
+    _.forEach(context.vars.stats.endpointReport, function (value, key) {
         const statusCode = value.statusCode;
         const val = statusCodeCounter[statusCode];
         statusCodeCounter[statusCode] = _.isUndefined(val) ? 1: val + 1;
+
+        let fields = {...value, uid: context._uid}
+        influxReport.push({tags: {requestName: key}, fields: fields, timestamp: value.time});
     });
+
+    influx.writeMeasurement('requestsRaw', influxReport, {precision: 'ms'});
 
     if (statusCodeCounter["400"]) {
         console.log("HINT: Some APIs returned Bad Request (400). You may be able to fix them in hooks.js file");

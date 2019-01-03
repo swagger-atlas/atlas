@@ -25,6 +25,7 @@ class ArtilleryDist(project_setup.Setup):
             os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery", "providers.js"),
             os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery", "hooks.js"),
             os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery", "statsCollector.js"),
+            os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery", "influx.js"),
         ]
 
         for _file in source_files:

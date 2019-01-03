@@ -2,6 +2,14 @@ Changelog
 ========
 
 
+6.0.0
+-----
+
+*Features*
+- Added InfluxDB Integration to store raw data
+- Integrated Graphana dashboards for beautiful statistics
+
+
 5.1.2
 -----
 

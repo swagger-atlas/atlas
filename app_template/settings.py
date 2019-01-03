@@ -36,3 +36,11 @@ class Settings:
     # This is an array of 2-pair tuples, with second operation being dependent on first operation
     # These are operation IDs --> Eg: [ (petCreate, petList), (petCreate, petRetrieve) ]
     SWAGGER_OPERATION_DEPENDENCIES = []
+
+    INFLUX = {
+        "database": "",
+        "host": "",
+        "port": "",
+        "username": "",
+        "password": ""
+    }
