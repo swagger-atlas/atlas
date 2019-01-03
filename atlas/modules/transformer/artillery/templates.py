@@ -19,7 +19,7 @@ function setUp(context, event, done) {
 
     registerHooks();
 
-    let _profiles = hook.call("$profileSelection", profiles);
+    let _profiles = hook.call("$profileSelection", profiles)[0];
     let profileMap = selectProfile(_profiles);
     const profileName = Object.keys(profileMap)[0];
     let profile = profileMap[profileName];

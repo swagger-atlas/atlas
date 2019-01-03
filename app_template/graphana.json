@@ -91,7 +91,7 @@
   "gnetId": 1152,
   "graphTooltip": 1,
   "id": null,
-  "iteration": 1546415041496,
+  "iteration": 1546509404672,
   "links": [],
   "panels": [
     {
@@ -181,7 +181,7 @@
           "measurement": "virtualUsers",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT count(distinct(\"id\")) FROM \"virtualUsers\" WHERE time > now() - 5s",
+          "query": "SELECT count(distinct(\"id\")) FROM \"virtualUsers\" WHERE $timeFilter GROUP BY time([[aggregation]]s) fill(null)",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series",
@@ -1898,8 +1898,8 @@
         "auto": false,
         "current": {
           "tags": [],
-          "text": "1s",
-          "value": "1"
+          "text": "30s",
+          "value": "30"
         },
         "datasource": null,
         "hide": 0,
@@ -1909,7 +1909,7 @@
         "name": "aggregation",
         "options": [
           {
-            "selected": true,
+            "selected": false,
             "text": "1s",
             "value": "1"
           },
@@ -1919,7 +1919,7 @@
             "value": "10"
           },
           {
-            "selected": false,
+            "selected": true,
             "text": "30s",
             "value": "30"
           },
@@ -1983,5 +1983,5 @@
   "timezone": "browser",
   "title": "Artillery Graphs",
   "uid": "Qw3npM8ik",
-  "version": 13
+  "version": 16
 }
