@@ -185,29 +185,19 @@ class Task(models.Task):
         return "\n".join(statements)
 
     def post_response_function(self, width):
-        statements = [
-            f"function {self.after_func_name}(requestParams, response, context, ee, next) {{",
-            "{w}statsWrite(response, context, ee);".format(w=' ' * width * 4),
-            "{w}const status = response.statusCode;".format(w=' ' * width * 4),
-            "{w}if (!status || status < 200 || status > 300) {{".format(w=' ' * width * 4),
-            "{w}ee.emit('error', 'Non 2xx Response');".format(w=' ' * (width + 1) * 4)
-        ]
 
-        if self.post_check_tasks:
-            statements.extend([
-                "{w}}} else {{".format(w=' ' * width * 4),
-                "{w}{body}".format(
-                    w=' ' * (width + 1) * 4, body="\n{w}".format(w=' ' * (width + 1) * 4).join(self.post_check_tasks)
-                )
-            ])
+        else_body = "\n".join([
+            "",
+            "{w}}} else {{".format(w=' ' * width * 4),
+            "{w}{body}".format(
+                w=' ' * (width + 1) * 4, body="\n{w}".format(w=' ' * (width + 1) * 4).join(self.post_check_tasks)
+            )
+        ]) if self.post_check_tasks else ""
 
-        statements.extend([
-            "{w}}}".format(w=' ' * width * 4),
-            "{w}return next();".format(w=' ' * width * 4),
-            "}"
-        ])
-
-        return "\n".join(statements)
+        return templates.API_AFTER_RESPONSE_FUNCTION.format(
+            after_func_name=self.after_func_name,
+            else_body=else_body
+        )
 
     def convert(self, width):
 
@@ -276,7 +266,7 @@ class TaskSet(models.TaskSet):
             templates.FORMAT_URL_FUNCTION,
             templates.EXTRACT_BODY_FUNCTION,
             templates.STATS_WRITER,
-            templates.AFTER_RESPONSE_FUNCTION,
+            templates.FINAL_FLOW_FUNCTION,
             "\n",
             self.task_definitions(width)
         ]

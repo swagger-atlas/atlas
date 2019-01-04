@@ -200,9 +200,9 @@ const FakeData = {
 
 
 class ResourceProvider {
-    constructor(resourceName, resourceInstance) {
+    constructor(resourceName, dbResourceProviderInstance) {
         this.resourceName = resourceName;
-        this.resourceInstance = resourceInstance;
+        this.dbResourceProviderInstance = dbResourceProviderInstance;
     }
 
     /*
@@ -241,7 +241,7 @@ class ResourceProvider {
         options = ResourceProvider.getOptions(options);
 
         // Several Lodash arguments work only on arrays, so converting here if set
-        let resources = [...this.resourceInstance.getResource(profile, this.resourceName, options)];
+        let resources = [...this.dbResourceProviderInstance.getResource(profile, this.resourceName, options)];
 
         if (_.isEmpty(resources)) {
             throw new EmptyResourceError(`Resource Pool not found for ${this.resourceName}`);
@@ -261,7 +261,12 @@ class Provider {
 
     constructor(profile=null) {
         this.profile = profile;
-        this.resourceInstance = Resource.instance;
+        this.dbResourceProviderInstance = Resource.instance;
+        this.configResourceMap = {};
+    }
+
+    reset() {
+        this.configResourceMap = {};
     }
 
     static getFakeData(config) {
@@ -277,8 +282,10 @@ class Provider {
     }
 
     getResource(resource, options) {
-        const resourceProvider = new ResourceProvider(resource, this.resourceInstance);
-        return resourceProvider.getResources(this.profile, options);
+        const resourceProvider = new ResourceProvider(resource, this.dbResourceProviderInstance);
+        const resourceValue = resourceProvider.getResources(this.profile, options);
+        this.configResourceMap[resource] = resourceValue;
+        return resourceValue;
     }
 
     itemResolution(config) {
@@ -393,7 +400,7 @@ class ResponseDataParser {
 
     constructor(profile=null) {
         this.profile = profile;
-        this.resourceInstance = Resource.instance;
+        this.dbResourceInstance = Resource.instance;
     }
 
     parseArray(schema, response) {
@@ -464,12 +471,12 @@ class ResponseDataParser {
         const newResources = new Set(_.isArray(values) ? values: [values]);
 
         if(!_.isEmpty(newResources) && !settings.NOT_UPDATE_RUN_TIME_RESOURCES.has(resourceKey)) {
-            this.resourceInstance.updateResource(this.profile, resourceKey, newResources);
+            this.dbResourceInstance.updateResource(this.profile, resourceKey, newResources);
         }
     }
 
     deleteData(resourceKey, resourceValue) {
-        this.resourceInstance.deleteResource(this.profile, resourceKey, resourceValue);
+        this.dbResourceInstance.deleteResource(this.profile, resourceKey, resourceValue);
         return true;
     }
 
