@@ -4,6 +4,7 @@ faker = require("faker");
 constants = require('./constants');
 settings = require('./settings');
 Resource = require("./resources").Resource;
+relatedResources = require("./relationResources").relationshipResource;
 
 /*
         Custom Exception Definitions
@@ -466,6 +467,10 @@ class ResponseDataParser {
             this.parseArray(schema, response);
         } else {
             this.parseObject(schema, response);
+        }
+
+        if (!_.isEmpty(this.resourceMap)) {
+            relatedResources.insert(this.resourceMap, this.profile);
         }
 
         return true;

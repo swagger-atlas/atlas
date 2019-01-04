@@ -95,7 +95,7 @@ function statsEndResponse(context, event, done) {
         const val = statusCodeCounter[statusCode];
         statusCodeCounter[statusCode] = _.isUndefined(val) ? 1: val + 1;
 
-        let fields = {...value, uid: context._uid}
+        let fields = {...value, uid: context._uid};
         influxReport.push({tags: {requestName: key}, fields: fields, timestamp: value.time});
     });
 
