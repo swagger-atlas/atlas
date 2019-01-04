@@ -119,10 +119,10 @@ API_AFTER_RESPONSE_FUNCTION = """
 function {after_func_name}(requestParams, response, context, ee, next) {{
     statsWrite(response, context, ee);
     const provider = context.vars['provider'];
-    provider.reset();
     const status = response.statusCode;
     if (!status || status < 200 || status > 300) {{
         ee.emit('error', 'Non 2xx Response');{else_body}
     }}
+    provider.reset();
     return next();
 }}"""

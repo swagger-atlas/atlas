@@ -158,7 +158,7 @@ class Task(models.Task):
         if response:
             self.post_check_tasks.append(
                 f"context.vars['respDataParser'].parser("
-                f"{json.dumps(response)}, extractBody(response, requestParams, context));"
+                f"{json.dumps(response)}, extractBody(response, requestParams, context), provider.configResourceMap);"
             )
 
         return body

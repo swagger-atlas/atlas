@@ -284,7 +284,7 @@ class Provider {
     getResource(resource, options) {
         const resourceProvider = new ResourceProvider(resource, this.dbResourceProviderInstance);
         const resourceValue = resourceProvider.getResources(this.profile, options);
-        this.configResourceMap[resource] = resourceValue;
+        this.configResourceMap[resource] = new Set(_.isArray(resourceValue) ? resourceValue: [resourceValue]);
         return resourceValue;
     }
 
@@ -401,6 +401,7 @@ class ResponseDataParser {
     constructor(profile=null) {
         this.profile = profile;
         this.dbResourceInstance = Resource.instance;
+        this.resourceMap = {};
     }
 
     parseArray(schema, response) {
@@ -456,7 +457,10 @@ class ResponseDataParser {
         Entry Point for this class.
         It detects array over global response object, which is different that that of ParseObject
      */
-    parser(schema, response) {
+    parser(schema, response, reqResourceMap) {
+
+        // Initialize with resource Map of request
+        this.resourceMap = reqResourceMap || {};
 
         if (_.isArray(response)) {
             this.parseArray(schema, response);
@@ -470,8 +474,12 @@ class ResponseDataParser {
     addData(resourceKey, values) {
         const newResources = new Set(_.isArray(values) ? values: [values]);
 
-        if(!_.isEmpty(newResources) && !settings.NOT_UPDATE_RUN_TIME_RESOURCES.has(resourceKey)) {
-            this.dbResourceInstance.updateResource(this.profile, resourceKey, newResources);
+        if (!_.isEmpty(newResources))
+        {
+            this.resourceMap[resourceKey] = newResources;
+            if(!settings.NOT_UPDATE_RUN_TIME_RESOURCES.has(resourceKey)) {
+                this.dbResourceInstance.updateResource(this.profile, resourceKey, newResources);
+            }
         }
     }
 
