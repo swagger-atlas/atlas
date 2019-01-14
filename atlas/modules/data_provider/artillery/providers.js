@@ -69,14 +69,19 @@ const FakeData = {
     },
 
     getInteger: function(config) {
-        return FakeData.getEnum(config) ||
-            _.random(...FakeData.getRange(config)) * _.get(config, constants.MULTIPLE_OF, 1);
+        let value = FakeData.getEnum(config);
+
+        if (_.isNull(value)) {
+            value = _.random(...FakeData.getRange(config)) * _.get(config, constants.MULTIPLE_OF, 1);
+        }
+
+        return value;
     },
 
     getFloat: function(config) {
         // Short-circuit return
         const num = FakeData.getEnum(config);
-        if (num) {
+        if (!_.isNull(num)) {
             return num;
         }
 
@@ -99,8 +104,13 @@ const FakeData = {
     },
 
     getString: function(config) {
-        return FakeData.getEnum(config) ||
-            faker.lorem.text().slice(0, [FakeData.getOptions(config)["maximum"]])
+        let value = FakeData.getEnum(config);
+
+        if (_.isNull(value)) {
+            value = faker.lorem.text().slice(0, [FakeData.getOptions(config)["maximum"]]);
+        }
+
+        return value;
     },
 
     getDate: function(config) {
@@ -125,7 +135,13 @@ const FakeData = {
     },
 
     getPassword: function(config) {
-        return FakeData.getEnum(config) || faker.internet.password(FakeData.getOptions(config)["maximum"]);
+        let value = FakeData.getEnum(config);
+
+        if (_.isNull(value)) {
+            value = faker.internet.password(FakeData.getOptions(config)["maximum"]);
+        }
+
+        return value;
     },
 
     getBase64: function(config) {
@@ -133,7 +149,13 @@ const FakeData = {
     },
 
     getEmail: function(config) {
-        return FakeData.getEnum(config) || faker.internet.email();
+        let value = FakeData.getEnum(config);
+
+        if (_.isNull(value)) {
+            value = faker.internet.email();
+        }
+
+        return value;
     },
 
     getUUID: function(config) {
