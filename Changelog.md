@@ -2,6 +2,13 @@ Changelog
 ========
 
 
+7.0.0
+-----
+
+*Features*
+- Added a "related relationship" feature, which allows multiple dependent resources to use data which makes sense together
+
+
 6.0.0
 -----
 

@@ -108,3 +108,4 @@ CONSUME_PRIORITY = [JSON_CONSUMES, FORM_CONSUMES, MULTIPART_CONSUMES]
 
 # Internal Resource Constants
 RESOURCE = "resource"
+DEPENDENT_RESOURCES = "resourceDependencies"

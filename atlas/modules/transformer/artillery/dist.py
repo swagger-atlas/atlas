@@ -21,18 +21,13 @@ class ArtilleryDist(project_setup.Setup):
 
     def copy_files(self):
 
-        source_files = [
-            os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery", "providers.js"),
-            os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery", "hooks.js"),
-            os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery", "statsCollector.js"),
-            os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery", "influx.js"),
-        ]
+        source_path = os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery")
+        source_files = [os.path.join(source_path, file) for file in os.listdir(source_path)]
+        d_path = os.path.join(self.path, settings.DIST_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_LIB_FOLDER)
 
         for _file in source_files:
-            shutil.copy(
-                _file,
-                os.path.join(self.path, settings.DIST_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_LIB_FOLDER)
-            )
+            if os.path.isfile(_file):
+                shutil.copy(_file, d_path)
 
         artillery_source_files = [
             os.path.join(self.path, settings.INPUT_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_HOOK_FILE),

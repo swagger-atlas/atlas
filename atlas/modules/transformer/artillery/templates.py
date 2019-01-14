@@ -85,7 +85,7 @@ function statsWrite(response, context, ee) {
 }"""
 
 
-AFTER_RESPONSE_FUNCTION = """
+FINAL_FLOW_FUNCTION = """
 function statsEndResponse(context, event, done) {
     let statusCodeCounter = {};
     let influxReport = [];
@@ -95,7 +95,7 @@ function statsEndResponse(context, event, done) {
         const val = statusCodeCounter[statusCode];
         statusCodeCounter[statusCode] = _.isUndefined(val) ? 1: val + 1;
 
-        let fields = {...value, uid: context._uid}
+        let fields = {...value, uid: context._uid};
         influxReport.push({tags: {requestName: key}, fields: fields, timestamp: value.time});
     });
 
@@ -112,3 +112,16 @@ function statsEndResponse(context, event, done) {
 
     done();
 }"""
+
+
+# Function would be formatted, so use double braces
+API_AFTER_RESPONSE_FUNCTION = """function {after_func_name}(requestParams, response, context, ee, next) {{
+    statsWrite(response, context, ee);
+    const provider = context.vars['provider'];
+    const status = response.statusCode;
+    if (!status || status < 200 || status > 300) {{
+        ee.emit('error', 'Non 2xx Response');{else_body}
+    }}
+    provider.reset();
+    return next();
+}}"""

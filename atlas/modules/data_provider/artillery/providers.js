@@ -4,6 +4,7 @@ faker = require("faker");
 constants = require('./constants');
 settings = require('./settings');
 Resource = require("./resources").Resource;
+relatedResources = require("./relationResources").relationshipResource;
 
 /*
         Custom Exception Definitions
@@ -200,9 +201,9 @@ const FakeData = {
 
 
 class ResourceProvider {
-    constructor(resourceName, resourceInstance) {
+    constructor(resourceName, dbResourceProviderInstance) {
         this.resourceName = resourceName;
-        this.resourceInstance = resourceInstance;
+        this.dbResourceProviderInstance = dbResourceProviderInstance;
     }
 
     /*
@@ -241,7 +242,7 @@ class ResourceProvider {
         options = ResourceProvider.getOptions(options);
 
         // Several Lodash arguments work only on arrays, so converting here if set
-        let resources = [...this.resourceInstance.getResource(profile, this.resourceName, options)];
+        let resources = [...this.dbResourceProviderInstance.getResource(profile, this.resourceName, options)];
 
         if (_.isEmpty(resources)) {
             throw new EmptyResourceError(`Resource Pool not found for ${this.resourceName}`);
@@ -261,7 +262,15 @@ class Provider {
 
     constructor(profile=null) {
         this.profile = profile;
-        this.resourceInstance = Resource.instance;
+        this.dbResourceProviderInstance = Resource.instance;
+
+        this.configResourceMap = {};
+        this.relatedResourceData = {};
+    }
+
+    reset() {
+        this.configResourceMap = {};
+        this.relatedResourceData = {};
     }
 
     static getFakeData(config) {
@@ -277,8 +286,16 @@ class Provider {
     }
 
     getResource(resource, options) {
-        const resourceProvider = new ResourceProvider(resource, this.resourceInstance);
-        return resourceProvider.getResources(this.profile, options);
+        const resourceProvider = new ResourceProvider(resource, this.dbResourceProviderInstance);
+        const independentResourceValue = resourceProvider.getResources(this.profile, options);
+        let resourceValue = this.relatedResourceData[resource];
+
+        if (_.isUndefined(resourceValue)) {
+            resourceValue = independentResourceValue;
+        }
+
+        this.configResourceMap[resource] = new Set(_.isArray(resourceValue) ? resourceValue: [resourceValue]);
+        return resourceValue;
     }
 
     itemResolution(config) {
@@ -305,6 +322,23 @@ class Provider {
 
         return retValue;
 
+    }
+
+    getRelatedResources(resources) {
+
+        const self = this;
+
+        if (!_.isEmpty(resources)) {
+            let resourceValueMap = relatedResources.query(resources, this.profile);
+
+            let validMap = _.filter(resourceValueMap, singleMap => {
+                return _.every(singleMap, (value, key) => {
+                    return self.dbResourceProviderInstance.doesExist(self.profile, key, value);
+                });
+            });
+
+            self.relatedResourceData =  _.sample(validMap) || {};
+        }
     }
 
     resolveArray(config) {
@@ -393,7 +427,8 @@ class ResponseDataParser {
 
     constructor(profile=null) {
         this.profile = profile;
-        this.resourceInstance = Resource.instance;
+        this.dbResourceInstance = Resource.instance;
+        this.resourceMap = {};
     }
 
     parseArray(schema, response) {
@@ -447,8 +482,23 @@ class ResponseDataParser {
 
     /*
         Entry Point for this class.
-        It detects array over global response object, which is different that that of ParseObject
      */
+    resolve(schema, response, reqResourceMap) {
+        // Initialize with resource Map of request
+        this.resourceMap = reqResourceMap || {};
+
+        this.parser(schema, response);
+
+        if (!_.isEmpty(this.resourceMap)) {
+            relatedResources.insert(this.resourceMap, this.profile);
+        }
+
+        // Reset the resource Map
+        this.resourceMap = {};
+
+        return true;
+    }
+
     parser(schema, response) {
 
         if (_.isArray(response)) {
@@ -456,20 +506,22 @@ class ResponseDataParser {
         } else {
             this.parseObject(schema, response);
         }
-
-        return true;
     }
 
     addData(resourceKey, values) {
         const newResources = new Set(_.isArray(values) ? values: [values]);
 
-        if(!_.isEmpty(newResources) && !settings.NOT_UPDATE_RUN_TIME_RESOURCES.has(resourceKey)) {
-            this.resourceInstance.updateResource(this.profile, resourceKey, newResources);
+        if (!_.isEmpty(newResources))
+        {
+            this.resourceMap[resourceKey] = newResources;
+            if(!settings.NOT_UPDATE_RUN_TIME_RESOURCES.has(resourceKey)) {
+                this.dbResourceInstance.updateResource(this.profile, resourceKey, newResources);
+            }
         }
     }
 
     deleteData(resourceKey, resourceValue) {
-        this.resourceInstance.deleteResource(this.profile, resourceKey, resourceValue);
+        this.dbResourceInstance.deleteResource(this.profile, resourceKey, resourceValue);
         return true;
     }
 

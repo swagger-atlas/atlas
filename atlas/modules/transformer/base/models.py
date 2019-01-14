@@ -2,7 +2,8 @@ import random
 import string
 
 from atlas.modules import constants, exceptions, utils
-from atlas.modules.transformer import data_config, interface
+from atlas.modules.transformer import interface
+from atlas.modules.helpers import swagger_schema_resolver
 from atlas.conf import settings
 
 
@@ -20,7 +21,7 @@ class Task:
         self.open_api_op = open_api_interface
         self.func_name = self.normalize_function_name()
 
-        self.data_config = data_config.DataConfig(spec or {})
+        self.schema_resolver = swagger_schema_resolver.SchemaResolver(spec or {})
 
         self.data_body = dict()
         self.url_params = dict()
@@ -44,7 +45,7 @@ class Task:
 
             ref = config.get(constants.REF)
             if ref:
-                config = utils.resolve_reference(self.data_config.spec, ref)
+                config = utils.resolve_reference(self.schema_resolver.spec, ref)
 
             in_ = config.get(constants.IN_)
 
@@ -75,7 +76,7 @@ class Task:
                 raise exceptions.ImproperSwaggerException(
                     "Config {} does not have valid parameter type".format(config))
 
-        self.data_body = self.data_config.generate(self.data_body)
+        self.data_body = self.schema_resolver.resolve(self.data_body)
 
     def parse_body_params(self, name, config):
         schema = config.get(constants.SCHEMA)
@@ -90,7 +91,7 @@ class Task:
                 )
 
     def parse_header_params(self, name, config):
-        config = self.data_config.generate({name: config})
+        config = self.schema_resolver.resolve({name: config})
         if config:
             self.headers.append("'{name}': {config}".format(name=name, config=config[name]))
 
@@ -117,7 +118,7 @@ class Task:
         if name in settings.POSITIVE_INTEGER_PARAMS:
             config[constants.MINIMUM] = 1
 
-        config = self.data_config.generate({name: config})
+        config = self.schema_resolver.resolve({name: config})
 
         if config:
             if self.open_api_op.url_end_parameter() == name and self.open_api_op.method == constants.DELETE:
@@ -154,7 +155,7 @@ class Task:
 
     def get_response_properties(self, config):
         properties = (
-            self.data_config.generate_with_read_only_fields(config.get(constants.SCHEMA, {}))
+            self.schema_resolver.resolve_with_read_only_fields(config.get(constants.SCHEMA, {}))
         )
         if properties:
             return properties

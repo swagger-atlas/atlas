@@ -1,21 +1,23 @@
 from atlas.modules import constants, utils
 
 
-class DataConfig:
+class SchemaResolver:
+    """
+    Resolves the Swagger Schema
+    """
 
     def __init__(self, spec):
         self.spec = spec
         self.visited_ref = set()
 
         self.include_read_only = False
-
         self.is_top_level = True
 
     def resolve_item_config(self, item_config):
         item_data = {}
         for key, value in item_config.items():
             if isinstance(value, dict):
-                item_data.update(self.generate({key: value}))
+                item_data.update(self.resolve({key: value}))
             elif key in constants.EXTRA_KEYS:
                 # This should be else of previous Condition
                 # Since nested references can use this as property
@@ -24,9 +26,9 @@ class DataConfig:
                 item_data[key] = value
         return item_data
 
-    def generate_with_read_only_fields(self, *args, **kwargs):
+    def resolve_with_read_only_fields(self, *args, **kwargs):
         self.include_read_only = True
-        ret = self.generate(*args, **kwargs)
+        ret = self.resolve(*args, **kwargs)
         self.include_read_only = False
         return ret
 
@@ -44,7 +46,7 @@ class DataConfig:
         if additional_properties:
             ref = additional_properties.get(constants.REF)
             data_body[constants.ADDITIONAL_PROPERTIES] = (
-                self.generate(utils.resolve_reference(self.spec, ref))
+                self.resolve(utils.resolve_reference(self.spec, ref))
                 if ref else self.resolve_item_config(additional_properties)
             )
             data_body[constants.MIN_PROPERTIES] = config.get(constants.MIN_PROPERTIES, 0)
@@ -57,7 +59,7 @@ class DataConfig:
             self.is_top_level = False
         return data_body
 
-    def generate(self, config):
+    def resolve(self, config):
         """
         Generates the schema for Load testing file
         Runs as following:
@@ -65,7 +67,7 @@ class DataConfig:
             2. Then, check for Additional Properties, and add free fields
             3. Go through Properties, and make sure that references are parsed correctly as needed
 
-        Generate is recursive method at several depths (i.e. it may call func which may call generate and so on),
+        Resolve is recursive method at several depths (i.e. it may call func which may call generate and so on),
         Do do not manipulate instance variables unless you know what you are doing.
         """
 
@@ -77,7 +79,7 @@ class DataConfig:
         all_of_config = config.get(constants.ALL_OF, [])
 
         for element in all_of_config:
-            data_body.update(self.generate(element))
+            data_body.update(self.resolve(element))
 
         if all_of_config:
             return data_body
@@ -106,7 +108,7 @@ class DataConfig:
 
             if ref and ref not in self.visited_ref:
                 self.visited_ref.add(ref)
-                ref_config = self.generate(
+                ref_config = self.resolve(
                     utils.resolve_reference(self.spec, ref)
                 )
                 if item_name == constants.REF:

@@ -69,17 +69,9 @@ class Task(models.Task):
         ]
         return "\n".join(statements)
 
-    def body_definition(self):
-        body = ["const provider = context.vars['provider'];"]
-
-        if self.data_body:
-            body.append("const bodyConfig = {config};".format(config=json.dumps(self.data_body)))
+    def add_url_config_to_body(self, body):
 
         query_str, path_str = self.parse_url_params_for_body()
-
-        body.append(f"let url = '{self.open_api_op.url}';")
-        body.append(f"context.vars._rawURL = url;")
-
         if query_str != "{}" or path_str != "{}":
             body.append("let urlConfig = [];")
 
@@ -94,6 +86,21 @@ class Task(models.Task):
                     "url = urlConfig[0];",
                 ]
             ))
+        return body
+
+    def body_definition(self):
+        body = ["const provider = context.vars['provider'];"]
+
+        if self.data_body:
+            body.append("const bodyConfig = {config};".format(config=json.dumps(self.data_body)))
+
+        body.append(f"let url = '{self.open_api_op.url}';")
+        body.append(f"context.vars._rawURL = url;")
+
+        if self.open_api_op.dependent_resources:
+            body.append(f"provider.getRelatedResources({list(self.open_api_op.dependent_resources)});")
+
+        body = self.add_url_config_to_body(body)
 
         body.append("let headers = _.cloneDeep(defaultHeaders);")
         if self.headers:
@@ -157,8 +164,8 @@ class Task(models.Task):
         response = self.parse_responses(self.open_api_op.responses)
         if response:
             self.post_check_tasks.append(
-                f"context.vars['respDataParser'].parser("
-                f"{json.dumps(response)}, extractBody(response, requestParams, context));"
+                f"context.vars['respDataParser'].resolve("
+                f"{json.dumps(response)}, extractBody(response, requestParams, context), provider.configResourceMap);"
             )
 
         return body
@@ -185,29 +192,19 @@ class Task(models.Task):
         return "\n".join(statements)
 
     def post_response_function(self, width):
-        statements = [
-            f"function {self.after_func_name}(requestParams, response, context, ee, next) {{",
-            "{w}statsWrite(response, context, ee);".format(w=' ' * width * 4),
-            "{w}const status = response.statusCode;".format(w=' ' * width * 4),
-            "{w}if (!status || status < 200 || status > 300) {{".format(w=' ' * width * 4),
-            "{w}ee.emit('error', 'Non 2xx Response');".format(w=' ' * (width + 1) * 4)
-        ]
 
-        if self.post_check_tasks:
-            statements.extend([
-                "{w}}} else {{".format(w=' ' * width * 4),
-                "{w}{body}".format(
-                    w=' ' * (width + 1) * 4, body="\n{w}".format(w=' ' * (width + 1) * 4).join(self.post_check_tasks)
-                )
-            ])
+        else_body = "\n".join([
+            "",
+            "{w}}} else {{".format(w=' ' * width * 4),
+            "{w}{body}".format(
+                w=' ' * (width + 1) * 4, body="\n{w}".format(w=' ' * (width + 1) * 4).join(self.post_check_tasks)
+            )
+        ]) if self.post_check_tasks else ""
 
-        statements.extend([
-            "{w}}}".format(w=' ' * width * 4),
-            "{w}return next();".format(w=' ' * width * 4),
-            "}"
-        ])
-
-        return "\n".join(statements)
+        return templates.API_AFTER_RESPONSE_FUNCTION.format(
+            after_func_name=self.after_func_name,
+            else_body=else_body
+        )
 
     def convert(self, width):
 
@@ -276,7 +273,7 @@ class TaskSet(models.TaskSet):
             templates.FORMAT_URL_FUNCTION,
             templates.EXTRACT_BODY_FUNCTION,
             templates.STATS_WRITER,
-            templates.AFTER_RESPONSE_FUNCTION,
+            templates.FINAL_FLOW_FUNCTION,
             "\n",
             self.task_definitions(width)
         ]
