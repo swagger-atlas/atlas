@@ -69,17 +69,9 @@ class Task(models.Task):
         ]
         return "\n".join(statements)
 
-    def body_definition(self):
-        body = ["const provider = context.vars['provider'];"]
-
-        if self.data_body:
-            body.append("const bodyConfig = {config};".format(config=json.dumps(self.data_body)))
+    def add_url_config_to_body(self, body):
 
         query_str, path_str = self.parse_url_params_for_body()
-
-        body.append(f"let url = '{self.open_api_op.url}';")
-        body.append(f"context.vars._rawURL = url;")
-
         if query_str != "{}" or path_str != "{}":
             body.append("let urlConfig = [];")
 
@@ -94,6 +86,21 @@ class Task(models.Task):
                     "url = urlConfig[0];",
                 ]
             ))
+        return body
+
+    def body_definition(self):
+        body = ["const provider = context.vars['provider'];"]
+
+        if self.data_body:
+            body.append("const bodyConfig = {config};".format(config=json.dumps(self.data_body)))
+
+        body.append(f"let url = '{self.open_api_op.url}';")
+        body.append(f"context.vars._rawURL = url;")
+
+        if self.open_api_op.dependent_resources:
+            body.append(f"provider.getRelatedResources({list(self.open_api_op.dependent_resources)});")
+
+        body = self.add_url_config_to_body(body)
 
         body.append("let headers = _.cloneDeep(defaultHeaders);")
         if self.headers:
@@ -157,7 +164,7 @@ class Task(models.Task):
         response = self.parse_responses(self.open_api_op.responses)
         if response:
             self.post_check_tasks.append(
-                f"context.vars['respDataParser'].parser("
+                f"context.vars['respDataParser'].resolve("
                 f"{json.dumps(response)}, extractBody(response, requestParams, context), provider.configResourceMap);"
             )
 

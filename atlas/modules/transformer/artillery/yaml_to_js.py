@@ -68,6 +68,11 @@ exports.Resource = class Resource {{
         return new Set(_.isEmpty(values) ? []: values);
     }}
 
+    doesExist(profile, resourceKey, searchValue) {{
+        let values = this.resources[Resource.getKey(profile, resourceKey)];
+        return _.isEmpty(values) ? false: values.has(searchValue);
+    }}
+
     updateResource(profile, resourceKey, resourceValues) {{
         if (!_.isEmpty(resourceValues)) {{
             const key = Resource.getKey(profile, resourceKey);

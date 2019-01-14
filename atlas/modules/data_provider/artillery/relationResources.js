@@ -79,8 +79,18 @@ class RelationshipResources {
         );
     }
 
-    query(resources) {
-        return _.get(this.hashMap, Object.keys(resources).sort())
+    query(resources, profile) {
+        let resourceValues = this.hashMap[RelationshipResources.getKey(profile, resources)];
+        const keys = resources.sort();
+        let returnValue = [];
+
+        if (!_.isEmpty(resourceValues)) {
+            _.forEach([...resourceValues], val => {
+                returnValue.push(_.zipObject(keys, JSON.parse(val)))
+            });
+        }
+
+        return returnValue;
     }
 }
 

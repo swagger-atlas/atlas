@@ -115,8 +115,7 @@ function statsEndResponse(context, event, done) {
 
 
 # Function would be formatted, so use double braces
-API_AFTER_RESPONSE_FUNCTION = """
-function {after_func_name}(requestParams, response, context, ee, next) {{
+API_AFTER_RESPONSE_FUNCTION = """function {after_func_name}(requestParams, response, context, ee, next) {{
     statsWrite(response, context, ee);
     const provider = context.vars['provider'];
     const status = response.statusCode;

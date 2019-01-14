@@ -20,6 +20,7 @@ class OpenAPITaskInterface:
         self._tags = []
         self._responses = {}
         self._consumes = [constants.JSON_CONSUMES]
+        self._dependent_resources = set()
 
     @property
     def parameters(self):
@@ -122,3 +123,11 @@ class OpenAPITaskInterface:
             ret_parameter = last_fragment[1: -1]
 
         return ret_parameter
+
+    @property
+    def dependent_resources(self):
+        return self._dependent_resources
+
+    @dependent_resources.setter
+    def dependent_resources(self, value: set):
+        self._dependent_resources = value

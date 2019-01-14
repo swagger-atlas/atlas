@@ -48,6 +48,7 @@ class Operation:
         op_interface.parameters = self.parameters
         op_interface.tags = self.config.get(swagger_constants.TAGS, [])
         op_interface.responses = self.config.get(swagger_constants.RESPONSES, {})
+        op_interface.dependent_resources = self.config.get(swagger_constants.DEPENDENT_RESOURCES, set())
         return op_interface
 
 

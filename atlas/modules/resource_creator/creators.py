@@ -17,7 +17,6 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
     """
 
     def __init__(self, swagger_file=None):
-
         super().__init__()
 
         self.swagger_file = swagger_file or settings.SWAGGER_FILE
@@ -32,6 +31,9 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
         # Keep list of refs which are already processed to avoid duplicate processing
         self.processed_refs = set()
+
+        # For any single operation, maintain a list of parameters
+        self.resource_params = set()
 
     @staticmethod
     def format_references(references) -> set:
@@ -98,6 +100,9 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
     def parse_params(self, params, url):
 
+        # Reset the params
+        self.resource_params = set()
+
         for param in params:
 
             ref = param.get(swagger_constants.REF)
@@ -105,29 +110,26 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 param = utils.resolve_reference(self.specs, ref)
 
             param_type = param.get(swagger_constants.IN_)
+            _name = param.get(swagger_constants.PARAMETER_NAME)
 
             if not param_type:
-                raise exceptions.ImproperSwaggerException("Param type not defined for {}".format(param))
+                raise exceptions.ImproperSwaggerException(f"Param type not defined for {_name}")
 
             if param_type in swagger_constants.URL_PARAMS:
-
-                name = param.get(swagger_constants.PARAMETER_NAME)
-
-                if not name:
-                    raise exceptions.ImproperSwaggerException("Param name not defined for {}".format(param))
 
                 # Check if resource is defined
                 resource = param.get(swagger_constants.RESOURCE)
 
                 # Generate resources if none found. Do not generate if empty string
                 if resource is None:
-                    resource = self.extract_resource_name_from_param(name, url, param_type)
+                    resource = self.extract_resource_name_from_param(_name, url, param_type)
 
                 if resource:
                     resource = self.add_resource(resource)
                     resource_alias = self.resource_map_resolver.get_alias(resource)
                     param[swagger_constants.RESOURCE] = resource_alias
                     self.add_reference_definition(resource_alias, param)
+                    self.resource_params.add(resource_alias)
 
             elif param_type == swagger_constants.BODY_PARAM:
                 self.resolve_body_param(param)
@@ -186,6 +188,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 resource = self.add_resource(resource)
                 resource_alias = self.resource_map_resolver.get_alias(resource)
                 value[swagger_constants.RESOURCE] = resource_alias
+                self.resource_params.add(resource_alias)
 
         self.processed_refs.add(ref_name)
 
@@ -194,11 +197,15 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         for url, path_config in self.specs.get(swagger_constants.PATHS, {}).items():
 
             parameters = path_config.get(swagger_constants.PARAMETERS)
+            common_resources = set()
 
             if parameters:
                 self.parse_params(parameters, url)
+                common_resources = self.resource_params
 
             for method, method_config in path_config.items():
+
+                method_resources = set()
 
                 if method in swagger_constants.VALID_METHODS:
                     parameters = method_config.get(swagger_constants.PARAMETERS)
@@ -211,6 +218,12 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
                     if parameters:
                         self.parse_params(parameters, url)
+                        method_resources = self.resource_params
+
+                    all_resources = common_resources.union(method_resources)
+
+                    if len(all_resources) > 1:
+                        method_config[swagger_constants.DEPENDENT_RESOURCES] = all_resources
 
         for ref_name, ref_config in self.specs.get(swagger_constants.DEFINITIONS, {}).items():
             self.parse_reference(ref_name, ref_config)

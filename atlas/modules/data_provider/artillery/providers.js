@@ -263,11 +263,14 @@ class Provider {
     constructor(profile=null) {
         this.profile = profile;
         this.dbResourceProviderInstance = Resource.instance;
+
         this.configResourceMap = {};
+        this.relatedResourceData = {};
     }
 
     reset() {
         this.configResourceMap = {};
+        this.relatedResourceData = {};
     }
 
     static getFakeData(config) {
@@ -284,7 +287,13 @@ class Provider {
 
     getResource(resource, options) {
         const resourceProvider = new ResourceProvider(resource, this.dbResourceProviderInstance);
-        const resourceValue = resourceProvider.getResources(this.profile, options);
+        const independentResourceValue = resourceProvider.getResources(this.profile, options);
+        let resourceValue = this.relatedResourceData[resource];
+
+        if (_.isUndefined(resourceValue)) {
+            resourceValue = independentResourceValue;
+        }
+
         this.configResourceMap[resource] = new Set(_.isArray(resourceValue) ? resourceValue: [resourceValue]);
         return resourceValue;
     }
@@ -313,6 +322,23 @@ class Provider {
 
         return retValue;
 
+    }
+
+    getRelatedResources(resources) {
+
+        const self = this;
+
+        if (!_.isEmpty(resources)) {
+            let resourceValueMap = relatedResources.query(resources, this.profile);
+
+            let validMap = _.filter(resourceValueMap, singleMap => {
+                return _.every(singleMap, (value, key) => {
+                    return self.dbResourceProviderInstance.doesExist(self.profile, key, value);
+                });
+            });
+
+            self.relatedResourceData =  _.sample(validMap) || {};
+        }
     }
 
     resolveArray(config) {
@@ -456,24 +482,30 @@ class ResponseDataParser {
 
     /*
         Entry Point for this class.
-        It detects array over global response object, which is different that that of ParseObject
      */
-    parser(schema, response, reqResourceMap) {
-
+    resolve(schema, response, reqResourceMap) {
         // Initialize with resource Map of request
         this.resourceMap = reqResourceMap || {};
+
+        this.parser(schema, response);
+
+        if (!_.isEmpty(this.resourceMap)) {
+            relatedResources.insert(this.resourceMap, this.profile);
+        }
+
+        // Reset the resource Map
+        this.resourceMap = {};
+
+        return true;
+    }
+
+    parser(schema, response) {
 
         if (_.isArray(response)) {
             this.parseArray(schema, response);
         } else {
             this.parseObject(schema, response);
         }
-
-        if (!_.isEmpty(this.resourceMap)) {
-            relatedResources.insert(this.resourceMap, this.profile);
-        }
-
-        return true;
     }
 
     addData(resourceKey, values) {
