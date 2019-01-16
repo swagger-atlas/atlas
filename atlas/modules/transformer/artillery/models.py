@@ -4,7 +4,7 @@ import json
 import re
 
 from atlas.conf import settings
-from atlas.modules import constants, mixins, utils
+from atlas.modules import constants, exceptions, mixins, utils
 from atlas.modules.transformer import profile_constants
 from atlas.modules.transformer.base import models
 from atlas.modules.transformer.artillery import templates
@@ -230,8 +230,15 @@ class TaskSet(models.TaskSet):
         for name, config in profiles.items():
             scenario_list = config.get(profile_constants.SCENARIOS, [profile_constants.DEFAULT_SCENARIO])
 
-            for scenario in scenario_list:
-                self.scenario_profile_map[scenario].append(name)
+            for scenario_name in scenario_list:
+                self.scenario_profile_map[scenario_name].append(name)
+
+        # Validate that All scenarios have at least one profile associated.
+        # If not, throw a warning and remove that scenario
+        unlinked_scenarios = set(self.scenarios.keys()) - set(self.scenario_profile_map.keys())
+        for scenario_name in unlinked_scenarios:
+            print(f"\nWARNING: {scenario_name} scenario is not linked to any profile. Will not be part of Artillery\n")
+            self.scenarios.pop(scenario_name)
 
     def construct_task_map(self):
         self.task_map = {
@@ -240,8 +247,12 @@ class TaskSet(models.TaskSet):
 
     def make_yaml_scenario(self, name, flow_tasks):
         flow_definition = [{"function": f"{name}SetProfiles"}, {"function": "setUp"}]
-        # Shallow copy leaves pointers and references when converting to YAML
-        flow_definition.extend([deepcopy(self.task_map[task_key.lower().strip()]) for task_key in flow_tasks])
+
+        try:
+            # Shallow copy leaves pointers and references when converting to YAML
+            flow_definition.extend([deepcopy(self.task_map[task_key.lower().strip()]) for task_key in flow_tasks])
+        except KeyError as exc:
+            raise exceptions.InvalidSettingsException(f"Invalid Key in Scenario {name}:  {exc}")
         flow_definition.append({"function": "endResponse"})
         return {
             "flow": flow_definition,
