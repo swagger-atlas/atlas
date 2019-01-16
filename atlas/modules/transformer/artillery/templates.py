@@ -132,3 +132,10 @@ API_AFTER_RESPONSE_FUNCTION = """function {after_func_name}(requestParams, respo
     provider.reset();
     return next();
 }}"""
+
+
+# Function would be formatted, so use double braces
+IF_TRUE_FUNCTION = """function {if_true_name}(contextVars) {{
+    const tags = [{tags}];
+    return (contextVars['profile'] && !_.isEmpty(_.intersection(tags, contextVars['profile'].tags || [])));
+}}"""

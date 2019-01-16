@@ -55,22 +55,11 @@ class Task(models.Task):
         params = ['url', 'queryConfig', 'pathConfig', 'provider']
         return ", ".join(params)
 
-    def validate_tags(self):
-        body = []
-
-        if self.tag_check:
-            body.append("const tags = [{}];".format(", ".join(["'{}'".format(tag) for tag in self.open_api_op.tags])))
-            body.append("return (!_.isEmpty(_.intersection(tags, contextVars['profile'].tags || [])));")
-
-        return body
-
-    def if_true_function(self, width):
-        statements = [
-            f"function {self.if_true_func_name}(contextVars) {{",
-            "{w}{body}".format(w=' ' * width * 4, body="\n{w}".format(w=' ' * width * 4).join(self.validate_tags())),
-            "}"
-        ]
-        return "\n".join(statements)
+    def if_true_function(self):
+        return templates.IF_TRUE_FUNCTION.format(
+            if_true_name=self.if_true_func_name,
+            tags=", ".join(["'{}'".format(tag) for tag in self.open_api_op.tags])
+        )
 
     def add_url_config_to_body(self, body):
 
@@ -215,7 +204,7 @@ class Task(models.Task):
         statements = [self.pre_request_function(width), self.post_response_function(width)]
 
         if self.tag_check:
-            statements.append(self.if_true_function(width))
+            statements.append(self.if_true_function())
 
         return statements
 
