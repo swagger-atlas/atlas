@@ -1,3 +1,5 @@
+from atlas.conf import settings
+from atlas.modules import mixins as atlas_mixins
 from atlas.modules.commands.base import CommandError
 from atlas.modules.helpers import open_api_reader
 from atlas.modules.transformer.commands.base import TransformerBaseCommand
@@ -53,9 +55,12 @@ class Converter(TransformerBaseCommand):
         order = ordering.Ordering(spec, open_api.interfaces)
         sorted_interfaces = order.order()
 
+        read_file = atlas_mixins.YAMLReadWriteMixin()
+        scenarios = read_file.read_file_from_input(settings.SCENARIO_FLOW_FILE, {})
+
         tasks = [load_conf[TASK](interface, spec) for interface in sorted_interfaces]
 
-        _task_set = load_conf[TASK_SET](tasks=tasks, tag="User")
+        _task_set = load_conf[TASK_SET](tasks=tasks, scenarios=scenarios)
 
         config = load_conf[FILE_CONFIG](_task_set, spec)
         config.write_to_file()

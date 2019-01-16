@@ -1,3 +1,4 @@
+from copy import deepcopy
 import json
 import re
 
@@ -224,15 +225,42 @@ class TaskSet(models.TaskSet):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.yaml_flow = {}
+        self.yaml_flow = []
+
+        # Map of Task Key (Method: URL) to its YAML configuration
+        self.task_map = {}
+
+    def construct_task_map(self):
+        # Shallow copy leaves pointers and references in Artillery
+        self.task_map = {
+            f"{_task.open_api_op.method} : {_task.open_api_op.url}": deepcopy(_task.yaml_task) for _task in self.tasks
+        }
+
+    def make_yaml_scenario(self, name, flow_tasks):
+        self.construct_task_map()
+        flow_definition = [{"function": "setUp"}]
+        flow_definition.extend([self.task_map[task_key] for task_key in flow_tasks])
+        flow_definition.append({"function": "endResponse"})
+        return {
+            "flow": flow_definition,
+            "name": name
+        }
 
     def set_yaml_flow(self):
-        flow_definition = [{"function": "setUp"}]
-        flow_definition.extend([_task.yaml_task for _task in self.tasks])
-        flow_definition.append({"function": "endResponse"})
-        self.yaml_flow = {
-            "flow": flow_definition
-        }
+
+        over_ride_default = False
+
+        for name, scenario in self.scenarios.items():
+            self.yaml_flow.append(self.make_yaml_scenario(name, scenario))
+
+            if name == "default":
+                over_ride_default = True
+
+        # Add default if not over-ridden by user
+        if not over_ride_default:
+            self.yaml_flow.append(self.make_yaml_scenario(
+                "default", [f"{_task.open_api_op.method} : {_task.open_api_op.url}" for _task in self.tasks]
+            ))
 
     def task_definitions(self, width):
         join_string = "\n\n".format(w=' ' * width * 4)

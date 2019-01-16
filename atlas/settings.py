@@ -17,6 +17,7 @@ class Settings:
     MAPPING_FILE = "resource_mapping.yaml"
     RES_MAPPING_HOOKS_FILE = "hooks.py"
     PROFILES_FILE = "profiles.yaml"
+    SCENARIO_FLOW_FILE = "scenarios.yaml"
     RESOURCES_FOLDER = "resources"
     DIST_FOLDER = "dist"
 

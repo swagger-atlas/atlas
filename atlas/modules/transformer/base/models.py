@@ -1,6 +1,3 @@
-import random
-import string
-
 from atlas.modules import constants, exceptions, utils
 from atlas.modules.transformer import interface
 from atlas.modules.helpers import swagger_schema_resolver
@@ -215,9 +212,9 @@ class TaskSet:
     Task Set is collection of tasks
     """
 
-    def __init__(self, tasks, tag=None):
-        self.tag = tag or ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    def __init__(self, tasks, scenarios=None):
         self.tasks = tasks
+        self.scenarios = scenarios or {}
 
     def convert(self, width):
         raise NotImplementedError

@@ -40,9 +40,7 @@ class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
                     }
                 ]
             },
-            "scenarios": [
-                self.task_set.yaml_flow
-            ]
+            "scenarios": self.task_set.yaml_flow
         }
 
     def write_to_file(self, file_name=None, sub_path=None):
