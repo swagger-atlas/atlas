@@ -234,15 +234,14 @@ class TaskSet(models.TaskSet):
                 self.scenario_profile_map[scenario].append(name)
 
     def construct_task_map(self):
-        # Shallow copy leaves pointers and references in Artillery
         self.task_map = {
-            f"{_task.open_api_op.method} : {_task.open_api_op.url}": deepcopy(_task.yaml_task) for _task in self.tasks
+            f"{_task.open_api_op.method} : {_task.open_api_op.url}": _task.yaml_task for _task in self.tasks
         }
 
     def make_yaml_scenario(self, name, flow_tasks):
-        self.construct_task_map()
         flow_definition = [{"function": f"{name}SetProfiles"}, {"function": "setUp"}]
-        flow_definition.extend([self.task_map[task_key] for task_key in flow_tasks])
+        # Shallow copy leaves pointers and references when converting to YAML
+        flow_definition.extend([deepcopy(self.task_map[task_key.lower().strip()]) for task_key in flow_tasks])
         flow_definition.append({"function": "endResponse"})
         return {
             "flow": flow_definition,
@@ -250,6 +249,7 @@ class TaskSet(models.TaskSet):
         }
 
     def set_yaml_flow(self):
+        self.construct_task_map()
         for name, scenario in self.scenarios.items():
             self.yaml_flow.append(self.make_yaml_scenario(name, scenario))
 

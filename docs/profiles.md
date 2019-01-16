@@ -134,7 +134,7 @@ You can change this mapping by keyword `scenarios`
         - my_scenario_3
 ```
 
-And in `scnearios.yaml`,
+And in `scenarios.yaml`,
 ```yaml
 my_scenario_1:
     - op_1
