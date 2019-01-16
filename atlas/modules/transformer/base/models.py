@@ -1,5 +1,5 @@
 from atlas.modules import constants, exceptions, utils
-from atlas.modules.transformer import interface
+from atlas.modules.transformer import interface, profile_constants
 from atlas.modules.helpers import swagger_schema_resolver
 from atlas.conf import settings
 
@@ -214,7 +214,23 @@ class TaskSet:
 
     def __init__(self, tasks, scenarios=None):
         self.tasks = tasks
-        self.scenarios = scenarios or {}
+        self.scenarios = self.set_scenarios(scenarios)
+
+    def set_scenarios(self, scenarios):
+        """
+        Make sure default is appended in scenarios neatly
+        """
+
+        scenarios = scenarios or {}
+
+        _default = scenarios.get(profile_constants.DEFAULT_SCENARIO)
+
+        if not _default:
+            scenarios[profile_constants.DEFAULT_SCENARIO] = [
+                f"{_task.open_api_op.method} : {_task.open_api_op.url}" for _task in self.tasks
+            ]
+
+        return scenarios
 
     def convert(self, width):
         raise NotImplementedError

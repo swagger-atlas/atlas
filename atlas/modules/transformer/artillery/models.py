@@ -1,10 +1,12 @@
+from collections import defaultdict
 from copy import deepcopy
 import json
 import re
 
-from atlas.modules import constants, utils
-from atlas.modules.transformer.base import models
 from atlas.conf import settings
+from atlas.modules import constants, mixins, utils
+from atlas.modules.transformer import profile_constants
+from atlas.modules.transformer.base import models
 from atlas.modules.transformer.artillery import templates
 
 
@@ -230,6 +232,18 @@ class TaskSet(models.TaskSet):
         # Map of Task Key (Method: URL) to its YAML configuration
         self.task_map = {}
 
+        self.scenario_profile_map = defaultdict(list)
+
+    def construct_profile_scenario_map(self):
+        yaml_reader = mixins.YAMLReadWriteMixin()
+        profiles = yaml_reader.read_file_from_input(settings.PROFILES_FILE, {})
+
+        for name, config in profiles.items():
+            scenario_list = config.get(profile_constants.SCENARIOS, [profile_constants.DEFAULT_SCENARIO])
+
+            for scenario in scenario_list:
+                self.scenario_profile_map[scenario].append(name)
+
     def construct_task_map(self):
         # Shallow copy leaves pointers and references in Artillery
         self.task_map = {
@@ -238,7 +252,7 @@ class TaskSet(models.TaskSet):
 
     def make_yaml_scenario(self, name, flow_tasks):
         self.construct_task_map()
-        flow_definition = [{"function": "setUp"}]
+        flow_definition = [{"function": f"{name}SetProfiles"}, {"function": "setUp"}]
         flow_definition.extend([self.task_map[task_key] for task_key in flow_tasks])
         flow_definition.append({"function": "endResponse"})
         return {
@@ -247,30 +261,24 @@ class TaskSet(models.TaskSet):
         }
 
     def set_yaml_flow(self):
-
-        over_ride_default = False
-
         for name, scenario in self.scenarios.items():
             self.yaml_flow.append(self.make_yaml_scenario(name, scenario))
 
-            if name == "default":
-                over_ride_default = True
-
-        # Add default if not over-ridden by user
-        if not over_ride_default:
-            self.yaml_flow.append(self.make_yaml_scenario(
-                "default", [f"{_task.open_api_op.method} : {_task.open_api_op.url}" for _task in self.tasks]
-            ))
+    def scenario_profile_setup(self, name):
+        return templates.SCENARIO_PROFILE_FUNCTION.format(
+            name=name,
+            profiles=", ".join([f"'{profile}'" for profile in self.scenario_profile_map.get(name, [])])
+        )
 
     def task_definitions(self, width):
         join_string = "\n\n".format(w=' ' * width * 4)
-        tasks = []
+        tasks = [self.scenario_profile_setup(scenario) for scenario in self.scenarios]
         for _task in self.tasks:
             tasks.extend(_task.convert(width))
         return join_string.join(tasks)
 
     @staticmethod
-    def func_exports(task, width):
+    def task_func_exports(task, width):
 
         statements = [
             "{w}{func}: {func},".format(w=' '*width*4, func=task.before_func_name),
@@ -283,15 +291,20 @@ class TaskSet(models.TaskSet):
         return "\n".join(statements)
 
     def task_calls(self, width):
+        indent = ' '*width*4
         return "\n".join([
             "module.exports = {",
-            "{w}setUp: setUp,".format(w=' '*width*4),
-            "\n".join([self.func_exports(_task, width) for _task in self.tasks]),
-            "{w}endResponse: statsEndResponse".format(w=' '*width*4),
+            f"{indent}setUp: setUp,",
+            "\n".join([f"{indent}{name}SetProfiles: {name}SetProfiles," for name in self.scenarios]),
+            "\n".join([self.task_func_exports(_task, width) for _task in self.tasks]),
+            f"{indent}endResponse: statsEndResponse",
             "};"
         ])
 
     def convert(self, width):
+
+        self.construct_profile_scenario_map()
+
         statements = [
             self.task_calls(width),
             templates.SELECT_PROFILE_FUNCTION,

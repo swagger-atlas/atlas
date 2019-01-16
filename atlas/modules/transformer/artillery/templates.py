@@ -14,12 +14,19 @@ function registerHooks() {
 }"""
 
 
+# Function is formatted, so use double braces
+SCENARIO_PROFILE_FUNCTION = """function {name}SetProfiles(context, event, done) {{
+    context.vars.profiles = _.pick(profiles, [{profiles}]);
+    return done();
+}}"""
+
+
 SETUP_FUNCTION = """
 function setUp(context, event, done) {
 
     registerHooks();
 
-    let _profiles = hook.call("$profileSelection", profiles)[0];
+    let _profiles = hook.call("$profileSelection", context.vars.profiles)[0];
     let profileMap = selectProfile(_profiles);
     const profileName = Object.keys(profileMap)[0];
     let profile = profileMap[profileName];
