@@ -84,6 +84,14 @@ See [Hooks](hooks.md) for details on how to do this, and various examples for sa
 
 ---
 
+### Generate Custom Scenarios
+If you want, you can generate multiple custom scenarios.
+You can even over-write the default scenario if you so wish.
+
+See `Creating Custom Scenario` section in [Use cases](uses_cases.md) for more details
+
+---
+
 #### Load Test Configuration
 You should be able to edit load test configuration by following respective runner.
 For Artillery see [CLI Options](https://artillery.io/docs/cli-reference/)

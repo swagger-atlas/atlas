@@ -2,6 +2,16 @@ Changelog
 ========
 
 
+8.0.0
+-----
+
+*Features*
+- Added option for custom scenarios
+
+*Bug fixes*
+- Fix `Enum` options in provider if their choice was false-y value
+
+
 7.0.0
 -----
 

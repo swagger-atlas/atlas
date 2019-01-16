@@ -117,3 +117,34 @@ courses
 ```
 
 Here `id` would be transplanted by the value of 5.
+
+
+Linking Custom Scenario to Profiles
+===================================
+
+If you specify custom scenario, you need to link them to profiles.
+Each profile by default executes `default` scenario which consists of all APIs.
+
+You can change this mapping by keyword `scenarios`
+*Example*
+```yaml
+<profile_name>:
+    scenarios:
+        - my_scenario_1
+        - my_scenario_3
+```
+
+And in `scnearios.yaml`,
+```yaml
+my_scenario_1:
+    - op_1
+    - op_2
+    - op_3
+my_scenario_2:
+    - op_2
+    - op_4
+my_scenario_3:
+    - op_1
+    - op_3
+    - op_2
+```

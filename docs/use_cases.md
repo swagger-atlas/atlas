@@ -71,6 +71,37 @@ This is global level setting, and affects all of your profiles
 This is available in `EXCLUDE_URLS` Settings
 
 
+Creating Custom Scenarios
+-------------------------
+
+It is possible to create own custom scenarios, and then link them to profiles.
+
+To create a scenario, you need to enter it in `scenario.yaml` file.
+A single scenario entry consists of name of scenario and All operations which it should execute in order
+
+*Example*
+```yaml
+my_scenario_1:
+    - op_1
+    - op_2
+    - op_3
+```
+
+Here each `op` is combination of METHOD and URL,
+For example, GET request for /user/{id} would be represented as: `"get :  /user/{id}"`
+
+###### Caveats
+- Each Operation must be a valid entry
+- Each scenario must be linked to at least single profile
+
+*Profile Link Example*
+```yaml
+<profile_name>:
+    scenarios:
+        - my_scenario_1
+```
+
+
 Getting `Resource Pool Not Found/ Provider Check Failed` Error
 --------------------------------------------------------------
 
