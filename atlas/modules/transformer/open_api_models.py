@@ -1,6 +1,5 @@
 from collections import OrderedDict
 import logging
-import re
 
 from atlas.modules import (
     constants as swagger_constants,
@@ -65,20 +64,21 @@ class OpenAPISpec:
         paths = self.spec.get(swagger_constants.PATHS, {})
 
         # Pre-compile Regex to make matching blazing fast
-        exclude_urls = getattr(settings, "EXCLUDE_URLS", [])
-        exclude_url_regex = re.compile(r"|".join(url for url in exclude_urls))
+        exclude_urls = set(getattr(settings, "EXCLUDE_URLS", []))
 
         global_consume = self.spec.get(swagger_constants.CONSUMES, [])
 
         for path, config in paths.items():
 
-            # We do not include these URLs in our Load Test
-            if re.search(exclude_url_regex, path):
-                continue
-
             common_parameters = config.pop(swagger_constants.PARAMETERS, [])
 
             for method, method_config in config.items():
+
+                # Ignore Exclude URLs
+                op_key = f"{method.upper()} {path}"
+                if op_key in exclude_urls:
+                    continue
+
                 op_interface = interface.OpenAPITaskInterface()
                 op_interface.method = method
                 op_interface.url = path

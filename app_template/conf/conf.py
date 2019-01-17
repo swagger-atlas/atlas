@@ -1,11 +1,14 @@
+LOGOUT_URL = "POST /logout/"
+LOGIN_URL = "POST /login/"
+
+
 class Configuration:
     """
     Swagger Configuration
     """
 
     # These APIs would not be hit during load test
-    # Strings are matched via Regex Mechanism
-    EXCLUDE_URLS = ["/logout", "/login"]
+    EXCLUDE_URLS = [LOGOUT_URL, LOGIN_URL]
 
     SERVER_URL = {
         "protocol": "",  # If left empty, would be picked from swagger. If not in swagger, would be "http"
