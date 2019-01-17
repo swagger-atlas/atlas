@@ -1,38 +1,7 @@
-import os
-
-
-class Settings:
-
-    # General Settings
-    BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
-    PROJECT_FOLDER_NAME = "project"     # Name of top-level namespace where all projects are
-    APP_TEMPLATE_DIRECTORY = "app_template"
-    EXAMPLE_DIRECTORY = "examples"
-
-    INPUT_FOLDER = "conf"
-    OUTPUT_FOLDER = "build"
-
-    SWAGGER_FILE = "swagger.yaml"
-    MAPPING_FILE = "resource_mapping.yaml"
-    RES_MAPPING_HOOKS_FILE = "hooks.py"
-    PROFILES_FILE = "profiles.yaml"
-    SCENARIO_FLOW_FILE = "scenarios.yaml"
-    RESOURCES_FOLDER = "resources"
-    DIST_FOLDER = "dist"
-
-    LOCUST_FILE = "locust.py"
-    LOCUST_HOOK_FILE = "hooks.py"
-
-    # Generated Output files for Artillery
-    # Do not change these names, as they are imported as it is in JS
-    ARTILLERY_LIB_FOLDER = "libs"
-    ARTILLERY_FOLDER = "artillery"
-    ARTILLERY_PROFILES = "profiles.js"
-    ARTILLERY_RESOURCES = "resources.js"
-    ARTILLERY_FILE = "processor.js"
-    ARTILLERY_YAML = "artillery.yaml"
-    ARTILLERY_HOOK_FILE = "hooks.js"
+class Configuration:
+    """
+    Swagger Configuration
+    """
 
     # These APIs would not be hit during load test
     # Strings are matched via Regex Mechanism

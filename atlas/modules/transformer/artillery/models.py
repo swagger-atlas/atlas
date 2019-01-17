@@ -237,7 +237,7 @@ class TaskSet(models.TaskSet):
         # If not, throw a warning and remove that scenario
         unlinked_scenarios = set(self.scenarios.keys()) - set(self.scenario_profile_map.keys())
         for scenario_name in unlinked_scenarios:
-            print(f"\nWARNING: {scenario_name} scenario is not linked to any profile. Will not be part of Artillery\n")
+            print(f"WARNING: {scenario_name} scenario is not linked to any profile. Will not be part of Artillery\n")
             self.scenarios.pop(scenario_name)
 
     def construct_task_map(self):
