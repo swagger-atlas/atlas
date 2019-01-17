@@ -131,3 +131,7 @@ class OpenAPITaskInterface:
     @dependent_resources.setter
     def dependent_resources(self, value: set):
         self._dependent_resources = value
+
+    @property
+    def op_id(self):
+        return f"{self.method.upper()} {self.url}"

@@ -226,9 +226,7 @@ class TaskSet:
         _default = scenarios.get(profile_constants.DEFAULT_SCENARIO)
 
         if not _default:
-            scenarios[profile_constants.DEFAULT_SCENARIO] = [
-                f"{_task.open_api_op.method} : {_task.open_api_op.url}" for _task in self.tasks
-            ]
+            scenarios[profile_constants.DEFAULT_SCENARIO] = [_task.open_api_op.op_id for _task in self.tasks]
 
         return scenarios
 

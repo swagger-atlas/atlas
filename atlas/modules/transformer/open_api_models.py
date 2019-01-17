@@ -86,6 +86,7 @@ class OpenAPISpec:
                 consumes.extend(global_consume)
                 op_interface.consumes = consumes
 
+
                 operation = Operation(config=method_config, specs=self.spec)
                 operation.add_parameters(common_parameters)
 

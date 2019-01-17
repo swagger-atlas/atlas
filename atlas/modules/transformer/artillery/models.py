@@ -218,7 +218,7 @@ class TaskSet(models.TaskSet):
         super().__init__(*args, **kwargs)
         self.yaml_flow = []
 
-        # Map of Task Key (Method: URL) to its YAML configuration
+        # Map of Task OP ID to its YAML configuration
         self.task_map = {}
 
         self.scenario_profile_map = defaultdict(list)
@@ -241,18 +241,16 @@ class TaskSet(models.TaskSet):
             self.scenarios.pop(scenario_name)
 
     def construct_task_map(self):
-        self.task_map = {
-            f"{_task.open_api_op.method} : {_task.open_api_op.url}": _task.yaml_task for _task in self.tasks
-        }
+        self.task_map = {_task.open_api_op.op_id: _task.yaml_task for _task in self.tasks}
 
     def make_yaml_scenario(self, name, flow_tasks):
         flow_definition = [{"function": f"{name}SetProfiles"}, {"function": "setUp"}]
 
         try:
             # Shallow copy leaves pointers and references when converting to YAML
-            flow_definition.extend([deepcopy(self.task_map[task_key.lower().strip()]) for task_key in flow_tasks])
+            flow_definition.extend([deepcopy(self.task_map[task_key.strip()]) for task_key in flow_tasks])
         except KeyError as exc:
-            raise exceptions.InvalidSettingsException(f"Invalid Key in Scenario {name}:  {exc}")
+            raise exceptions.InvalidSettingsException(f"Invalid Key in Scenario {name}: {exc}")
         flow_definition.append({"function": "endResponse"})
         return {
             "flow": flow_definition,

@@ -138,7 +138,7 @@ class ResourceGraph(DAG):
         }
 
         for operation in interfaces:
-            op_id = operation.func_name
+            op_id = operation.op_id
             ref_graph = {}
             self.parse_responses(operation, ref_graph)
             self.parse_request_parameters(operation, ref_graph)
