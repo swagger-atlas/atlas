@@ -17,7 +17,6 @@ class Settings:
     MAPPING_FILE = "resource_mapping.yaml"
     RES_MAPPING_HOOKS_FILE = "hooks.py"
     PROFILES_FILE = "profiles.yaml"
-    SCENARIO_FLOW_FILE = "scenarios.yaml"
     RESOURCES_FOLDER = "resources"
     DIST_FOLDER = "dist"
 
@@ -35,8 +34,7 @@ class Settings:
     ARTILLERY_HOOK_FILE = "hooks.js"
 
     # These APIs would not be hit during load test
-    # Strings are matched via Regex Mechanism
-    EXCLUDE_URLS = ["/logout", "/login"]
+    EXCLUDE_URLS = []
 
     SERVER_URL = {
         "protocol": "",  # If left empty, would be picked from swagger. If not in swagger, would be "http"
@@ -62,3 +60,5 @@ class Settings:
     SWAGGER_REFERENCE_FIELD_RESOURCE_IDENTIFIERS = {"id", "slug", "pk"}
 
     # #### End Resource Auto-detection constant settings
+
+    LOAD_TEST_SCENARIOS = {}

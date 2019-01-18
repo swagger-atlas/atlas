@@ -34,3 +34,5 @@ class Configuration:
     SWAGGER_REFERENCE_FIELD_RESOURCE_IDENTIFIERS = {"id", "slug", "pk"}
 
     # #### End Resource Auto-detection constant settings
+
+    LOAD_TEST_SCENARIOS = {}
