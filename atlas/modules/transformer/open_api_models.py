@@ -62,10 +62,7 @@ class OpenAPISpec:
     def get_interfaces(self):
 
         paths = self.spec.get(swagger_constants.PATHS, {})
-
-        # Pre-compile Regex to make matching blazing fast
         exclude_urls = set(getattr(settings, "EXCLUDE_URLS", []))
-
         global_consume = self.spec.get(swagger_constants.CONSUMES, [])
 
         for path, config in paths.items():
