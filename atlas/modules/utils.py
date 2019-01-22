@@ -137,9 +137,15 @@ def operation_id_name(url, method) -> str:
 
     if method == constants.DELETE:
         op_name_array.append("delete")
-    elif url_fragments[-1].startswith("{"):
-        op_name_array.append("read" if method == constants.GET else "update")
+    elif method == constants.GET:
+        op_name_array.append("read" if url_fragments[-1].startswith("{") else "list")
     else:
-        op_name_array.append("list" if method == constants.GET else "create")
+        if method == constants.POST:
+            _name = "create"
+        elif method == constants.PATCH:
+            _name = "partial_update"
+        else:
+            _name = "update"
+        op_name_array.append(_name)
 
     return "_".join(op_name_array)
