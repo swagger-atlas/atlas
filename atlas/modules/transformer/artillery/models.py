@@ -116,7 +116,7 @@ class Task(models.Task):
         param_array.append("reqParams")
 
         body.append("let reqArgs = hook.call('{op_id}', ...{args});".format(
-            op_id=self.open_api_op.func_name, args="[{}]".format(", ".join(param_array))
+            op_id=self.open_api_op.op_id, args="[{}]".format(", ".join(param_array))
         ))
 
         if "body" in param_array:
