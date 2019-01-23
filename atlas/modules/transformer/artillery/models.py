@@ -38,7 +38,7 @@ class Task(models.Task):
         statements.extend(["{}{}".format(" "*4, try_statement) for try_statement in try_statements])
         statements.append("} catch (ex) {")
         catch_statements = [
-            "console.error(ex.message + ' failed for ' + '{}');".format(self.func_name),
+            f"""console.error(ex.message + ' failed for "{self.open_api_op.op_id}"');""",
             "ee.emit('error', 'Provider Check Failed');",
             "return next();"
         ]
