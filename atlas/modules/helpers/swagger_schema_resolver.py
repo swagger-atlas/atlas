@@ -17,7 +17,7 @@ class SchemaResolver:
         item_data = {}
         for key, value in item_config.items():
             if isinstance(value, dict):
-                item_data.update(self.resolve({key: value}))
+                item_data.update(self.resolve({key: value}, is_field=True))
             elif key in constants.EXTRA_KEYS:
                 # This should be else of previous Condition
                 # Since nested references can use this as property
@@ -59,7 +59,7 @@ class SchemaResolver:
             self.is_top_level = False
         return data_body
 
-    def resolve(self, config):
+    def resolve(self, config, is_field=False):
         """
         Generates the schema for Load testing file
         Runs as following:
@@ -76,15 +76,18 @@ class SchemaResolver:
         if not config:
             return data_body
 
-        all_of_config = config.get(constants.ALL_OF, [])
+        # ALL_OF and Additional properties may be names of data fields
+        # We want to only process these attributes when they are top-attribute of references
+        if not is_field:
+            all_of_config = config.get(constants.ALL_OF, [])
 
-        for element in all_of_config:
-            data_body.update(self.resolve(element))
+            for element in all_of_config:
+                data_body.update(self.resolve(element))
 
-        if all_of_config:
-            return data_body
+            if all_of_config:
+                return data_body
 
-        data_body = self.process_additional_properties(config)
+            data_body = self.process_additional_properties(config)
 
         properties = config.get(constants.PROPERTIES)   # Do not add default blank dict here, since it is checked
         if properties or properties == {}:      # Properties could be blank dict, which is perfectly fine
@@ -105,6 +108,10 @@ class SchemaResolver:
                     ref = item_config.get(constants.REF)
                 else:
                     continue    # This is A reference where we cannot do anything
+
+            # We only parse string references
+            if ref and not isinstance(ref, str):
+                continue
 
             if ref and ref not in self.visited_ref:
                 self.visited_ref.add(ref)

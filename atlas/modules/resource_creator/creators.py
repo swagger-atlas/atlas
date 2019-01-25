@@ -157,6 +157,11 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
             self.parse_reference_properties(ref_name, schema.get(swagger_constants.PROPERTIES))
 
     def get_ref_name_and_config(self, ref):
+
+        if not isinstance(ref, str):
+            print(f"\nWARNING: Only string references supported. Found: {ref}\n")
+            return
+
         ref_config = utils.resolve_reference(self.specs, ref)
         ref_name = ref.split("/")[-1]
         self.parse_reference(ref_name, ref_config)
@@ -172,6 +177,9 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         self.parse_reference_properties(ref_name, ref_config.get(swagger_constants.PROPERTIES, {}))
 
     def parse_reference_properties(self, ref_name, properties):
+
+        # By adding it to processed list before even processing, we avoid cycles
+        self.processed_refs.add(ref_name)
 
         for key, value in properties.items():
             resource = ""
@@ -189,8 +197,6 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                 resource_alias = self.resource_map_resolver.get_alias(resource)
                 value[swagger_constants.RESOURCE] = resource_alias
                 self.resource_params.add(resource_alias)
-
-        self.processed_refs.add(ref_name)
 
     def parse(self):
 
