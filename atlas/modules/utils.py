@@ -131,9 +131,15 @@ def operation_id_name(url, method) -> str:
 
     url_fragments = [fragment for fragment in url.split("/") if fragment]
 
-    op_name_array = [
-        url_element for url_element in url_fragments if not url_element.startswith("{")
-    ]
+    counter = 1
+    op_name_array = []
+
+    for url_element in url_fragments:
+        if url_element.startswith("{"):
+            op_name_array.append(f"PARAM_{counter}")
+            counter += 1
+        else:
+            op_name_array.append(url_element)
 
     if method == constants.DELETE:
         op_name_array.append("delete")
