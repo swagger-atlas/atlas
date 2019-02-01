@@ -93,7 +93,7 @@ class ProfileResourceDataGenerator(mixins.ProfileMixin):
         filter_statement = f"where {filters}" if filters else ""
         limit_statement = f"limit {resource_constants.LIMIT}"
 
-        return " ".join([select_statement, filter_statement, limit_statement])
+        return f"{select_statement} {filter_statement} {limit_statement};"
 
     def parse_db_source(self, config, global_settings):
 

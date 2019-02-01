@@ -76,6 +76,7 @@ UUID = "uuid"
 URI = "uri"
 URL = "url"
 SLUG = "slug"
+STRING_JSON = "json"
 
 # Array Options
 MIN_ITEMS = "minItems"

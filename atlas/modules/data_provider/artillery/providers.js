@@ -63,6 +63,7 @@ const FakeData = {
         MAP[[constants.STRING, constants.URL]] = FakeData.getURL;
         MAP[[constants.STRING, constants.SLUG]] = FakeData.getSlug;
         MAP[[constants.STRING, constants.UUID]] = FakeData.getUUID;
+        MAP[[constants.STRING, constants.STRING_JSON]] = FakeData.getStringJSON;
         MAP[[constants.BOOLEAN, null]] = FakeData.getBoolean;
 
         return MAP;
@@ -111,6 +112,10 @@ const FakeData = {
         }
 
         return value;
+    },
+
+    getStringJSON: function(config) {
+        return {};
     },
 
     getDate: function(config) {

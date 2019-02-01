@@ -7,7 +7,9 @@ class SwaggerOutputWriter:
     @staticmethod
     def write(log, problem, solution):
         solution = solution or ""
-        print(f"Swagger Validation {log}: {problem}. {solution}")
+
+        if log in {"warning", "error"}:
+            print(f"Swagger Validation {log}: {problem}. {solution}")
 
     def error(self, problem, solution=None):
         solution = solution or ""
@@ -16,6 +18,10 @@ class SwaggerOutputWriter:
     def warning(self, problem, solution=None):
         solution = solution or ""
         self.write("warning", problem, solution)
+
+    def debug(self, problem, solution=None):
+        solution = solution or ""
+        self.write("debug", problem, solution)
 
 
 class Swagger:
@@ -160,8 +166,8 @@ class Parameter:
                 constants.RESOURCE, utils.extract_resource_name_from_param(self.name, url, self.in_)
             )
             if resource not in resources:
-                self.writer.warning(f"{self.name} parameter resolves to resource {resource}."
-                                    f" ATLAS will either generate one or pick up from resource_mapping")
+                self.writer.debug(f"{self.name} parameter resolves to resource {resource}."
+                                  f" ATLAS will either generate one or pick up from resource_mapping")
 
 
 class Response:
