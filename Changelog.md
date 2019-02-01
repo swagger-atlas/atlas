@@ -5,8 +5,18 @@ Changelog
 8.0.0
 -----
 
+*Breaking Changes*
+- Settings have been refactored.
+Several settings have been renamed, and some of the settings now reside in `conf/conf.py`.
+- Several Setting Inputs have been changed
+- Swagger Operation ID naming schema has been changed
+
 *Features*
 - Added option for custom scenarios
+- All Swagger Operation inputs are now consolidated in one format
+- Can generate OP_KEY for all Swagger routes by using `python manage.py generate_routes`
+- Several Swagger Keys can now be used as field names in References
+- Added Dummy JSON Provider (type: string, format: json --> returns {})
 
 *Bug fixes*
 - Fix `Enum` options in provider if their choice was false-y value
