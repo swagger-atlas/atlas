@@ -1,5 +1,6 @@
 _ = require("lodash");
 faker = require("faker");
+RandExp = require("randexp");
 
 constants = require('./constants');
 settings = require('./settings');
@@ -109,8 +110,13 @@ const FakeData = {
 
         if (_.isNull(value)) {
 
-            // Make sure that we have some buffer characters if possible, and are not working at MAX
-            value = faker.lorem.text().substring(0, FakeData.getOptions(config)["length"]);
+            let options = FakeData.getOptions(config);
+
+            if (options.pattern) {
+                value = new RandExp(options.pattern).gen()
+            } else {
+                value = faker.lorem.text().substring(0, options.length);
+            }
         }
 
         return value;
@@ -190,16 +196,15 @@ const FakeData = {
             - MinLength
             - MaxLength
             - Pattern
-
-        We are only supporting MaxLength, MinLength for now
         */
 
         let max = _.get(config, constants.MAX_LENGTH, 10);
         let min = _.get(config, constants.MIN_LENGTH, 1);
 
-        // We want to generate a string which is shorter than maximum, but always equal to or exceeding minimum
         return {
-            "length": Math.max(~~max/2, min)
+            // We want to generate a string which is shorter than maximum, but always equal to or exceeding minimum
+            "length": Math.max(~~max/2, min),
+            "pattern": config[constants.PATTERN]
         };
     },
 
