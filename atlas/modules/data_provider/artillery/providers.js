@@ -108,7 +108,9 @@ const FakeData = {
         let value = FakeData.getEnum(config);
 
         if (_.isNull(value)) {
-            value = faker.lorem.text().slice(0, [FakeData.getOptions(config)["maximum"]]);
+
+            // Make sure that we have some buffer characters if possible, and are not working at MAX
+            value = faker.lorem.text().substring(0, FakeData.getOptions(config)["length"]);
         }
 
         return value;
@@ -132,7 +134,10 @@ const FakeData = {
     },
 
     getURL: function(config) {
-        return faker.internet.url()
+        // Not using faker.internet.url directly to control length of URL
+        return faker.internet.protocol() + '://' +
+            faker.name.firstName().substring(0, 5).replace(/([\\~#&*{}/:<>?|\"'])/ig, '').toLowerCase() +
+            "." + faker.internet.domainSuffix();
     },
 
     getSlug: function(config) {
@@ -143,7 +148,7 @@ const FakeData = {
         let value = FakeData.getEnum(config);
 
         if (_.isNull(value)) {
-            value = faker.internet.password(FakeData.getOptions(config)["maximum"]);
+            value = faker.internet.password(FakeData.getOptions(config)["length"]);
         }
 
         return value;
@@ -186,11 +191,15 @@ const FakeData = {
             - MaxLength
             - Pattern
 
-        We are only supporting MaxLength for now, and even then, always generating string of maxLength Char always
+        We are only supporting MaxLength, MinLength for now
         */
 
+        let max = _.get(config, constants.MAX_LENGTH, 10);
+        let min = _.get(config, constants.MIN_LENGTH, 1);
+
+        // We want to generate a string which is shorter than maximum, but always equal to or exceeding minimum
         return {
-            "maximum": _.get(config, constants.MAX_LENGTH, 10)   // Arbitrarily set max length
+            "length": Math.max(~~max/2, min)
         };
     },
 
