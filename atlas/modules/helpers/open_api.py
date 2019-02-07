@@ -8,6 +8,7 @@ class ElementConfig:
 
     def __init__(self, config):
         self.config = config
+        self.resolved_config = self.resolve_config()
 
     def resolve_config(self):
         config = deepcopy(self.config)
@@ -18,7 +19,7 @@ class ElementConfig:
 
     @property
     def ref(self):
-        return self.resolve_config().get(constants.REF)
+        return self.resolved_config.get(constants.REF)
 
 
 class ReferenceField(ElementConfig):
@@ -29,7 +30,7 @@ class ReferenceField(ElementConfig):
 
     @property
     def resource(self):
-        return self.resolve_config().get(constants.RESOURCE)
+        return self.resolved_config.get(constants.RESOURCE)
 
     @property
     def can_contain_primary_resource(self):

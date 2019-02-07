@@ -140,25 +140,16 @@ class ResourceGraph(DAG):
         for operation in interfaces:
             op_id = operation.op_id
             ref_graph = {}
-            self.parse_responses(operation, ref_graph)
+
+            for ref in operation.producer_references:
+                ref_graph[ref] = "producer"
+
             self.parse_request_parameters(operation, ref_graph)
 
             for ref, ref_op in ref_graph.items():
                 resource_node = self.nodes.get(self.get_associated_resource_for_ref(ref))
                 if resource_node:
                     getattr(resource_node, ref_op_map.get(ref_op))(op_id)
-
-    def parse_responses(self, operation, ref_graph):
-        """
-        Parse Responses for a single operation and mark References w.r.t to Operation
-        """
-
-        for response in operation.responses.values():
-            if operation.method in {constants.DELETE, constants.PATCH, constants.PUT}:
-                continue
-            response_refs = self.get_schema_refs(response)
-            for ref in response_refs:
-                ref_graph[ref] = "producer"
 
     def parse_request_parameters(self, operation, ref_graph):
         """

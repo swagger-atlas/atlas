@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import defaultdict, OrderedDict
 import logging
 
 from atlas.modules import (
@@ -6,10 +6,85 @@ from atlas.modules import (
     exceptions,
     utils
 )
+from atlas.modules.helpers import open_api
 from atlas.modules.transformer import interface
 from atlas.conf import settings
 
 logger = logging.getLogger(__name__)
+
+RESOURCES = "resources"
+DEF = "_definitions"
+REFERENCES = "references"
+
+
+class Response:
+
+    def __init__(self, specs=None):
+        self.specs = specs or {}
+
+        self.definitions = {}
+
+    def get_properties(self, config):
+        """
+        Find Properties by recursively reducing array and objects
+        """
+
+        _type = config.get(swagger_constants.TYPE)
+
+        if _type == swagger_constants.ARRAY:
+            return self.get_properties(config.get(swagger_constants.ITEMS, {}))
+
+        if _type == swagger_constants.OBJECT:
+            return config.get(swagger_constants.PROPERTIES, {})
+
+        return config
+
+    def add_definition_ref(self, config, name):
+        # Check for ref first
+        ref = config.get(swagger_constants.REF)
+        if ref:
+            self.definitions[name][DEF].add(utils.get_ref_name(ref).lower())
+
+    def resolve_definitions(self):
+        definitions = self.specs.get(swagger_constants.DEFINITIONS, {})
+        self.parse_definitions(definitions)
+
+        for name, config in definitions.items():
+            self.definitions[name.lower()][RESOURCES] = self.resolve_nested_definition(name.lower())
+
+    def parse_definitions(self, definitions):
+
+        for name, config in definitions.items():
+            name = name.lower()
+            self.definitions[name] = defaultdict(set)
+            config = self.get_properties(config)
+
+            self.add_definition_ref(config, name)
+
+            self.definitions[name][REFERENCES].add(name)
+
+            for field_config in config.values():
+                field_config = self.get_properties(field_config)
+
+                resource = field_config.get(swagger_constants.RESOURCE)
+                if resource:
+                    self.definitions[name][RESOURCES].add(resource)
+
+                self.add_definition_ref(field_config, name)
+
+    def resolve_nested_definition(self, definition):
+
+        # Can speed this up by marking elements which are already processed
+        # Note: Any such optimization should be reflected in calling/parent functions also
+
+        config = self.definitions.get(definition)
+
+        while config.get(DEF):
+            new_definition = config[DEF].pop()
+            self.definitions[definition][REFERENCES].add(new_definition)
+            config[RESOURCES].update(self.resolve_nested_definition(new_definition))
+
+        return config[RESOURCES]
 
 
 class Operation:
@@ -40,6 +115,26 @@ class Operation:
 
             self.parameters[name] = parameter
 
+    @staticmethod
+    def get_schema_refs(config):
+        schema = open_api.Schema(config.get(swagger_constants.SCHEMA, {}))
+        return [utils.get_ref_name(ref).lower() for ref in schema.get_all_refs()]
+
+    def add_resource_producers(self, operation, resp_mapping):
+
+        for response in operation.responses.values():
+
+            # Assumption: PUT/PATCH/DELETE Method do not add any new resource
+            if operation.method in {swagger_constants.DELETE, swagger_constants.PATCH, swagger_constants.PUT}:
+                continue
+
+            response_refs = self.get_schema_refs(response)
+
+            for ref in response_refs:
+                config = resp_mapping.get(ref, {})
+                operation.resource_producers = config.get(RESOURCES, set())
+                operation.producer_references = config.get(REFERENCES, set())
+
     def add_to_interface(self, op_interface):
 
         op_interface.func_name = self.config.get(swagger_constants.OPERATION)
@@ -56,10 +151,14 @@ class OpenAPISpec:
     def __init__(self, spec):
         self.spec = spec
 
+        self.responses = Response(spec)
+
         self.paths = OrderedDict()
         self.interfaces = []
 
     def get_interfaces(self):
+
+        self.responses.resolve_definitions()
 
         paths = self.spec.get(swagger_constants.PATHS, {})
         exclude_urls = set(getattr(settings, "EXCLUDE_URLS", []))
@@ -83,8 +182,10 @@ class OpenAPISpec:
                 consumes.extend(global_consume)
                 op_interface.consumes = consumes
 
-
                 operation = Operation(config=method_config, specs=self.spec)
                 operation.add_parameters(common_parameters)
 
-                self.interfaces.append(operation.add_to_interface(op_interface))
+                op_interface = operation.add_to_interface(op_interface)
+                operation.add_resource_producers(op_interface, self.responses.definitions)
+
+                self.interfaces.append(op_interface)

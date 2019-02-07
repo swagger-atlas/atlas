@@ -169,7 +169,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
     def parse_reference(self, ref_name, ref_config):
 
         if ref_name in self.processed_refs:
-            return      # This has already been processed, so need to do it again
+            return      # This has already been processed, so no need to do it again
 
         for element in ref_config.get(swagger_constants.ALL_OF, []):
             self.resolve_all_of_element(ref_name, element)
