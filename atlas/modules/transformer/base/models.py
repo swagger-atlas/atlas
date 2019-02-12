@@ -206,6 +206,17 @@ class Task:
 
         return param
 
+    def has_files(self):
+        """
+        Check if there is going to be file structure
+        We only need to iterate over top level since OAS 2 only supports that
+        """
+
+        for config in self.data_body.values():
+            if isinstance(config, dict) and config.get(constants.TYPE) == constants.FILE:
+                return True
+        return False
+
 
 class TaskSet:
     """

@@ -1,3 +1,5 @@
+fs = require("fs");
+
 _ = require("lodash");
 faker = require("faker");
 RandExp = require("randexp");
@@ -54,6 +56,8 @@ const FakeData = {
         MAP[[constants.INTEGER, "$any"]] = FakeData.getInteger;
         MAP[[constants.NUMBER, null]] = FakeData.getFloat;
         MAP[[constants.NUMBER, "$any"]] = FakeData.getFloat;
+        MAP[[constants.FILE, null]] = FakeData.getFile;
+        MAP[[constants.FILE, "$any"]] = FakeData.getFile;
         MAP[[constants.STRING, null]] = FakeData.getString;
         MAP[[constants.STRING, constants.DATE]] = FakeData.getDate;
         MAP[[constants.STRING, constants.DATE_TIME]] = FakeData.getDateTime;
@@ -102,7 +106,13 @@ const FakeData = {
             finalNumber = +minimum.toFixed(2);
         }
 
-        return finalNumber
+        return finalNumber;
+    },
+
+    getFile: function(config) {
+        // Assuming the code is always called from main function.
+        // We can definitely change this later to detect script call directory and then try to reach this path
+        return fs.createReadStream(`${settings.DIST_FOLDER}/${settings.ARTILLERY_FOLDER}/${settings.ARTILLERY_LIB_FOLDER}/dummy.txt`);
     },
 
     getString: function(config) {

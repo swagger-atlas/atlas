@@ -137,14 +137,23 @@ class Task(models.Task):
     def handle_mime(self, body):
         mime = self.open_api_op.mime
 
-        request_map = {
-            constants.JSON_CONSUMES: "json",
-            constants.FORM_CONSUMES: "form",
-            constants.MULTIPART_CONSUMES: "formData"
-        }
+        if self.has_files():
+            body.extend([
+                "let formData = {};",
+                "_.forEach(reqArgs[1], (val, key) => {",
+                "    val instanceof stream.Readable ? formData[key] = val : formData[key] = _.toString(val); ",
+                "});",
+                "requestParams.formData = formData;"
+            ])
+        else:
+            request_map = {
+                constants.JSON_CONSUMES: "json",
+                constants.FORM_CONSUMES: "form",
+                constants.MULTIPART_CONSUMES: "formData"
+            }
 
-        body.append(f"reqArgs[2].headers['Content-Type'] = '{mime}';")
-        body.append(f"requestParams.{request_map[mime]} = reqArgs[1];")
+            body.append(f"reqArgs[2].headers['Content-Type'] = '{mime}';")
+            body.append(f"requestParams.{request_map[mime]} = reqArgs[1];")
 
         return body
 

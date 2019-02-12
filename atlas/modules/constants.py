@@ -53,6 +53,7 @@ STRING = "string"
 BOOLEAN = "boolean"
 ARRAY = "array"
 ENUM = "enum"   # Strictly not a type, but is associated with both strings and numbers
+FILE = "file"
 QUERY_TYPES = {INTEGER, NUMBER, STRING, BOOLEAN, ARRAY}    # Valid types for query Parameters
 
 # Integer Options
