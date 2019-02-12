@@ -5,6 +5,9 @@ Changelog
 8.0.0
 -----
 
+One of the biggest releases up to date.
+It is recommended you create a new project with this release and copy your old settings here.
+
 *Breaking Changes*
 - Settings have been refactored.
 Several settings have been renamed, and some of the settings now reside in `conf/conf.py`.
@@ -17,9 +20,12 @@ Several settings have been renamed, and some of the settings now reside in `conf
 - Can generate OP_KEY for all Swagger routes by using `python manage.py generate_routes`
 - Several Swagger Keys can now be used as field names in References
 - Added Dummy JSON Provider (type: string, format: json --> returns {})
+- Added Regex Pattern support in Providers for string
 
 *Bug fixes*
 - Fix `Enum` options in provider if their choice was false-y value
+- String and URL Providers enhanced to correctly support MAX characters
+- File Provider fixed
 
 
 7.0.0
