@@ -88,6 +88,10 @@ exports.Resource = class Resource {{
     deleteResource(profile, resourceKey, resourceValue) {{
         this.resources[Resource.getKey(profile, resourceKey)].delete(resourceValue);
     }}
+
+    restoreResource(profile, resourceKey, resourceValue) {{
+        this.resources[Resource.getKey(profile, resourceKey)].add(resourceValue);
+    }}
 }};
 """
 

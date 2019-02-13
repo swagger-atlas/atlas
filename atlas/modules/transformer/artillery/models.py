@@ -130,6 +130,11 @@ class Task(models.Task):
         body.append("requestParams.url = reqArgs[0];")
         body.append(f"requestParams.headers = reqArgs[{len(param_array) - 1}].headers;")
 
+        if self.delete_url_resource:
+            _resource = getattr(self.delete_url_resource, constants.RESOURCE)
+            _field = self.delete_url_resource.field
+            body.append(f"context.vars._delete_resource = {{ resource: '{_resource}', value: urlConfig[1].{_field} }};")
+
         body.append(f"context.vars._startTime = Date.now();")
 
         return self.cache_operation_tasks(body)

@@ -63,6 +63,7 @@ function formatURL(url, queryConfig, pathConfig, provider) {
     return [url, _.assign(pathParams, queryParams)];
 }"""
 
+
 EXTRACT_BODY_FUNCTION = """
 function extractBody(response, requestParams, context) {
     let body = response.body;
@@ -127,6 +128,10 @@ API_AFTER_RESPONSE_FUNCTION = """function {after_func_name}(requestParams, respo
     const provider = context.vars['provider'];
     const status = response.statusCode;
     if (!status || status < 200 || status > 300) {{
+        if (context.vars._delete_resource) {{
+            const rollback = context.vars._delete_resource;
+            provider.rollBackDelete(rollback.resource, rollback.value);
+        }}
         ee.emit('error', 'Non 2xx Response');{else_body}
     }}
     provider.reset();

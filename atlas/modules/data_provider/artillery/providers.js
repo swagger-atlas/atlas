@@ -152,7 +152,7 @@ const FakeData = {
     getURL: function(config) {
         // Not using faker.internet.url directly to control length of URL
         return faker.internet.protocol() + '://' +
-            faker.name.firstName().substring(0, 5).replace(/([\\~#&*{}/:<>?|\"'])/ig, '').toLowerCase() +
+            faker.name.firstName().substring(0, 5).replace(/([\\~#&*{}/:<>?|"'])/ig, '').toLowerCase() +
             "." + faker.internet.domainSuffix();
     },
 
@@ -302,6 +302,12 @@ class ResourceProvider {
         return options.flatForSingle ? resources[0] : resources;
     }
 
+    restoreResource(profile, resourceValue) {
+        // Function to restore Resource value in DB if delete OP was un-successful
+
+        this.dbResourceProviderInstance.restoreResource(profile, this.resourceName, resourceValue);
+    }
+
 }
 
 
@@ -317,6 +323,11 @@ class Provider {
 
         this.configResourceMap = {};
         this.relatedResourceData = {};
+    }
+
+    rollBackDelete(resource, value) {
+        const resourceProvider = new ResourceProvider(resource, this.dbResourceProviderInstance);
+        resourceProvider.restoreResource(this.profile, value);
     }
 
     reset() {

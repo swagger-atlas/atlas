@@ -26,6 +26,7 @@ Several settings have been renamed, and some of the settings now reside in `conf
 - Fix `Enum` options in provider if their choice was false-y value
 - String and URL Providers enhanced to correctly support MAX characters
 - File Provider fixed
+- Resource Values were deleted even if their API was failing. This has been fixed
 
 
 7.0.0
