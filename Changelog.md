@@ -21,6 +21,7 @@ Several settings have been renamed, and some of the settings now reside in `conf
 - Several Swagger Keys can now be used as field names in References
 - Added Dummy JSON Provider (type: string, format: json --> returns {})
 - Added Regex Pattern support in Providers for string
+- Add support for adding File Sub types from Hooks
 
 *Bug fixes*
 - Fix `Enum` options in provider if their choice was false-y value

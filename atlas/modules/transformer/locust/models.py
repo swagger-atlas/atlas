@@ -1,5 +1,7 @@
 import logging
+import random
 import re
+import string
 
 from atlas.modules import utils
 from atlas.modules.transformer.base import models
@@ -90,6 +92,10 @@ class Task(models.Task):
 
 
 class TaskSet(models.TaskSet):
+
+    def __init__(self, *args, **kwargs):
+        super(TaskSet, self).__init__(*args, **kwargs)
+        self.tag = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
 
     def generate_tasks(self, width):
         join_string = "\n\n{w}".format(w=' ' * width * 4)

@@ -20,6 +20,7 @@ class Settings:
     PROFILES_FILE = "profiles.yaml"
     RESOURCES_FOLDER = "resources"
     DIST_FOLDER = "dist"
+    DUMMY_FILES_FOLDER = "sample-files"
 
     LOCUST_FILE = "locust.py"
     LOCUST_HOOK_FILE = "hooks.py"

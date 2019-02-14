@@ -49,7 +49,7 @@ class Response:
         definitions = self.specs.get(swagger_constants.DEFINITIONS, {})
         self.parse_definitions(definitions)
 
-        for name, config in definitions.items():
+        for name in definitions.keys():
             self.definitions[name.lower()][RESOURCES] = self.resolve_nested_definition(name.lower())
 
     def parse_definitions(self, definitions):

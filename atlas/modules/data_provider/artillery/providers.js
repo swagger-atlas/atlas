@@ -1,4 +1,5 @@
 fs = require("fs");
+path = require("path");
 
 _ = require("lodash");
 faker = require("faker");
@@ -110,9 +111,13 @@ const FakeData = {
     },
 
     getFile: function(config) {
+
         // Assuming the code is always called from main function.
         // We can definitely change this later to detect script call directory and then try to reach this path
-        return fs.createReadStream(`${settings.DIST_FOLDER}/${settings.ARTILLERY_FOLDER}/${settings.ARTILLERY_LIB_FOLDER}/dummy.txt`);
+        const basePath = path.join(settings.DIST_FOLDER, settings.DUMMY_FILES_FOLDER);
+
+        // We provide hook methods to over-ride default text file selection
+        return fs.createReadStream(path.join(basePath, 'dummy.txt'));
     },
 
     getString: function(config) {

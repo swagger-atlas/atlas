@@ -22,4 +22,4 @@ psycopg2==2.7.5
 
 # Developer Tools
 pylint==2.1.0
-git-pylint-commit-hook==2.5.0
+git-pylint-commit-hook==2.5.1

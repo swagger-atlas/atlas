@@ -6,7 +6,7 @@ from atlas.modules.helpers import swagger_schema_resolver
 from atlas.conf import settings
 
 
-RES_FIELD_MAP = namedtuple('RES_FIELD_MAP', [constants.RESOURCE, 'field'])
+RES_FIELD_MAP = namedtuple('ResourceFieldMap', [constants.RESOURCE, 'field'])
 
 
 class Task:
