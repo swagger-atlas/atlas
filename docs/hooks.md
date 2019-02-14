@@ -62,7 +62,7 @@ function removeUserField(...args) {
     let body = args[1];
     del body.user;
     args[1] = body;
-    return ...args;
+    return args;
 }
 ```
 
@@ -72,6 +72,33 @@ Things to note:
 - For requests which support body (eg: POST/PUT/PATCH), args are in order: URL, BODY, REQUEST PARAMS
 - For requests which do NOT support body (eg: GET), args are in order: URL, REQUEST PARAMS
 - Relevant HookRegister ID is Swagger OPERATION ID for the request. This can be found in Swagger file of request
+
+
+#### File Hooks
+
+In the request hooks, we have a out-of-box solution for adding files to fields.
+
+```js
+file = require("./libs/files").file;
+
+function addCSVFile(...args) {
+    let body = args[1];
+    body.upload_file = file.getCSVFile();
+    args[1] = body;
+    return args;
+}
+```
+
+You can use following File Methods:
+- getImageFile()
+- getCSVFile()
+- getExcelFile()
+- getTextFile()
+- getFileByPath(path) (In this, supply your own file by providing path)
+
+**CAVEAT** : Make sure that the file fields is marked as type `file` in Swagger.
+If not, it may result in unexpected behaviour.
+When ATLAS finds `file` type fields, it automatically generates dummy text file for same
 
 
 Hook Registration

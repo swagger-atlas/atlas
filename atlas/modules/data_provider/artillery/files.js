@@ -30,7 +30,7 @@ class File {
         return this.getFile('txt');
     }
 
-    static getFileByPath(filePath) {
+    getFileByPath(filePath) {
         return fs.createReadStream(filePath);
     }
 }
