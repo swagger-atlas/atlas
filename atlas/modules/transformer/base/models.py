@@ -6,7 +6,7 @@ from atlas.modules.helpers import swagger_schema_resolver
 from atlas.conf import settings
 
 
-RES_FIELD_MAP = namedtuple('ResourceFieldMap', [constants.RESOURCE, 'field'])
+ResourceFieldMap = namedtuple('ResourceFieldMap', [constants.RESOURCE, 'field'])
 
 
 class Task:
@@ -129,7 +129,7 @@ class Task:
                 config[name]["options"] = {"delete": 1}
                 # Using 1 instead of true since this avoids Language issues. All languages treat 1 as same
                 # However, different languages have different truth values eg: True (Python), true (javascript)
-                self.delete_url_resource = RES_FIELD_MAP(config[name].get(constants.RESOURCE), name)
+                self.delete_url_resource = ResourceFieldMap(config[name].get(constants.RESOURCE), name)
             self.url_params[name] = (param_type, config[name])
 
     def convert(self, width):
