@@ -12,40 +12,32 @@ You may need profiles for:
 
 
 Creating and using Profiles
-=======
+===========================
+
 In your conf folder, there would be `profiles.yaml`, in which you can create profiles.
 ATLAS gives you a dummy profile, which you can over-write as needed.
-
 
 Atlas Needs at least one profile, so even if you do not plan on using profiles, do NOT delete dummy profile.
 You can define multiple profiles in ATLAS as needed.
 
-
-After the creation of profiles, you can specify which profile to use in `hooks.js`
-Using `profile.register` function, you can also specify any number of hooks which you want to run for the profile before the start of load test
+You can specify number of default actions which needed to be taken to setup any profile.
+In `conf/artillery/hooks.js`, you can use `$profileSetup` as OP_KEY to run any number of hooks as needed.
+One default hook is already available for users as template
 
 
 Profile Distribution
 ====================
 
-By default, ATLAS randomly distribute profiles for each simulated user.
-You can change this behaviour by editing `conf/hooks.js`
+In case of multiple profiles, ATLAS default behaviour is to select a random profile for any simulated VU.
+You can change this behaviour by adding a hook with OP_KEY `$profileSelection`.
+
+The corresponding function takes all profiles as inputs and return the profile Array
+
+An example snippet for same:
 
 ```js
-function selectProfile() {
-
-    // Profile Distribution Strategy - It randomly picks a Profile for now
-    // You can change this to other strategies by changing this logic
-    // Some examples might be -- Weighted distribution, subset of profiles etc
-    const profileName = _.sample(Object.keys(profiles));
-
-    let profile = profiles[profileName];
-
-    // Auth Statements
-    profile.auth = {
-        "headers": {'Authorization': 'Token ' + profile.token}
-    };
-    return {[profileName]: profile};
+function filterByID(profiles) {
+    return _.filter(profiles, function (profile) { profile.id < 10; });
 }
 ```
 
@@ -79,7 +71,7 @@ Profiles can store authentication key-value pairs.
     token: abcd
 ```
 
-And then in `conf/hooks.js`
+And then in `conf/artillery/hooks.js`
 ```js
 function selectProfile() {
     const profileName = _.sample(Object.keys(profiles));
@@ -126,25 +118,44 @@ If you specify custom scenario, you need to link them to profiles.
 Each profile by default executes `default` scenario which consists of all APIs.
 
 You can change this mapping by keyword `scenarios`
+
 *Example*
 ```yaml
 <profile_name>:
     scenarios:
-        - my_scenario_1
-        - my_scenario_3
+        - simple
+<another_profile>:
+    scenarios:
+        - extended
 ```
 
-And in `scenarios.yaml`,
-```yaml
-my_scenario_1:
-    - op_1
-    - op_2
-    - op_3
-my_scenario_2:
-    - op_2
-    - op_4
-my_scenario_3:
-    - op_1
-    - op_3
-    - op_2
+And in `conf/conf.py`,
+```py
+from . import scenarios
+
+LOAD_TEST_SCENARIOS = {
+    "simple": scenarios.SIMPLE,
+    "extended": scenarios.EXTENDED
+}
 ```
+
+*scenarios.py*
+```py
+from . import routes
+
+SIMPLE = [
+    routes.CREATE_XYZ,
+    routes.LIST_XYZ,
+    routes.UPDATE_XYZ
+]
+
+EXTENDED = [
+    *SIMPLE,
+    routes.RETRIEVE_XYZ,
+    routes.CREATE_XYZ_ABC,
+    routes.DELETE_XYZ_ABC,
+    routes.DELETE_XYZ
+]
+```
+
+where `routes.py` is generated via `python manage.py generate_routes`
