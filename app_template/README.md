@@ -58,4 +58,4 @@ Graphana - Visualizing Results
 We use Graphana to visualize statistics.
 
 - [Install Graphana](http://docs.grafana.org/installation/)
-- Import `graphana.json` file in your Graphana dashboard, using appropriate data source
+- Import `graphana.json` file in your Graphana dashboard. You may need to change DATA_SOURCE as per your settings

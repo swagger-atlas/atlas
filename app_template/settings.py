@@ -1,4 +1,7 @@
 class Settings:
+
+    # APP DB Settings.
+    # Required if you add any DB Mapping in conf/resource_mapping.yaml
     DATABASE = {
         "engine": "",  # Allowed values are "postgres", "mysql", "sqlite"
         "name": "",
@@ -20,6 +23,7 @@ class Settings:
     # Only hit APIs which match Tags
     ONLY_TAG_API = False
 
+    # INFLUX DB Setting. Required.
     INFLUX = {
         "database": "",
         "host": "",

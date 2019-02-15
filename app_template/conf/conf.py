@@ -20,7 +20,7 @@ class Configuration:
 
     # Custom Ordering Dependency
     # This is an array of 2-pair tuples, with second operation being dependent on first operation
-    # These are operation IDs --> Eg: [ (petCreate, petList), (petCreate, petRetrieve) ]
+    # These are operation OP_KEYs --> Eg: [ ("POST /pet/", "GET /pet/{id}"), ("POST /pet/", "PUT /pet/{id}") ]
     SWAGGER_OPERATION_DEPENDENCIES = []
 
     # ### Resource Auto-detection settings
@@ -35,4 +35,5 @@ class Configuration:
 
     # #### End Resource Auto-detection constant settings
 
+    # Custom Scenarios for Load Test. See: https://code.jtg.tools/jtg/atlas/tree/master/docs/profile.md for more details
     LOAD_TEST_SCENARIOS = {}
