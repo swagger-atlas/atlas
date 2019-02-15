@@ -117,3 +117,41 @@ def extract_resource_name_from_param(param_name, url_path, param_type=constants.
             resource_name = inflection.singularize(url_array[resource_index])
 
     return resource_name
+
+
+def operation_id_name(url, method) -> str:
+    """
+    Generate the name for Operation ID
+
+    Logic:
+        user/       - (user_create, user_list)
+        user/{id}   - (user_read, user_update, user_delete)
+        user/{id}/action - (user_action with above logic)
+    """
+
+    url_fragments = [fragment for fragment in url.split("/") if fragment]
+
+    counter = 1
+    op_name_array = []
+
+    for url_element in url_fragments:
+        if url_element.startswith("{"):
+            op_name_array.append(f"PARAM_{counter}")
+            counter += 1
+        else:
+            op_name_array.append(url_element)
+
+    if method == constants.DELETE:
+        op_name_array.append("delete")
+    elif method == constants.GET:
+        op_name_array.append("read" if url_fragments[-1].startswith("{") else "list")
+    else:
+        if method == constants.POST:
+            _name = "create"
+        elif method == constants.PATCH:
+            _name = "partial_update"
+        else:
+            _name = "update"
+        op_name_array.append(_name)
+
+    return "_".join(op_name_array)

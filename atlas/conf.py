@@ -7,6 +7,9 @@ from atlas.settings import Settings as baseSettings
 SETTINGS_MODULE = "ATLAS_SETTINGS_MODULE"
 SETTINGS_CLASS = "SETTINGS_CLASS"
 
+CONF_MODULE = "ATLAS_CONFIGURATION_MODULE"
+CONF_CLASS = "CONFIGURATION_CLASS"
+
 empty = object()
 
 
@@ -83,6 +86,13 @@ class Settings:
         if settings_module:
             mod = importlib.import_module(settings_module)
             user_settings = getattr(mod, os.environ.get(SETTINGS_CLASS, "Settings"))
+            self.set_settings(user_settings)
+
+        # Add configuration settings
+        conf_module = os.environ.get(CONF_MODULE)
+        if conf_module:
+            mod = importlib.import_module(conf_module)
+            user_settings = getattr(mod, os.environ.get(CONF_CLASS, "Configuration"))
             self.set_settings(user_settings)
 
 

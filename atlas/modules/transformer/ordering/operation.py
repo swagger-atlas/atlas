@@ -17,8 +17,8 @@ class OperationGraph(DAG):
 
     def new_graph(self, interfaces):
         for op_interface in interfaces:
-            self.add_node(op_interface.func_name)
-            self.operations[op_interface.func_name] = op_interface
+            self.add_node(op_interface.op_id)
+            self.operations[op_interface.op_id] = op_interface
 
     def add_cartesian_edges(self, parent_keys: set, child_keys: set):
         """

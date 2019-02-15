@@ -1,42 +1,14 @@
-import os
+LOGOUT_URL = "POST /logout/"
+LOGIN_URL = "POST /login/"
 
 
-class Settings:
-
-    # General Settings
-    BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
-    PROJECT_FOLDER_NAME = "project"     # Name of top-level namespace where all projects are
-    APP_TEMPLATE_DIRECTORY = "app_template"
-    EXAMPLE_DIRECTORY = "examples"
-
-    INPUT_FOLDER = "conf"
-    OUTPUT_FOLDER = "build"
-
-    SWAGGER_FILE = "swagger.yaml"
-    MAPPING_FILE = "resource_mapping.yaml"
-    ROUTES_FILE = "routes.py"
-    RES_MAPPING_HOOKS_FILE = "hooks.py"
-    PROFILES_FILE = "profiles.yaml"
-    RESOURCES_FOLDER = "resources"
-    DIST_FOLDER = "dist"
-    DUMMY_FILES_FOLDER = "sample-files"
-
-    LOCUST_FILE = "locust.py"
-    LOCUST_HOOK_FILE = "hooks.py"
-
-    # Generated Output files for Artillery
-    # Do not change these names, as they are imported as it is in JS
-    ARTILLERY_LIB_FOLDER = "libs"
-    ARTILLERY_FOLDER = "artillery"
-    ARTILLERY_PROFILES = "profiles.js"
-    ARTILLERY_RESOURCES = "resources.js"
-    ARTILLERY_FILE = "processor.js"
-    ARTILLERY_YAML = "artillery.yaml"
-    ARTILLERY_HOOK_FILE = "hooks.js"
+class Configuration:
+    """
+    Swagger Configuration
+    """
 
     # These APIs would not be hit during load test
-    EXCLUDE_URLS = []
+    EXCLUDE_URLS = [LOGOUT_URL, LOGIN_URL]
 
     SERVER_URL = {
         "protocol": "",  # If left empty, would be picked from swagger. If not in swagger, would be "http"
@@ -48,7 +20,7 @@ class Settings:
 
     # Custom Ordering Dependency
     # This is an array of 2-pair tuples, with second operation being dependent on first operation
-    # These are operation IDs --> Eg: [ (petCreate, petList), (petCreate, petRetrieve) ]
+    # These are operation OP_KEYs --> Eg: [ ("POST /pet/", "GET /pet/{id}"), ("POST /pet/", "PUT /pet/{id}") ]
     SWAGGER_OPERATION_DEPENDENCIES = []
 
     # ### Resource Auto-detection settings
@@ -63,4 +35,5 @@ class Settings:
 
     # #### End Resource Auto-detection constant settings
 
+    # Custom Scenarios for Load Test. See: https://code.jtg.tools/jtg/atlas/tree/master/docs/profile.md for more details
     LOAD_TEST_SCENARIOS = {}

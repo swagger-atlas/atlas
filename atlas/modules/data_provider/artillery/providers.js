@@ -1,5 +1,9 @@
+fs = require("fs");
+path = require("path");
+
 _ = require("lodash");
 faker = require("faker");
+RandExp = require("randexp");
 
 constants = require('./constants');
 settings = require('./settings');
@@ -53,6 +57,8 @@ const FakeData = {
         MAP[[constants.INTEGER, "$any"]] = FakeData.getInteger;
         MAP[[constants.NUMBER, null]] = FakeData.getFloat;
         MAP[[constants.NUMBER, "$any"]] = FakeData.getFloat;
+        MAP[[constants.FILE, null]] = FakeData.getFile;
+        MAP[[constants.FILE, "$any"]] = FakeData.getFile;
         MAP[[constants.STRING, null]] = FakeData.getString;
         MAP[[constants.STRING, constants.DATE]] = FakeData.getDate;
         MAP[[constants.STRING, constants.DATE_TIME]] = FakeData.getDateTime;
@@ -63,20 +69,26 @@ const FakeData = {
         MAP[[constants.STRING, constants.URL]] = FakeData.getURL;
         MAP[[constants.STRING, constants.SLUG]] = FakeData.getSlug;
         MAP[[constants.STRING, constants.UUID]] = FakeData.getUUID;
+        MAP[[constants.STRING, constants.STRING_JSON]] = FakeData.getStringJSON;
         MAP[[constants.BOOLEAN, null]] = FakeData.getBoolean;
 
         return MAP;
     },
 
     getInteger: function(config) {
-        return FakeData.getEnum(config) ||
-            _.random(...FakeData.getRange(config)) * _.get(config, constants.MULTIPLE_OF, 1);
+        let value = FakeData.getEnum(config);
+
+        if (_.isNull(value)) {
+            value = _.random(...FakeData.getRange(config)) * _.get(config, constants.MULTIPLE_OF, 1);
+        }
+
+        return value;
     },
 
     getFloat: function(config) {
         // Short-circuit return
         const num = FakeData.getEnum(config);
-        if (num) {
+        if (!_.isNull(num)) {
             return num;
         }
 
@@ -95,12 +107,38 @@ const FakeData = {
             finalNumber = +minimum.toFixed(2);
         }
 
-        return finalNumber
+        return finalNumber;
+    },
+
+    getFile: function(config) {
+
+        // Assuming the code is always called from main function.
+        // We can definitely change this later to detect script call directory and then try to reach this path
+        const basePath = path.join(settings.DIST_FOLDER, settings.DUMMY_FILES_FOLDER);
+
+        // We provide hook methods to over-ride default text file selection
+        return fs.createReadStream(path.join(basePath, 'dummy.txt'));
     },
 
     getString: function(config) {
-        return FakeData.getEnum(config) ||
-            faker.lorem.text().slice(0, [FakeData.getOptions(config)["maximum"]])
+        let value = FakeData.getEnum(config);
+
+        if (_.isNull(value)) {
+
+            let options = FakeData.getOptions(config);
+
+            if (options.pattern) {
+                value = new RandExp(options.pattern).gen()
+            } else {
+                value = faker.lorem.text().substring(0, options.length);
+            }
+        }
+
+        return value;
+    },
+
+    getStringJSON: function(config) {
+        return {};
     },
 
     getDate: function(config) {
@@ -117,7 +155,10 @@ const FakeData = {
     },
 
     getURL: function(config) {
-        return faker.internet.url()
+        // Not using faker.internet.url directly to control length of URL
+        return faker.internet.protocol() + '://' +
+            faker.name.firstName().substring(0, 5).replace(/([\\~#&*{}/:<>?|"'])/ig, '').toLowerCase() +
+            "." + faker.internet.domainSuffix();
     },
 
     getSlug: function(config) {
@@ -125,7 +166,13 @@ const FakeData = {
     },
 
     getPassword: function(config) {
-        return FakeData.getEnum(config) || faker.internet.password(FakeData.getOptions(config)["maximum"]);
+        let value = FakeData.getEnum(config);
+
+        if (_.isNull(value)) {
+            value = faker.internet.password(FakeData.getOptions(config)["length"]);
+        }
+
+        return value;
     },
 
     getBase64: function(config) {
@@ -133,7 +180,13 @@ const FakeData = {
     },
 
     getEmail: function(config) {
-        return FakeData.getEnum(config) || faker.internet.email();
+        let value = FakeData.getEnum(config);
+
+        if (_.isNull(value)) {
+            value = faker.internet.email();
+        }
+
+        return value;
     },
 
     getUUID: function(config) {
@@ -158,12 +211,15 @@ const FakeData = {
             - MinLength
             - MaxLength
             - Pattern
-
-        We are only supporting MaxLength for now, and even then, always generating string of maxLength Char always
         */
 
+        let max = _.get(config, constants.MAX_LENGTH, 10);
+        let min = _.get(config, constants.MIN_LENGTH, 1);
+
         return {
-            "maximum": _.get(config, constants.MAX_LENGTH, 10)   // Arbitrarily set max length
+            // We want to generate a string which is shorter than maximum, but always equal to or exceeding minimum
+            "length": Math.max(~~max/2, min),
+            "pattern": config[constants.PATTERN]
         };
     },
 
@@ -251,6 +307,12 @@ class ResourceProvider {
         return options.flatForSingle ? resources[0] : resources;
     }
 
+    restoreResource(profile, resourceValue) {
+        // Function to restore Resource value in DB if delete OP was un-successful
+
+        this.dbResourceProviderInstance.restoreResource(profile, this.resourceName, resourceValue);
+    }
+
 }
 
 
@@ -266,6 +328,11 @@ class Provider {
 
         this.configResourceMap = {};
         this.relatedResourceData = {};
+    }
+
+    rollBackDelete(resource, value) {
+        const resourceProvider = new ResourceProvider(resource, this.dbResourceProviderInstance);
+        resourceProvider.restoreResource(this.profile, value);
     }
 
     reset() {

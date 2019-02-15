@@ -1,3 +1,4 @@
+from atlas.conf import settings
 from atlas.modules.commands.base import CommandError
 from atlas.modules.helpers import open_api_reader
 from atlas.modules.transformer.commands.base import TransformerBaseCommand
@@ -53,9 +54,11 @@ class Converter(TransformerBaseCommand):
         order = ordering.Ordering(spec, open_api.interfaces)
         sorted_interfaces = order.order()
 
+        scenarios = settings.LOAD_TEST_SCENARIOS
+
         tasks = [load_conf[TASK](interface, spec) for interface in sorted_interfaces]
 
-        _task_set = load_conf[TASK_SET](tasks=tasks, tag="User")
+        _task_set = load_conf[TASK_SET](tasks=tasks, scenarios=scenarios)
 
         config = load_conf[FILE_CONFIG](_task_set, spec)
         config.write_to_file()

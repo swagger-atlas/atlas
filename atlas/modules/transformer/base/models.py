@@ -1,10 +1,12 @@
-import random
-import string
+from collections import namedtuple
 
 from atlas.modules import constants, exceptions, utils
-from atlas.modules.transformer import interface
+from atlas.modules.transformer import interface, profile_constants
 from atlas.modules.helpers import swagger_schema_resolver
 from atlas.conf import settings
+
+
+ResourceFieldMap = namedtuple('ResourceFieldMap', [constants.RESOURCE, 'field'])
 
 
 class Task:
@@ -29,6 +31,8 @@ class Task:
         self.headers = []
 
         self.post_check_tasks = []
+
+        self.delete_url_resource = None
 
         self.parse_parameters(open_api_interface.parameters or {})
 
@@ -125,6 +129,7 @@ class Task:
                 config[name]["options"] = {"delete": 1}
                 # Using 1 instead of true since this avoids Language issues. All languages treat 1 as same
                 # However, different languages have different truth values eg: True (Python), true (javascript)
+                self.delete_url_resource = ResourceFieldMap(config[name].get(constants.RESOURCE), name)
             self.url_params[name] = (param_type, config[name])
 
     def convert(self, width):
@@ -209,15 +214,40 @@ class Task:
 
         return param
 
+    def has_files(self):
+        """
+        Check if there is going to be file structure
+        We only need to iterate over top level since OAS 2 only supports that
+        """
+
+        for config in self.data_body.values():
+            if isinstance(config, dict) and config.get(constants.TYPE) == constants.FILE:
+                return True
+        return False
+
 
 class TaskSet:
     """
     Task Set is collection of tasks
     """
 
-    def __init__(self, tasks, tag=None):
-        self.tag = tag or ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    def __init__(self, tasks, scenarios=None):
         self.tasks = tasks
+        self.scenarios = self.set_scenarios(scenarios)
+
+    def set_scenarios(self, scenarios):
+        """
+        Make sure default is appended in scenarios neatly
+        """
+
+        scenarios = scenarios or {}
+
+        _default = scenarios.get(profile_constants.DEFAULT_SCENARIO)
+
+        if not _default:
+            scenarios[profile_constants.DEFAULT_SCENARIO] = [_task.open_api_op.op_id for _task in self.tasks]
+
+        return scenarios
 
     def convert(self, width):
         raise NotImplementedError

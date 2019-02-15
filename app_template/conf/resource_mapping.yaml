@@ -2,5 +2,5 @@
 # This contains the mapping of Resources to their DB, so we can have a cache
 
 # See https://code.jtg.tools/jtg/atlas/docs/resources.md on how to edit this file
-# Also see ./resource_hooks.py on writing the hooks for this file
+# Also see ./hooks.py on writing the hooks for this file
 #

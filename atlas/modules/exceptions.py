@@ -20,3 +20,9 @@ class OrderingException(Exception):
     """
     To be raised if there is an issue while trying to order the graph
     """
+
+
+class InvalidSettingsException(Exception):
+    """
+    TO be raised if user enters incorrect settings/configuration
+    """

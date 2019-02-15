@@ -65,10 +65,35 @@ Also, mark `ONLY_TAG_API` as True in settings file.
 
 #### Excluding the APIs
 
-You can mark specific URLs to be not hit. This is a list of regex
+You can mark specific URLs to be not hit. This is a list of OP_KEYs
 This is global level setting, and affects all of your profiles
 
-This is available in `EXCLUDE_URLS` Settings
+This is available in `EXCLUDE_URLS` Settings in `conf/conf.py`
+
+Each OP_KEY is "METHOD url" (eg: "GET /users/").
+A complete list of OP_KEY can be obtained in `conf/routes.py` file generated via `python manage.py generate_routes`
+
+
+Creating Custom Scenarios
+-------------------------
+
+It is possible to create own custom scenarios, and then link them to profiles.
+
+To create a scenario, you need to enter it in `conf/conf.py` file.
+A single scenario entry consists of name of scenario and All operations which it should execute in order
+
+See Linking Scenarios to Profile section in [Profiles](profiles.md) for detailed example of same
+
+###### Caveats
+- Each Operation must be a valid entry
+- Each scenario must be linked to at least single profile
+
+*Profile Link Example*
+```yaml
+<profile_name>:
+    scenarios:
+        - my_scenario_1
+```
 
 
 Getting `Resource Pool Not Found/ Provider Check Failed` Error
@@ -159,6 +184,7 @@ Pet:
 **Advanced Usage and Tips**
 - Most of time, if your tool is correct, you should have a correct Swagger representation for definitions. And if definition is not correct, it could be a sign of improper REST practices in code
 - If you are not willing/unable to correct your code to match References Best Practices, you can manually edit Swagger to mark `resources` or `readOnly` properties.
+- If you are using unconventional keys to mark Primary keys in your definitions, you can edit `SWAGGER_REFERENCE_FIELD_RESOURCE_IDENTIFIERS` in `conf/conf.py` to add your own.
 
 *Manual Resource Example Snippet*
 ```yaml
@@ -184,7 +210,7 @@ In Swagger, you should document all parameters required by API to operate.
 **General Tips**
 - You should document ALL parameters which are consumed by an API. This *do* include Query Parameters and Header Parameters
 - If you are using Swagger Generation tools, make sure your code is written in compliance with it. Most of these tools would be only able to pick Parameters which are given in a standard format.
-- Swagger, and by extension ATLAS does not support parameters which are dependent on each other within single API.
+- Swagger, and by extension ATLAS does not support parameters which are dependent on each other within same API.
 
 **Path Parameters Best Practice**
 - Your documentation tool would generate this parameter based on your URL Path. (See example below)
@@ -233,6 +259,11 @@ Further, based on URL, we would mark its resource as "category", since this is s
 - Define `consumes` type correctly. Default is `application/json`
 - Make sure that if it is consuming body, body reference is defined in definitions rather than re-defining it.
 
+**Advanced Usage**
+- If you are using unconventional Identifiers to mark the Primary keys, you can change the following settings in `conf/conf.py`:
+    - `SWAGGER_URL_PARAM_RESOURCE_SUFFIXES` (for self-descriptive param names)
+    - `SWAGGER_PATH_PARAM_RESOURCE_IDENTIFIERS` (stand-alone param names)
+
 > For Path parameters, ATLAS validates whether resources are present in definition
 
 Responses
@@ -244,6 +275,7 @@ Responses
 - Response body should be a reference, and not manual description.
 
 > For response, ATLAS checks for at least one valid response, and valid definitions
+
 
 Django DRF Specific Tips
 ------------------------
@@ -262,3 +294,8 @@ def get(request):
     # Avoid this kind of programming. All arguments should be in Filters.
     arg = request.GET.get('some_arg')
 ```
+
+We have found Swagger generators to mostly fail at these points:
+- Custom Pagination: If you use custom pagination, make sure that the corresponding generated Swagger is correct.
+- File Fields: Some Swagger generators simply mark File Fields in Serializers as string type which would result in incorrect implementation. You may need to explicitly mark them
+- JSON Fields: To generate a JSON object, `json` should be `format` in string type.

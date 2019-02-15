@@ -55,6 +55,10 @@ class ArtilleryDist(project_setup.Setup):
                     self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_LIB_FOLDER
                 ),
                 os.path.join(self.path, settings.DIST_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_LIB_FOLDER)
+            ),
+            CopyFolder(
+                os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "sample-files"),
+                os.path.join(self.path, settings.DIST_FOLDER, settings.DUMMY_FILES_FOLDER)
             )
         ]
 

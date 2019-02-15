@@ -1,9 +1,12 @@
+from collections import defaultdict
+from copy import deepcopy
 import json
 import re
 
-from atlas.modules import constants, utils
-from atlas.modules.transformer.base import models
 from atlas.conf import settings
+from atlas.modules import constants, exceptions, mixins, utils
+from atlas.modules.transformer import profile_constants
+from atlas.modules.transformer.base import models
 from atlas.modules.transformer.artillery import templates
 
 
@@ -35,7 +38,7 @@ class Task(models.Task):
         statements.extend(["{}{}".format(" "*4, try_statement) for try_statement in try_statements])
         statements.append("} catch (ex) {")
         catch_statements = [
-            "console.error(ex.message + ' failed for ' + '{}');".format(self.func_name),
+            f"""console.error(ex.message + ' failed for "{self.open_api_op.op_id}"');""",
             "ee.emit('error', 'Provider Check Failed');",
             "return next();"
         ]
@@ -52,22 +55,11 @@ class Task(models.Task):
         params = ['url', 'queryConfig', 'pathConfig', 'provider']
         return ", ".join(params)
 
-    def validate_tags(self):
-        body = []
-
-        if self.tag_check:
-            body.append("const tags = [{}];".format(", ".join(["'{}'".format(tag) for tag in self.open_api_op.tags])))
-            body.append("return (!_.isEmpty(_.intersection(tags, contextVars['profile'].tags || [])));")
-
-        return body
-
-    def if_true_function(self, width):
-        statements = [
-            f"function {self.if_true_func_name}(contextVars) {{",
-            "{w}{body}".format(w=' ' * width * 4, body="\n{w}".format(w=' ' * width * 4).join(self.validate_tags())),
-            "}"
-        ]
-        return "\n".join(statements)
+    def if_true_function(self):
+        return templates.IF_TRUE_FUNCTION.format(
+            if_true_name=self.if_true_func_name,
+            tags=", ".join(["'{}'".format(tag) for tag in self.open_api_op.tags])
+        )
 
     def add_url_config_to_body(self, body):
 
@@ -124,7 +116,7 @@ class Task(models.Task):
         param_array.append("reqParams")
 
         body.append("let reqArgs = hook.call('{op_id}', ...{args});".format(
-            op_id=self.open_api_op.func_name, args="[{}]".format(", ".join(param_array))
+            op_id=self.open_api_op.op_id, args="[{}]".format(", ".join(param_array))
         ))
 
         if "body" in param_array:
@@ -138,6 +130,11 @@ class Task(models.Task):
         body.append("requestParams.url = reqArgs[0];")
         body.append(f"requestParams.headers = reqArgs[{len(param_array) - 1}].headers;")
 
+        if self.delete_url_resource:
+            _resource = getattr(self.delete_url_resource, constants.RESOURCE)
+            _field = self.delete_url_resource.field
+            body.append(f"context.vars._delete_resource = {{ resource: '{_resource}', value: urlConfig[1].{_field} }};")
+
         body.append(f"context.vars._startTime = Date.now();")
 
         return self.cache_operation_tasks(body)
@@ -145,14 +142,23 @@ class Task(models.Task):
     def handle_mime(self, body):
         mime = self.open_api_op.mime
 
-        request_map = {
-            constants.JSON_CONSUMES: "json",
-            constants.FORM_CONSUMES: "form",
-            constants.MULTIPART_CONSUMES: "formData"
-        }
+        if self.has_files():
+            body.extend([
+                "let formData = {};",
+                "_.forEach(reqArgs[1], (val, key) => {",
+                "    val instanceof stream.Readable ? formData[key] = val : formData[key] = _.toString(val); ",
+                "});",
+                "requestParams.formData = formData;"
+            ])
+        else:
+            request_map = {
+                constants.JSON_CONSUMES: "json",
+                constants.FORM_CONSUMES: "form",
+                constants.MULTIPART_CONSUMES: "formData"
+            }
 
-        body.append(f"reqArgs[2].headers['Content-Type'] = '{mime}';")
-        body.append(f"requestParams.{request_map[mime]} = reqArgs[1];")
+            body.append(f"reqArgs[2].headers['Content-Type'] = '{mime}';")
+            body.append(f"requestParams.{request_map[mime]} = reqArgs[1];")
 
         return body
 
@@ -212,7 +218,7 @@ class Task(models.Task):
         statements = [self.pre_request_function(width), self.post_response_function(width)]
 
         if self.tag_check:
-            statements.append(self.if_true_function(width))
+            statements.append(self.if_true_function())
 
         return statements
 
@@ -224,25 +230,67 @@ class TaskSet(models.TaskSet):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.yaml_flow = {}
+        self.yaml_flow = []
+
+        # Map of Task OP ID to its YAML configuration
+        self.task_map = {}
+
+        self.scenario_profile_map = defaultdict(list)
+
+    def construct_profile_scenario_map(self):
+        yaml_reader = mixins.YAMLReadWriteMixin()
+        profiles = yaml_reader.read_file_from_input(settings.PROFILES_FILE, {})
+
+        for name, config in profiles.items():
+            scenario_list = config.get(profile_constants.SCENARIOS, [profile_constants.DEFAULT_SCENARIO])
+
+            for scenario_name in scenario_list:
+                self.scenario_profile_map[scenario_name].append(name)
+
+        # Validate that All scenarios have at least one profile associated.
+        # If not, throw a warning and remove that scenario
+        unlinked_scenarios = set(self.scenarios.keys()) - set(self.scenario_profile_map.keys())
+        for scenario_name in unlinked_scenarios:
+            print(f"WARNING: {scenario_name} scenario is not linked to any profile. Will not be part of Artillery\n")
+            self.scenarios.pop(scenario_name)
+
+    def construct_task_map(self):
+        self.task_map = {_task.open_api_op.op_id: _task.yaml_task for _task in self.tasks}
+
+    def make_yaml_scenario(self, name, flow_tasks):
+        flow_definition = [{"function": f"{name}SetProfiles"}, {"function": "setUp"}]
+
+        try:
+            # Shallow copy leaves pointers and references when converting to YAML
+            flow_definition.extend([deepcopy(self.task_map[task_key.strip()]) for task_key in flow_tasks])
+        except KeyError as exc:
+            raise exceptions.InvalidSettingsException(f"Invalid Key in Scenario {name}: {exc}")
+        flow_definition.append({"function": "endResponse"})
+        return {
+            "flow": flow_definition,
+            "name": name
+        }
 
     def set_yaml_flow(self):
-        flow_definition = [{"function": "setUp"}]
-        flow_definition.extend([_task.yaml_task for _task in self.tasks])
-        flow_definition.append({"function": "endResponse"})
-        self.yaml_flow = {
-            "flow": flow_definition
-        }
+        self.construct_task_map()
+        for name, scenario in self.scenarios.items():
+            self.yaml_flow.append(self.make_yaml_scenario(name, scenario))
+
+    def scenario_profile_setup(self, name):
+        return templates.SCENARIO_PROFILE_FUNCTION.format(
+            name=name,
+            profiles=", ".join([f"'{profile}'" for profile in self.scenario_profile_map.get(name, [])])
+        )
 
     def task_definitions(self, width):
         join_string = "\n\n".format(w=' ' * width * 4)
-        tasks = []
+        tasks = [self.scenario_profile_setup(scenario) for scenario in self.scenarios]
         for _task in self.tasks:
             tasks.extend(_task.convert(width))
         return join_string.join(tasks)
 
     @staticmethod
-    def func_exports(task, width):
+    def task_func_exports(task, width):
 
         statements = [
             "{w}{func}: {func},".format(w=' '*width*4, func=task.before_func_name),
@@ -255,15 +303,20 @@ class TaskSet(models.TaskSet):
         return "\n".join(statements)
 
     def task_calls(self, width):
+        indent = ' '*width*4
         return "\n".join([
             "module.exports = {",
-            "{w}setUp: setUp,".format(w=' '*width*4),
-            "\n".join([self.func_exports(_task, width) for _task in self.tasks]),
-            "{w}endResponse: statsEndResponse".format(w=' '*width*4),
+            f"{indent}setUp: setUp,",
+            "\n".join([f"{indent}{name}SetProfiles: {name}SetProfiles," for name in self.scenarios]),
+            "\n".join([self.task_func_exports(_task, width) for _task in self.tasks]),
+            f"{indent}endResponse: statsEndResponse",
             "};"
         ])
 
     def convert(self, width):
+
+        self.construct_profile_scenario_map()
+
         statements = [
             self.task_calls(width),
             templates.SELECT_PROFILE_FUNCTION,

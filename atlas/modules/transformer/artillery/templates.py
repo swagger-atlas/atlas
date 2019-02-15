@@ -14,12 +14,19 @@ function registerHooks() {
 }"""
 
 
+# Function is formatted, so use double braces
+SCENARIO_PROFILE_FUNCTION = """function {name}SetProfiles(context, event, done) {{
+    context.vars.profiles = _.pick(profiles, [{profiles}]);
+    return done();
+}}"""
+
+
 SETUP_FUNCTION = """
 function setUp(context, event, done) {
 
     registerHooks();
 
-    let _profiles = hook.call("$profileSelection", profiles)[0];
+    let _profiles = hook.call("$profileSelection", context.vars.profiles)[0];
     let profileMap = selectProfile(_profiles);
     const profileName = Object.keys(profileMap)[0];
     let profile = profileMap[profileName];
@@ -55,6 +62,7 @@ function formatURL(url, queryConfig, pathConfig, provider) {
     url = queryString? url + '?' + queryString : url;
     return [url, _.assign(pathParams, queryParams)];
 }"""
+
 
 EXTRACT_BODY_FUNCTION = """
 function extractBody(response, requestParams, context) {
@@ -120,8 +128,19 @@ API_AFTER_RESPONSE_FUNCTION = """function {after_func_name}(requestParams, respo
     const provider = context.vars['provider'];
     const status = response.statusCode;
     if (!status || status < 200 || status > 300) {{
+        if (context.vars._delete_resource) {{
+            const rollback = context.vars._delete_resource;
+            provider.rollBackDelete(rollback.resource, rollback.value);
+        }}
         ee.emit('error', 'Non 2xx Response');{else_body}
     }}
     provider.reset();
     return next();
+}}"""
+
+
+# Function would be formatted, so use double braces
+IF_TRUE_FUNCTION = """function {if_true_name}(contextVars) {{
+    const tags = [{tags}];
+    return (contextVars['profile'] && !_.isEmpty(_.intersection(tags, contextVars['profile'].tags || [])));
 }}"""

@@ -22,6 +22,9 @@ class OpenAPITaskInterface:
         self._consumes = [constants.JSON_CONSUMES]
         self._dependent_resources = set()
 
+        self._resource_producers = set()
+        self._producer_references = set()
+
     @property
     def parameters(self):
         return self._parameters
@@ -131,3 +134,23 @@ class OpenAPITaskInterface:
     @dependent_resources.setter
     def dependent_resources(self, value: set):
         self._dependent_resources = value
+
+    @property
+    def op_id(self):
+        return f"{self.method.upper()} {self.url}"
+
+    @property
+    def resource_producers(self):
+        return self._resource_producers
+
+    @resource_producers.setter
+    def resource_producers(self, value):
+        self._resource_producers = value
+
+    @property
+    def producer_references(self):
+        return self._producer_references
+
+    @producer_references.setter
+    def producer_references(self, value):
+        self._producer_references = value

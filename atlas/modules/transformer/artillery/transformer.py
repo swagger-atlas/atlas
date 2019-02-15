@@ -15,13 +15,14 @@ class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
     def get_imports(self):
         imports = [
             "_ = require('lodash');",
+            "stream = require('stream');",
             f"const hookRegister = require('./{settings.ARTILLERY_HOOK_FILE}').hookRegister;",
             f"hook = require('./{settings.ARTILLERY_LIB_FOLDER}/hooks').hook;",
             f"utils = require('./{settings.ARTILLERY_LIB_FOLDER}/providers');",
             f"settings = require('./{settings.ARTILLERY_LIB_FOLDER}/settings');",
             f"StatsCollector = require('./{settings.ARTILLERY_LIB_FOLDER}/statsCollector').StatsCollector;",
             f"profiles = require('./{settings.ARTILLERY_LIB_FOLDER}/profiles').profiles;",
-            f"influx = require('./{settings.ARTILLERY_LIB_FOLDER}/influx').client;"
+            f"influx = require('./{settings.ARTILLERY_LIB_FOLDER}/influx').client;",
         ]
         return "\n".join(imports)
 
@@ -40,9 +41,7 @@ class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
                     }
                 ]
             },
-            "scenarios": [
-                self.task_set.yaml_flow
-            ]
+            "scenarios": self.task_set.yaml_flow
         }
 
     def write_to_file(self, file_name=None, sub_path=None):

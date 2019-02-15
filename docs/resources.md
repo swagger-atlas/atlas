@@ -5,7 +5,7 @@ ATLAS comes in with a battery of providers, which can fake data for almost any S
 However, sometimes, a random fake data is not what we want.
 
 For example, the primary keys of Tables, tokens, etc are some entities which we want to be realistic, and extracted from Project DB itself.
-These such entities are collectively known as "resources" in ATLAS.
+Such entities are collectively known as "resources" in ATLAS.
 
 
 Identification of Resources
@@ -16,7 +16,7 @@ Automated
 Resources are largely identified via an automated system.
 - We look for resources in Parameters and References
 - If there is any explicit resource, we go for it. (See Manual Section below)
-- Else, we try to reason for which entities data could be faked, and which needs to be tagged resources.
+- Else, we try to reason for which entities' data could be faked, and which needs to be tagged as resource.
 
 You can run `python manage.py detect_resources` which would collate the explicit resources with generated resources.
 You can check the output in `build/resource_mapping.yaml`
@@ -64,12 +64,13 @@ This roughly translates to "select id from A" query and store the results for re
 Tells what the source for this resource is. Possible values are `table`, `script`. The default value is `table`.
 Table source would construct an SQL query to fetch the data from the given table
 
+
 **Table Source Options**
 - table: Table Name (Required)
 - column: Column Name. Defaults to `id`
 - filters: Any filters you want to add
 - sql: Ignores all of the above options, and write your own custom sql query
-- mapper: Post-processing function you want to run. Default mapper takes the SQL Output as input (which is a list of tuples) and flattens them up. Mapper function is defined in `conf/resource_hooks.py`
+- mapper: Post-processing function you want to run. Default mapper takes the SQL Output as input (which is a list of tuples) and flattens them up. Mapper function is defined in `conf/hooks.py`
 
 In `Filters` and `sql` you can use context variables from `profiles.yaml` file to customize your data for a single profile. See SQL Example below
 
@@ -102,9 +103,10 @@ auth:
 
 
 **Script source options**
-- func: Function Name. Must be defined in `conf/resource_hooks.py` file. This is the required argument
+- func: Function Name. Must be defined in `conf/hooks.py` file. This is the required argument
 - args: Argument List. Optional
 - kwargs: Keyword argument list. Optional
+
 
 *Example Snippet*
 __resource_mapping.yaml__
@@ -119,13 +121,14 @@ resource_name:
         a: 1
 ```
 
-__resource_hooks.py__
+__hooks.py__
 ```python
 def my_func_name(arg_1, arg_2, a):
     return [arg_1 + arg_2 + a, arg_1, arg_2]
 
 # Note: Function MUST return a list, even if it contains single value.
 ```
+
 
 **Misc Options**
 - resource: Inherit the resource definition of another resource. You can then selectively over-write the keys or keep them exactly the same
