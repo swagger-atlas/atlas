@@ -9,7 +9,7 @@ Project Setup
 
 1. Create a Virtual Environment, if not already created
     - Run `virtualenv <path/to/virtualenvs/atlas> -p <python3.x>`
-     (Replace <variables> with your own versions). Python should be 3.5+
+     (Replace <variables> with your own versions). Python should be 3.6+
     - `source <path/to/virtualenvs/atlas>/bin/activate` to activate this
 
 1. Customize as per your needs

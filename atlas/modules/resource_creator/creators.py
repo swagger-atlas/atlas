@@ -13,7 +13,7 @@ from atlas.modules.helpers import resource_map
 class AutoGenerator(mixins.YAMLReadWriteMixin):
     """
     Auto Generate Resource Mapping from Swagger definition.
-    Auto update Swagger definition
+    Auto update Swagger definition and Resource Mapping file
     """
 
     def __init__(self, swagger_file=None):
@@ -189,6 +189,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
             elif swagger_constants.REF in value:
                 self.get_ref_name_and_config(value[swagger_constants.REF])
 
+            # Commenting this out, as adding this logic generated lots of false positive resources
             # elif key in self.resource_keys:
             #     resource = key
 

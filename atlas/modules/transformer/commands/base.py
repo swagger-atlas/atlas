@@ -2,6 +2,9 @@ from atlas.modules.commands.base import BaseCommand
 
 
 class TransformerBaseCommand(BaseCommand):
+    """
+    Base class for commands which require type of transformer as input
+    """
 
     VALID_CONVERTERS = ""
 

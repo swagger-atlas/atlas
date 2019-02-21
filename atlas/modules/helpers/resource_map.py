@@ -13,8 +13,13 @@ class ResourceMapResolver(mixins.YAMLReadWriteMixin):
         self.resource_map = self.read_file_from_input(settings.MAPPING_FILE) or {}
         self.resource_config = {}
 
+        # One of the major concept in Resource mapping relates to Aliases
+        # Different entries in resource map may mean exactly same thing
+        # We use alias map to track such entries
         self.alias_map = {}
 
+        # Globals are actions which are applied to all resources in resource mapping
+        # We need to extract them separately and apply the required actions to each resource as required
         self.globals = {}
 
     def get_config(self, resource):

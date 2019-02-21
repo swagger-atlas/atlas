@@ -5,6 +5,7 @@ import sys
 from atlas.modules.commands.base import CommandError, handle_default_options
 
 
+# List of all commands with the mapping of the class which implements them
 COMMANDS = {
     "newproject": 'atlas.modules.commands.new_project.StartProjectCommand',
     "example": 'atlas.modules.commands.example.ExampleProjectCommand',
@@ -20,6 +21,12 @@ COMMANDS = {
 
 
 class CommandUtility:
+    """
+    Class which
+        - takes in command,
+        - match it with relevant class which implements it
+        - call the class with correct options
+    """
 
     VALID_COMMANDS = ", ".join(COMMANDS.keys())
 

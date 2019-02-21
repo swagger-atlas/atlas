@@ -5,6 +5,19 @@ from atlas.modules.transformer.artillery import templates
 
 
 class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
+    """
+    Takes a models.TaskSet object, and transforms its snippets into final JS and YAML file and write them as required
+
+    INPUT:
+        Swagger Specs
+        Task Set
+
+    OUTPUT:
+        Write YAML file containing complete YAML Configuration
+        Write Processor file containing complete JS file
+
+    This class is responsible for calling TaskSet.convert and triggering entire conversion
+    """
 
     OUT_FILE = settings.ARTILLERY_FILE
 
@@ -12,7 +25,11 @@ class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
         super().__init__(*args, **kwargs)
         self.yaml_config = {}
 
-    def get_imports(self):
+    def get_imports(self) -> str:
+        """
+        Processor File Import statements
+        """
+
         imports = [
             "_ = require('lodash');",
             "stream = require('stream');",
@@ -26,10 +43,18 @@ class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
         ]
         return "\n".join(imports)
 
-    def get_global_vars(self):
+    def get_global_vars(self) -> str:
+        """
+        Processor File Global statements
+        """
         return templates.GLOBAL_STATEMENTS
 
-    def set_yaml_config(self):
+    def set_yaml_config(self) -> None:
+        """
+        Construct Artillery YAML configuration
+        """
+
+        # LT-248: We can pick Artillery Phase configuration from conf file
         self.yaml_config = {
             "config": {
                 "target": self.get_swagger_url(),
@@ -44,7 +69,10 @@ class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
             "scenarios": self.task_set.yaml_flow
         }
 
-    def write_to_file(self, file_name=None, sub_path=None):
+    def write_to_file(self, file_name=None, sub_path=None) -> None:
+        """
+        Write to YAML and JS files the final constructed configurations
+        """
         super().write_to_file(file_name, settings.ARTILLERY_FOLDER)
 
         self.set_yaml_config()

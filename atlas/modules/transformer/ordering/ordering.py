@@ -5,6 +5,12 @@ from atlas.modules.transformer.ordering import resource, operation
 
 
 class Ordering:
+    """
+    This is responsible for ordering APIs in a correct format
+    Entry Point: order()
+
+    See ./README.md for detailed concept on same
+    """
 
     def __init__(self, specs=None, interfaces=None):
         self.specs = specs or SpecsFile().file_load()
@@ -30,6 +36,15 @@ class Ordering:
         return op_graph
 
     def order(self):
+        """
+        Please see ./README.md for details about data structures and general concepts
+
+        Ordering APIs/operation consists of several steps:
+            - Construction of reference Objects, which is then used to construct resource graph
+            - Validating resource graph
+            - Using resource graph to construct Operation Graph
+            - Topologically sorting operation graph to get the required order
+        """
         res_graph = self.get_resource_graph()
         validator = resource.SwaggerResourceValidator(res_graph, self.interfaces)
         validator.validate()

@@ -6,11 +6,22 @@ from atlas.conf import settings
 
 
 class GenerateRoutes:
+    """
+    Parse the Swagger file and generate routes along with OP_KEYS for them
+    """
 
     def __init__(self, spec):
+        """
+        :param spec: Swagger API Specification
+        """
         self.spec = spec
 
     def get_routes(self):
+        """
+        Parse the Swagger file, and collects all routes
+        :return:
+            Array<String> where each string is "route = OP_KEY" format
+        """
 
         routes = []
 
@@ -27,6 +38,9 @@ class GenerateRoutes:
         return "\n".join(routes)
 
     def write_to_routes(self):
+        """
+        Create (if required) and write to Routes file
+        """
 
         routes_file = os.path.join(settings.INPUT_FOLDER, settings.ROUTES_FILE)
 
