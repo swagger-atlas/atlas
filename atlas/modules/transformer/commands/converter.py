@@ -40,12 +40,22 @@ class Converter(TransformerBaseCommand):
     help = "Converts Swagger file to configuration file which could be fed into Load Tester"
 
     def handle(self, **options):
+        """
+        Operation Order is:
+        1. Load Swagger
+        2. Convert it into interfaces which are then used by sub-sequent operations instead of working on raw swagger
+        3. Decide the order of operations in which APIs should be hit
+        4. For each API, transform their swagger configuration to load test configuration
+        5. Collate these conversions with scenarios if available
+        6. Transform the final generated code snippet into working code/config, and write it to correct file
+        """
+
         load_conf_type = options.pop("type")
 
         load_conf = CONVERTER_MAP.get(load_conf_type)
 
         if not load_conf:
-            raise CommandError("Invalid Load Testing Type. Valid types are: {}".format(self.VALID_CONVERTERS))
+            raise CommandError(f"Invalid Load Testing Type. Valid types are: {self.VALID_CONVERTERS}")
 
         spec = open_api_reader.SpecsFile().file_load()
         open_api = open_api_models.OpenAPISpec(spec)

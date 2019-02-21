@@ -16,7 +16,11 @@ class YAMLReadWriteMixin:
     """
 
     @staticmethod
-    def get_project_folder(sub_folder=None):
+    def get_project_folder(sub_folder: str = None) -> str:
+        """
+        Get the base path of folder from where files should be read and/or written to
+        :param sub_folder: Sub folder path which should be added to base path
+        """
 
         project_path = utils.get_project_path()
 
@@ -26,6 +30,12 @@ class YAMLReadWriteMixin:
         return project_path
 
     def read_file(self, file_name, default_value=None, project_sub_folder=None):
+        """
+        Safely Read YAML file
+        :param file_name: Name of file
+        :param default_value: Default value to return in case of any error or empty file
+        :param project_sub_folder: Name of folder where file is present
+        """
 
         _file = os.path.join(self.get_project_folder(project_sub_folder), file_name)
 
@@ -38,16 +48,35 @@ class YAMLReadWriteMixin:
         return ret_stream or default_value
 
     def read_file_from_input(self, *args, **kwargs):
+        """
+        Read YAML file from INPUT folder.
+        Same as read_file, except we add INPUT folder as sub_folder.
+        """
         sub_folder = kwargs.pop('project_sub_folder', None)
         sub_folder = os.path.join(settings.INPUT_FOLDER, sub_folder) if sub_folder else settings.INPUT_FOLDER
         return self.read_file(*args, **kwargs, project_sub_folder=sub_folder)
 
     def read_file_from_output(self, *args, **kwargs):
+        """
+        Read YAML file from INPUT folder.
+        Same as read_file, except we add OUTPUT folder as sub_folder.
+        """
         sub_folder = kwargs.pop('project_sub_folder', None)
         sub_folder = os.path.join(settings.OUTPUT_FOLDER, sub_folder) if sub_folder else settings.OUTPUT_FOLDER
         return self.read_file(*args, **kwargs, project_sub_folder=sub_folder)
 
-    def write_file(self, file_name, write_data, project_sub_folder=None, append_mode=True, force_write=False):
+    def write_file(
+            self, file_name, write_data, project_sub_folder=None, append_mode: bool = True, force_write: bool = False
+    ):
+        """
+        Write contents of write_data to YAML file
+        :param file_name: Name of file
+        :param write_data: Data to be written. We should be able to convert this in YAML
+        :param project_sub_folder: Name/Path of folder where you want to write the data
+        :param append_mode: If true, add to current file, else, over-write existing contents
+        :param force_write: Write the data to file even if write_data is empty
+        """
+
         _path = self.get_project_folder(project_sub_folder)
 
         if not os.path.exists(_path):
@@ -63,11 +92,19 @@ class YAMLReadWriteMixin:
                 yaml.dump(write_data, file_stream, default_flow_style=False)
 
     def write_file_to_input(self, *args, **kwargs):
+        """
+        Write YAML file to INPUT folder.
+        Same as write_file, except we add INPUT folder as sub_folder.
+        """
         sub_folder = kwargs.pop('project_sub_folder', None)
         sub_folder = os.path.join(settings.INPUT_FOLDER, sub_folder) if sub_folder else settings.INPUT_FOLDER
         self.write_file(*args, **kwargs, project_sub_folder=sub_folder)
 
     def write_file_to_output(self, *args, **kwargs):
+        """
+        Write YAML file to OUTPUT folder.
+        Same as write_file, except we add OUTPUT folder as sub_folder.
+        """
         sub_folder = kwargs.pop('project_sub_folder', None)
         sub_folder = os.path.join(settings.OUTPUT_FOLDER, sub_folder) if sub_folder else settings.OUTPUT_FOLDER
         return self.write_file(*args, **kwargs, project_sub_folder=sub_folder)

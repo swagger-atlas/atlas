@@ -14,12 +14,22 @@ BOOL_MAP = {
 
 
 class ArtillerySetup:
+    """
+    It is responsible for exporting Python settings and constants to JS
+    Since the constants and settings are transformed from Python to JS, it ensures consistency in naming schema
+
+    It is called during BUILD Process
+    """
 
     def __init__(self):
         self.js_lib_path = self.create_folder()
 
     @staticmethod
     def create_folder():
+        """
+        It constructs the folder structure as required where exported JS settings and constants should reside
+        :return: Folder path
+        """
 
         _path = os.path.join(os.getcwd(), settings.OUTPUT_FOLDER, settings.ARTILLERY_FOLDER)
 
@@ -34,6 +44,14 @@ class ArtillerySetup:
         return _path
 
     def convert_python_value_to_js_value(self, python_value, var_name, stringify=True):
+        """
+        Takes a single Python value and identifier, and converts them in equivalent JS value
+        :param python_value: Python Value. Can be of any type
+        :param var_name: Identifier for the value
+        :param stringify: Help for Program whether to encapsulate the Python strings in quotation
+        :return: Equivalent JS value
+        """
+
         js_val = None
 
         if isinstance(python_value, six.string_types):
@@ -56,12 +74,16 @@ class ArtillerySetup:
                     js_val[key] = item_val
         else:
             # While this may not necessarily be an error, we do not convert it.
-            # This includes any Dict structure for now
             print(f"No compatible data found - {var_name} {python_value}")
 
         return js_val
 
-    def get_js_exports(self, python_vars, python_object):
+    def construct_js_statements(self, python_vars, python_object):
+        """
+        :param python_vars: All python identifiers to be converted
+        :param python_object: Python object which defines these identifiers
+        :return: Array containing JS Statements
+        """
 
         out_data = []
         for item in python_vars:
@@ -75,20 +97,21 @@ class ArtillerySetup:
             js_val = self.convert_python_value_to_js_value(value, item)
 
             if js_val is not None:
+                # By default, all values are exported
                 out_data.append(f"exports.{item} = {js_val};")
 
         return out_data
 
     def constants_file(self):
         out_file = os.path.join(self.js_lib_path, "constants.js")
-        out_data = self.get_js_exports(dir(constants), constants)
+        out_data = self.construct_js_statements(dir(constants), constants)
 
         with open(out_file, "w+") as out_stream:
             out_stream.write("\n".join(out_data) + "\n")
 
     def settings_file(self):
         out_file = os.path.join(self.js_lib_path, "settings.js")
-        out_data = self.get_js_exports(dir(settings), settings)
+        out_data = self.construct_js_statements(dir(settings), settings)
 
         with open(out_file, "w+") as out_stream:
             out_stream.write("\n".join(out_data) + "\n")

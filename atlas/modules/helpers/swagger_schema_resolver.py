@@ -3,17 +3,30 @@ from atlas.modules import constants, utils
 
 class SchemaResolver:
     """
-    Resolves the Swagger Schema
+    Resolves the Swagger Schema.
+    This involves recursively resolving sub-schemas, objects and arrays till we reach element/field configuration
+
+    Sample Usage of class:
+        data_schema_resolver = SchemaResolver(swagger_specs)
+        data_schema = data_schema_resolver.resolve(data_schema)
     """
 
     def __init__(self, spec):
         self.spec = spec
+
+        # Maintain a list of resolved refs, to avoid cycles
         self.visited_ref = set()
 
+        # If you want to use the property, call resolve_with_read_only_fields as your entry function instead of resolve
+        # By default, when resolving schema, we ignore read-only fields, and they are not returned in resolved schema
         self.include_read_only = False
+
+        # Ideally, this should not be implemented as instance variable
+        # Correct fix would be to implement Schema class, and make this instance variable of that class
+        # Doing that would involve much refactoring though
         self.is_top_level = True
 
-    def resolve_item_config(self, item_config):
+    def resolve_element_config(self, item_config: dict):
         item_data = {}
         for key, value in item_config.items():
             if isinstance(value, dict):
@@ -27,6 +40,9 @@ class SchemaResolver:
         return item_data
 
     def resolve_with_read_only_fields(self, *args, **kwargs):
+        """
+        Entry function for the class if you want to also include read-only fields in your final resolved schema
+        """
         self.include_read_only = True
         ret = self.resolve(*args, **kwargs)
         self.include_read_only = False
@@ -47,7 +63,7 @@ class SchemaResolver:
             ref = additional_properties.get(constants.REF)
             data_body[constants.ADDITIONAL_PROPERTIES] = (
                 self.resolve(utils.resolve_reference(self.spec, ref))
-                if ref else self.resolve_item_config(additional_properties)
+                if ref else self.resolve_element_config(additional_properties)
             )
             data_body[constants.MIN_PROPERTIES] = config.get(constants.MIN_PROPERTIES, 0)
 
@@ -133,6 +149,8 @@ class SchemaResolver:
 
             # If it is resource, we only need resource mapping
             resource = item_config.get(constants.RESOURCE)
-            data_body[item_name] = {constants.RESOURCE: resource} if resource else self.resolve_item_config(item_config)
+            data_body[item_name] = (
+                {constants.RESOURCE: resource} if resource else self.resolve_element_config(item_config)
+            )
 
         return data_body

@@ -2,6 +2,14 @@ Changelog
 ========
 
 
+8.0.1
+-----
+
+- Comprehensive Documentation updates for User guide
+- Added Reference section for technical concepts
+- Several Internal functions and classes have been given docstrings
+
+
 8.0.0
 -----
 
