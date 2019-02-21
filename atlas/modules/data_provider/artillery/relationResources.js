@@ -1,16 +1,37 @@
 _ = require('lodash');
 
 
+/*
+    Takes two arrays and return their cartesian product:
+
+    Example:
+        cartesianHelper([1, 2], [3, 4]) would give output:
+        [
+            [1, 3], [1, 4], [2, 3], [2, 4]
+        ]
+ */
 cartesianHelper = (a, b) => {
     return [].concat(...a.map(d => b.map(e => [].concat(d, e))));
 };
 
+
+/*
+    Takes any number of arrays and return their cartesian product.
+    Example:
+        cartesianHelper([1, 2], [3, 4], [5, 6]) would give output:
+        [
+            [1, 3, 5], [1, 3, 6], [1, 4, 5], [1, 4, 6], [2, 3, 5], [2, 3, 6], [2, 4, 5], [2, 4, 6]
+        ]
+    Recursively calls itself by resolving first two arrays using cartesianHelper
+ */
 cartesian = (a, b, ...c)  => {
-    // Returns cartesian Product of two or more arrays
     return b ? cartesian(cartesianHelper(a, b), ...c) : a;
 };
 
 
+/*
+    Please see `reference/resource-relationships` for more information
+ */
 class RelationshipResources {
 
     constructor() {

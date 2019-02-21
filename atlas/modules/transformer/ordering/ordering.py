@@ -9,7 +9,7 @@ class Ordering:
     This is responsible for ordering APIs in a correct format
     Entry Point: order()
 
-    See ./README.md for detailed concept on same
+    See references/ordering.md for detailed concept on same
     """
 
     def __init__(self, specs=None, interfaces=None):
@@ -37,7 +37,7 @@ class Ordering:
 
     def order(self):
         """
-        Please see ./README.md for details about data structures and general concepts
+        Please see references/ordering.md for details about data structures and general concepts
 
         Ordering APIs/operation consists of several steps:
             - Construction of reference Objects, which is then used to construct resource graph

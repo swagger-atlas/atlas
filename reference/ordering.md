@@ -1,4 +1,5 @@
-Before going into that, let us consider the following definitions and associated data structures:
+Automatically ordering APIs is one of the most complicated operation in whole workflow.
+This guide will illustrate broad concepts associated with it.
 
 References
 ----------
