@@ -591,7 +591,7 @@ class ResponseDataParser {
 
     formatResourceMap(resourceMap) {
         let out = [];
-        let element = _.omit(resourceMap, '$agg');
+        let element = _.isArray(resourceMap) ? {} : _.omit(resourceMap, '$agg');
 
         let self = this;
 
