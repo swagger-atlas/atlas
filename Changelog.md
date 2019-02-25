@@ -2,6 +2,12 @@ Changelog
 ========
 
 
+8.0.2
+-----
+
+- Arrays are now completely supported by Relationship resources
+
+
 8.0.1
 -----
 

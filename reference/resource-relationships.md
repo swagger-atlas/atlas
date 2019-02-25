@@ -53,7 +53,7 @@ Payload is the set of array containing string containing all resource values in 
     "user": 1, "repo": 2 would have value `[2, 1]`    (Repo comes first in lexical sorting)
 
 Final `hashMap` may look like this:
-```
+```js
 {
     "a:repo,user": Set({[1, 1], [2, 1], [3, 2]})
 }
@@ -64,21 +64,32 @@ Inserting Values in HashMap
 ===========================
 
 
-Insertion is done by calling insert() method.
-TODO
+Insertion is done by calling `insert()` method.
+To insert the relation, we provide
+- Profile name
+- Object containing resource keys with their values
+  Example:
+  ```js
+  {
+    "repo": Set {1},
+    "user": Set {1}
+  }
+  ```
+
+To insert multiple values, call `insert()` multiple times
 
 ###### Notes on Merging
-It was discussed whether if we have resource (A, B) and (B, C), does it imply (A, C)?
+If we have resource (A, B) and (B, C), does it imply (A, C)?
 In the end, we were convinced that transitive property does not hold true.
 
 Consider for a sample Git hosting web APIs may have following resources:
 - (account, repo) : `[(1, "MY_REPO"), (1, "ANOTHER_REPO"), (2, "XYZ")]`
 - (account, commit): `[(1, 123456), (1, 234566777)]`
 
-This does not however enable us to say with confidence what would be correct value for (repo, commit) would be
+This does not however enable us to say with confidence what would be correct value for (repo, commit) would be.
 
 Similarly, we cannot simply concat these to get (account, commit, repo)
-(Cardinal product would give wrong result, and there is no way we can map these values)
+(Cardinal product would give wrong result)
 
 
 Query
