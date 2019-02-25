@@ -24,6 +24,25 @@ class OperationGraph(DAG):
         """
         Add multiple edges in Cartesian cross-multiplication style between set of parent and child nodes
         Both sets contain keys required to add nodes
+
+        ---- Example 1 ----
+        Parent: (1, 2), child: (3, 4)
+        Would generate the following edges:
+        1 -> 3
+        1 -> 4
+        2 -> 3
+        2 -> 4
+
+        --- Example 2 -----
+        Parent: (1, 2, 3), child: (3, 4)
+        Here "3" is repeated in both parent and child, so it would be discarded from parent
+
+        Rationale:
+            In our case, as long as "pure" producers (i.e. parents)
+            are ahead of any resource that consumes them (i.e children),
+            we are looking at correct sorting
+
+        Discarding 3 from parent, would make this example same as Example 1
         """
 
         parent_keys = parent_keys - child_keys
@@ -78,6 +97,8 @@ class OperationGraph(DAG):
     def add_custom_ordering_dependencies(self):
         """
         Add the user dependencies
+
+        While most of the program is automated, this allows user to add their own custom ordering operations
         """
 
         for ordering in settings.SWAGGER_OPERATION_DEPENDENCIES:
@@ -110,6 +131,9 @@ class OperationGraph(DAG):
 
         order = super().topological_sort()
 
+        # With the addition of Custom sorting, this logic may no longer be correct
+        # Since user can explicitly order Delete Operation ahead of some other operation
+        # And we ignore that
         interface_order = []
         delete_order = []
 

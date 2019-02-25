@@ -58,6 +58,7 @@ class DirectedGraph:
         return self.nodes.keys()
 
     def dfs(self, node: Node, visited=None, order=None):
+        # Depth first search
 
         if visited is None:
             visited = set()
@@ -81,7 +82,6 @@ class DirectedGraph:
 class DAG(DirectedGraph):
     """
     Directed Acyclic Graph.
-    TODO: Right now, this does not ensure that there is no cycle at time of construction
     """
 
     WHITE = 1
@@ -112,6 +112,8 @@ class DAG(DirectedGraph):
     def topological_sort(self):
         """
         Topologically sort the graph
+        https://en.wikipedia.org/wiki/Topological_sorting
+        We are using DFS method
         """
 
         visited = {_node.get_id(): self.WHITE for _node in self}

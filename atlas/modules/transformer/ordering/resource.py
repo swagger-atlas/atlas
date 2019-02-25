@@ -4,31 +4,37 @@ from atlas.modules.transformer.ordering.base import Node, DAG
 
 
 class Reference:
+    """
+    Reference Class.
+    Contains information about Swagger Definition connections
+    """
 
     def __init__(self, key, config):
         self.name = key
         self.config = config
 
+        # Other definitions this reference points to
         self.connected_refs = set()
-        self.connected_resources = set()
 
+        # Resources which are available for this definition
+        self.associated_resources = set()
         self.primary_resource = None
 
     def add_connected_ref(self, value):
         if value:
             self.connected_refs.add(value)
 
-    def add_connected_resource(self, value):
+    def add_resource_association(self, value):
         if value:
-            self.connected_resources.add(value)
+            self.associated_resources.add(value)
 
     def resolve_primary_resource(self, candidates: set):
-        candidates = candidates or self.connected_resources
+        candidates = candidates or self.associated_resources
 
         # Only one candidate is there, so we have clear primary resource
         if len(candidates) == 1:
             self.primary_resource = candidates.pop()
-            self.connected_resources.discard(self.primary_resource)
+            self.associated_resources.discard(self.primary_resource)
         elif not candidates:
             # There are no candidates, so just name resource after reference
             self.primary_resource = self.name
@@ -44,7 +50,7 @@ class Reference:
         for name, config in self.config.get(constants.PROPERTIES, {}).items():
             field = open_api.ReferenceField(name, config)
             self.add_connected_ref(field.ref)
-            self.add_connected_resource(field.resource)
+            self.add_resource_association(field.resource)
 
             if field.can_contain_primary_resource:
                 primary_resource_fields.add(field.resource)
@@ -54,7 +60,7 @@ class Reference:
 
         if additional_properties and isinstance(additional_properties, dict):
             self.add_connected_ref(additional_properties.get(constants.REF))
-            self.add_connected_resource(additional_properties.get(constants.RESOURCE))
+            self.add_resource_association(additional_properties.get(constants.RESOURCE))
 
         self.resolve_primary_resource(primary_resource_fields)
 
@@ -88,7 +94,7 @@ class ResourceGraph(DAG):
 
     node_class = Resource
 
-    def __init__(self, references: dict, specs=None):
+    def __init__(self, references: dict, specs: dict = None):
         super(ResourceGraph, self).__init__()
         self.resources = dict()
         self.references = {key.lower(): Reference(key.lower(), config) for key, config in references.items()}
@@ -104,7 +110,7 @@ class ResourceGraph(DAG):
         if ref:
             source_key = utils.get_ref_name(ref)
             source_resource = self.get_associated_resource_for_ref(source_key)
-            # Note the edge - Source is required for resource
+            # Note the direction of edge - Source is required for resource
             self.add_edge(source_resource, dependent_key)
 
     def construct_graph(self):
@@ -130,6 +136,10 @@ class ResourceGraph(DAG):
         return [utils.get_ref_name(ref).lower() for ref in schema.get_all_refs()]
 
     def parse_paths(self, interfaces):
+        """
+        Once we have constructed graph, we also want to save Operation relevant details to each node
+        We would go through Operation interfaces, and add details about resource-operation in Resource Nodes
+        """
 
         ref_op_map = {
             "consumer": "add_consumer",
@@ -141,9 +151,11 @@ class ResourceGraph(DAG):
             op_id = operation.op_id
             ref_graph = {}
 
+            # Producers were already marked before in the work cycle, so we can save lots of work by just using them
             for ref in operation.producer_references:
                 ref_graph[ref] = "producer"
 
+            # We got producers, so we now just need to look in Request params, to search for consumers and destroyers
             self.parse_request_parameters(operation, ref_graph)
 
             for ref, ref_op in ref_graph.items():

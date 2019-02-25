@@ -1,4 +1,5 @@
 from collections import namedtuple
+from typing import List
 
 from atlas.modules import constants, exceptions, utils
 from atlas.modules.transformer import interface, profile_constants
@@ -6,12 +7,15 @@ from atlas.modules.helpers import swagger_schema_resolver
 from atlas.conf import settings
 
 
+# Swagger Field Name and Resource it maps to
 ResourceFieldMap = namedtuple('ResourceFieldMap', [constants.RESOURCE, 'field'])
 
 
 class Task:
     """
-    A single task corresponds to single URL/Method combination function
+    Responsibility of the task is to take single Operation (URL + Method) and output its load test configuration
+    Convert() is the entry point for the function, and must be implemented by sub-classes
+    Base class implements several of utility methods, and resolve Parameters
     """
 
     def __init__(self, open_api_interface: interface.OpenAPITaskInterface, spec=None):
@@ -30,8 +34,11 @@ class Task:
 
         self.headers = []
 
+        # Contains what all statements/configuration need to occur AfterResponse has been received
         self.post_check_tasks = []
 
+        # If this Operation deletes the resource, we save it.
+        # This is necessary, because we might need to roll-back delete operations
         self.delete_url_resource = None
 
         self.parse_parameters(open_api_interface.parameters or {})
@@ -41,8 +48,13 @@ class Task:
 
     def parse_parameters(self, parameters):
         """
-        For the Path parameters, add required resources
-        For the body parameter, add the definition
+        This contains the main logic for Parsing Parameters present in the operation.
+
+        Parameters could be of type: URL (Path. Query), Headers, Body (body, form etc).
+        For each parameter, we:
+            - run basic validations for them
+            - process them, and if they are reference, resolve the references
+            - run basic checks for them, and save their config in requisite variables
         """
 
         for config in parameters.values():
@@ -59,7 +71,7 @@ class Task:
             name = config.get(constants.PARAMETER_NAME)
 
             if not name:
-                raise exceptions.ImproperSwaggerException("Config {} does not have name".format(config))
+                raise exceptions.ImproperSwaggerException(f"Config {config} does not have name")
 
             if in_ == constants.PATH_PARAM:
                 self.parse_url_params(name, config, param_type="path")
@@ -77,9 +89,9 @@ class Task:
                 self.parse_header_params(name, config)
 
             else:
-                raise exceptions.ImproperSwaggerException(
-                    "Config {} does not have valid parameter type".format(config))
+                raise exceptions.ImproperSwaggerException(f"Config {config} does not have valid parameter type")
 
+        # schema_resolver.resolve() would expand nested references and definitions, and would give nested object
         self.data_body = self.schema_resolver.resolve(self.data_body)
 
     def parse_body_params(self, name, config):
@@ -91,13 +103,13 @@ class Task:
             required = config.get(constants.REQUIRED, True)
             if required:
                 raise exceptions.ImproperSwaggerException(
-                    f"Body Parameter {name} must specify schema. OP ID: {self.open_api_op.func_name}"
+                    f"Body Parameter {name} must specify schema. OP ID: {self.open_api_op.op_id}"
                 )
 
     def parse_header_params(self, name, config):
         config = self.schema_resolver.resolve({name: config})
         if config:
-            self.headers.append("'{name}': {config}".format(name=name, config=config[name]))
+            self.headers.append(f"'{name}': {config[name]}")
 
     def parse_url_params(self, name, config, param_type="query"):
         """
@@ -108,10 +120,10 @@ class Task:
         _type = config.get(constants.TYPE)
 
         if not _type:
-            raise exceptions.ImproperSwaggerException("Type not defined for parameter - {}".format(name))
+            raise exceptions.ImproperSwaggerException(f"Type not defined for parameter - {name}")
 
-        if _type not in constants.QUERY_TYPES:
-            raise exceptions.ImproperSwaggerException("Unsupported type for parameter - {}".format(name))
+        if _type not in constants.URL_TYPES:
+            raise exceptions.ImproperSwaggerException(f"Unsupported type for parameter - {name}")
 
         # Only use query params if strictly required
         is_optional_param = not (settings.HIT_ALL_QUERY_PARAMS or config.get(constants.REQUIRED, False))
@@ -135,7 +147,11 @@ class Task:
     def convert(self, width):
         raise NotImplementedError
 
-    def parse_url_params_for_body(self):
+    def parse_url_params_for_body(self) -> (str, str):
+        """
+        Utility Method.
+        It process url_params constructed when parsing parameters, and return query and path string
+        """
         query_params = []
         path_params = []
 
@@ -144,8 +160,7 @@ class Task:
             "path": path_params
         }
         for key, value in self.url_params.items():
-            param_str = "'{name}': {config}".format(name=key, config=value[1])
-            param_map[value[0]].append(param_str)
+            param_map[value[0]].append(f"'{key}': {value[1]}")
 
         query_str = "{}"
         path_str = "{}"
@@ -176,6 +191,7 @@ class Task:
 
         for status, config in responses.items():
 
+            # Swagger responses are either status code or "default".
             if status == constants.DEFAULT:
                 response = self.get_response_properties(config)
                 if response:
@@ -228,16 +244,23 @@ class Task:
 
 class TaskSet:
     """
-    Task Set is collection of tasks
+    Task Set takes a collection of tasks and give load test configuration which combines them all.
+    SSubclasses must implement convert
     """
 
-    def __init__(self, tasks, scenarios=None):
+    def __init__(self, tasks: List(Task), scenarios: dict = None):
+        """
+        :param tasks: Array of Tasks
+        :param scenarios: Custom user scenarios.
+
+        If no scenario is present, default scenario will be used which is a collection of all tasks
+        """
         self.tasks = tasks
         self.scenarios = self.set_scenarios(scenarios)
 
     def set_scenarios(self, scenarios):
         """
-        Make sure default is appended in scenarios neatly
+        Make sure default is added in scenarios correctly
         """
 
         scenarios = scenarios or {}

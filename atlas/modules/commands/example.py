@@ -18,6 +18,11 @@ class ExampleProjectCommand(BaseCommand):
         parser.add_argument("name", help=f"Name of the example. Valid examples are {', '.join(VALID_EXAMPLES)}")
 
     def handle(self, **options):
+        """
+        :param options: (dict)
+            - name: Name of Example Project to create
+        """
+
         project_name = options.pop("name")
         self.validate_name(project_name)
 

@@ -7,6 +7,9 @@ logger = logging.getLogger(__name__)
 
 
 class Client:
+    """
+    A common DB client for all supported databases (Postgres/MySql/SQLite)
+    """
 
     def __init__(self):
         self.db = self.connect_to_db()

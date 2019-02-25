@@ -8,7 +8,7 @@ from atlas.modules import (
 
 class OpenAPITaskInterface:
     """
-    This serves as interface between OpenAPI Operation and Load Test Tasks
+    This serves as interface between OpenAPI Operation and several ATLAS classes
     """
 
     def __init__(self):

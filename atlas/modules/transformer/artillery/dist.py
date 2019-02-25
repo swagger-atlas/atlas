@@ -10,6 +10,13 @@ PySed = namedtuple('py_sed_tuple', ['pattern', 'replace_text'])
 
 
 class ArtilleryDist(project_setup.Setup):
+    """
+    Creates a package for artillery
+
+    1. Creates required folders
+    2. Copy files from BUILD folder to DIST folder
+    3. Copy internal files to DIST folder
+    """
 
     def start(self):
         self.path = utils.get_project_path()

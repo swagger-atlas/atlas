@@ -35,7 +35,3 @@ class Setup:
     def touch(self, file_name):
         path = os.path.join(self.path, file_name)
         Path(path).touch()
-
-
-if __name__ == "__main__":
-    Setup().setup()

@@ -11,7 +11,7 @@ Currently, ATLAS fully supports Artillery, and we have plans to incorporate for 
 
 Creating a new Project
 =====
-- Create a virtual environment. We only support Python 3.5+.
+- Create a virtual environment. We only support Python 3.6+.
 - Install the Atlas Project by `pip install -e git@code.jtg.tools:jtg/atlas.git`
 - Run `python atlas newproject <project-name>`
 - Switch to new directory
