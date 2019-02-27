@@ -10,6 +10,7 @@ Changelog
 - Added `atlas` console script. Now commands can be run via `atlas <>`
 Docs have been updated to reflect this change
 - Added a wrapper for Artillery Load Test. Can simply run test by using `atlas run`
+- During `atlas newproject` command, automate the installation of required npm packages
 
 *Bug Fixes*
 - Removed redundant code
