@@ -495,33 +495,44 @@ class ResponseDataParser {
     constructor(profile=null) {
         this.profile = profile;
         this.dbResourceInstance = Resource.instance;
-        this.resourceMap = {};
     }
 
     parseArray(schema, response) {
 
         const self = this;
+        let reqArr = [];
 
         if (_.isEmpty(response)) {
-            return;     // Short-circuit return
+            return reqArr;     // Short-circuit return
         }
+
+        const itemConfig = _.get(schema, constants.ITEMS, {});
 
         if (typeof response[0] === "object") {
-            let itemConfig = _.get(schema, constants.ITEMS, {});
+
             // Run the Parser for first 10 values, which should be sufficient
             _.forEach(_.slice(response, 0, 10), function (value) {
-                self.parser(_.get(itemConfig, constants.PROPERTIES, itemConfig), value);
+                reqArr.push(
+                  self.parser(_.get(itemConfig, constants.PROPERTIES, itemConfig), value)
+                );
             });
         } else {
-            let resource = _.get(schema, constants.RESOURCE);
+            let resource = _.get(itemConfig, constants.RESOURCE);
 
             if (!_.isNil(resource)) {
-                self.addData(resource, response);
+                const newResources =  self.addData(resource, response);
+                if (!_.isEmpty(newResources)) {
+                  reqArr = {[resource]: newResources};
+                }
             }
         }
+
+        return reqArr;
     }
 
     parseObject(schema, response) {
+
+        let reqMap = {};
 
         const self = this;
 
@@ -532,47 +543,74 @@ class ResponseDataParser {
             }
 
             if (_.isArray(response[key])) {
-                self.parseArray(schemaConfig, response[key]);
+                // For sibling arrays in an object, cross-product do not make sense
+                // So, for simplicity, add them as part of single array
+                reqMap.$agg = _.concat(
+                  reqMap.$agg || [], self.parseArray(schemaConfig, response[key])
+                );
             } else if (typeof schemaConfig === "object" && schemaConfig.constructor === Object) {
                 // First check if resource is available
                 let resource = _.get(schemaConfig, constants.RESOURCE);
                 if (!_.isNil(resource)) {
-                    self.addData(resource, response[key]);
+                    const newResources = self.addData(resource, response[key]);
+                    if (!_.isEmpty(newResources)) {
+                      reqMap[resource] = newResources;
+                    }
+
                 } else if (typeof response[key] === "object" && response[key].constructor === Object){
                     // Expect that if Response has objects, then schema would have object
                     // It is much faster than checking each properties in schema
-                    self.parser(schemaConfig, response[key]);
+                    const nestedObj = self.parser(_.get(schemaConfig, constants.PROPERTIES, schemaConfig), response[key]);
+                    const newArr = _.concat(nestedObj.$agg || [], reqMap.$agg || []);
+                    _.extend(reqMap, nestedObj);
+                    reqMap.$agg = newArr;
                 }
             }
         });
+
+        return reqMap;
     }
 
     /*
         Entry Point for this class.
      */
     resolve(schema, response, reqResourceMap) {
-        // Initialize with resource Map of request
-        this.resourceMap = reqResourceMap || {};
 
-        this.parser(schema, response);
+        const resourceMap = {...this.parser(schema, response), ...reqResourceMap};
+        let self = this;
 
-        if (!_.isEmpty(this.resourceMap)) {
-            relatedResources.insert(this.resourceMap, this.profile);
+        if (!_.isEmpty(resourceMap)) {
+            const outputResources = this.formatResourceMap(resourceMap);
+            _.forEach(outputResources, (element) => {
+                relatedResources.insert(element, self.profile);
+            });
         }
-
-        // Reset the resource Map
-        this.resourceMap = {};
 
         return true;
     }
 
-    parser(schema, response) {
+    formatResourceMap(resourceMap) {
+        let out = [];
+        let element = _.isArray(resourceMap) ? {} : _.omit(resourceMap, '$agg');
 
-        if (_.isArray(response)) {
-            this.parseArray(schema, response);
-        } else {
-            this.parseObject(schema, response);
-        }
+        let self = this;
+
+        _.forEach(resourceMap.$agg, (arrElement) => {
+            const newElement = {...element, ...arrElement};
+            if (arrElement.$agg) {
+                // Array extend
+                out.push(...self.formatResourceMap(newElement));
+            } else {
+                // Array Push
+                out.push(newElement);
+            }
+        });
+
+        return out;
+    }
+
+    parser(schema, response) {
+        return _.isArray(response) ? this.parseArray(schema, response) : this.parseObject(schema, response);
     }
 
     addData(resourceKey, values) {
@@ -580,11 +618,12 @@ class ResponseDataParser {
 
         if (!_.isEmpty(newResources))
         {
-            this.resourceMap[resourceKey] = newResources;
             if(!settings.NOT_UPDATE_RUN_TIME_RESOURCES.has(resourceKey)) {
                 this.dbResourceInstance.updateResource(this.profile, resourceKey, newResources);
             }
         }
+
+        return newResources;
     }
 
     deleteData(resourceKey, resourceValue) {
