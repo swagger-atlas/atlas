@@ -46,8 +46,8 @@ Install Artillery and dependencies:
     - `npm install`
 
 Build and Run Artillery:
-    - `python manage.py dist artillery`
-    - `artillery run dist/artillery/artillery.yaml`
+    - `atlas dist`
+    - `atlas run`
 
 You should see [Artillery Guide](https://code.jtg.tools/jtg/atlas/docs/artillery.md) for details.
 

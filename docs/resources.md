@@ -18,7 +18,7 @@ Resources are largely identified via an automated system.
 - If there is any explicit resource, we go for it. (See Manual Section below)
 - Else, we try to reason for which entities' data could be faked, and which needs to be tagged as resource.
 
-You can run `python manage.py detect_resources` which would collate the explicit resources with generated resources.
+You can run `atlas detect_resources` which would collate the explicit resources with generated resources.
 You can check the output in `build/resource_mapping.yaml`
 - If we miss any resources in the automation, do let us know!
 
@@ -175,7 +175,7 @@ admin:
     # Use its own filter rather than global
 ```
 
-You can fetch data for resources using `python manage.py fetch_data`
+You can fetch data for resources using `atlas fetch_data`
 This will create resources folder in build
 Each file would be <profile_name>.yaml and each file would contain your resources fetched for that profile
 

@@ -9,7 +9,7 @@ Artillery is documented at their [official site](https://artillery.io/docs/)
 Short note on Artillery Commands
 ================================
 - In this documentation, artillery commands are given which are each relevant to their section.
-- When you run `python manage.py dist artillery`, all these commands are run by default.
+- When you run `atlas dist`, all these commands are run by default.
 - In the dist command, you can toggle the features as needed
 
 
@@ -23,7 +23,7 @@ For artillery, setup is responsible for:
 
 This step should be only executed if you change any settings value or update your ATLAS project.
 
-`python manage.py setup artillery`
+`atlas setup`
 
 
 Basic Artillery Configuration
@@ -60,15 +60,15 @@ Building Artillery Configuration for ATLAS
 ==========================================
 Once you have setup artillery, you want ATLAS to build the Swagger into artillery readable format.
 This generally occurs in following steps:
-- Identification of resources. Run `python manage.py detect_resources` for same. Unless, you are updating Swagger, this should be only run once.
-- Run `python manage.py fetch_data` so we can extract all relevant values. One time operation unless you want to re-fetch all values again
-- Run `python manage.py build artillery` which transforms your YAML Swagger to artillery YAML File (with lots of other awesome stuff besides)
+- Identification of resources. Run `atlas detect_resources` for same. Unless, you are updating Swagger, this should be only run once.
+- Run `atlas fetch_data` so we can extract all relevant values. One time operation unless you want to re-fetch all values again
+- Run `atlas build` which transforms your YAML Swagger to artillery YAML File (with lots of other awesome stuff besides)
 
 
 Distributing Your Setup
 =======================
 
-Finally, there is a magic command `python manage.py dist artillery`.
+Finally, there is a magic command `atlas dist`.
 This will create a folder `dist`.
 
 This is self-sufficient folder.
@@ -78,7 +78,7 @@ You can copy this folder and run it ANYWHERE where artillery is pre-installed. I
 Utility Commands
 ================
 
-We provide a utility command `python manage.py generate_routes` which collects all Swagger Paths and Operations and generates OP_KEY for them.
+We provide a utility command `atlas generate_routes` which collects all Swagger Paths and Operations and generates OP_KEY for them.
 This is generated in Python file, so they could be imported and used if required in python settings
 
 
@@ -88,4 +88,4 @@ FAQ
 1. ATLAS is not creating proper data body for my APIs, which results in 400 failure. What are alternatives?
 You can change any request body created by ATLAS prior to its hit. See `conf/artillery/hooks.js` for more details.
 Your OP_KEY is defined as "METHOD_NAME url".
-You can also use `python manage.py generate_routes` to generate `conf/routes.py` which contains all OP_KEYS in one place for reference
+You can also use `atlas generate_routes` to generate `conf/routes.py` which contains all OP_KEYS in one place for reference

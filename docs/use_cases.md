@@ -17,7 +17,7 @@ Authenticating APIs
 It is possible to provide Authentication to APIs.
 
 - Editing `conf/profiles.yaml` and adding authentication key value pairs
-- In `conf/artillery//hooks.js` change `setHeader()` function as needed.
+- In `conf/artillery/hooks.js` change `setHeader()` function as needed.
 
 *Example*
 ```yaml
@@ -71,7 +71,7 @@ This is global level setting, and affects all of your profiles
 This is available in `EXCLUDE_URLS` Settings in `conf/conf.py`
 
 Each OP_KEY is "METHOD url" (eg: "GET /users/").
-A complete list of OP_KEY can be obtained in `conf/routes.py` file generated via `python manage.py generate_routes`
+A complete list of OP_KEY can be obtained in `conf/routes.py` file generated via `atlas generate_routes`
 
 
 Creating Custom Scenarios

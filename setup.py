@@ -13,5 +13,10 @@ setup(
         "requests==2.20.0",
         "inflection==0.3.1",
         "pysed==0.7.8"
-    ]
+    ],
+    entry_points={
+        'console_scripts': [
+            'atlas = atlas.modules.commands.management:execute_from_command_line'
+        ]
+    }
 )

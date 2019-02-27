@@ -158,4 +158,4 @@ EXTENDED = [
 ]
 ```
 
-where `routes.py` is generated via `python manage.py generate_routes`
+where `routes.py` is generated via `atlas generate_routes`

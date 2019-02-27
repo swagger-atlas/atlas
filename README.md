@@ -13,7 +13,7 @@ Creating a new Project
 =====
 - Create a virtual environment. We only support Python 3.6+.
 - Install the Atlas Project by `pip install -e git@code.jtg.tools:jtg/atlas.git`
-- Run `python atlas newproject <project-name>`
+- Run `atlas newproject <project-name>`
 - Switch to new directory
 - Follow the README of directory to customize and run your load test
 
@@ -112,7 +112,7 @@ In `conf/conf.py`, change `SWAGGER_OPERATION_DEPENDENCIES`.
 This setting is a list of 2-element tuple where it ensures that first element is always hit before second element.
 Each element represents OP_KEY of Swagger Operation.
 OP_KEY is simply "METHOD url" for any Swagger Operation
-OP_KEY for all swaggers can be obtained in `conf/routes.py` which is generated via `python manage.py generate_routes`
+OP_KEY for all swaggers can be obtained in `conf/routes.py` which is generated via `atlas generate_routes`
 
 ---
 
@@ -131,7 +131,7 @@ See `Creating Custom Scenario` section in [Use cases](uses_cases.md) for more de
 Example Project
 ===============
 
-- After installing ATLAS, run `python atlas example <example_name>` (To know possible examples you can run `python atlas example --help`)
+- After installing ATLAS, run `atlas example <example_name>` (To know possible examples you can run `python atlas example --help`)
 - Switch to Project, and you will steps to run Server and Load Test
 
 
