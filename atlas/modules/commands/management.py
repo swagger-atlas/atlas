@@ -17,7 +17,8 @@ COMMANDS = {
     "fetch_data": "atlas.modules.resource_data_generator.commands.generate.Generate",
     "setup": "atlas.modules.transformer.commands.setup.Setup",
     "dist": "atlas.modules.transformer.commands.dist.Dist",
-    "order": "atlas.modules.transformer.commands.order.Order"
+    "order": "atlas.modules.transformer.commands.order.Order",
+    "run": "atlas.modules.commands.load_test.LoadTestCommand"
 }
 
 # Commands which can be run from anywhere.

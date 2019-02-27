@@ -7,6 +7,9 @@ Changelog
 
 *Features*
 - Commands requiring `type` now set `Artillery` as default
+- Added `atlas` console script. Now commands can be run via `atlas <>`
+Docs have been updated to reflect this change
+- Added a wrapper for Artillery Load Test. Can simply run test by using `atlas run`
 
 *Bug Fixes*
 - Removed redundant code
