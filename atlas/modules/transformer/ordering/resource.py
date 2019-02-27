@@ -126,7 +126,7 @@ class ResourceGraph(DAG):
         for resource_key, reference in self.resources.items():
             for ref in reference.connected_refs:
                 self.add_ref_edge(ref, resource_key)
-            for resource in reference.connected_resources:
+            for resource in reference.associated_resources:
                 if resource:
                     self.add_edge(resource, resource_key)
 

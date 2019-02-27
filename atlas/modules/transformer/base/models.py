@@ -1,5 +1,4 @@
 from collections import namedtuple
-from typing import List
 
 from atlas.modules import constants, exceptions, utils
 from atlas.modules.transformer import interface, profile_constants
@@ -245,10 +244,11 @@ class Task:
 class TaskSet:
     """
     Task Set takes a collection of tasks and give load test configuration which combines them all.
-    SSubclasses must implement convert
+    Subclasses must implement convert
     """
 
-    def __init__(self, tasks: List(Task), scenarios: dict = None):
+    # List(Task) does not work -- see: https://github.com/python/typing/issues/113
+    def __init__(self, tasks: list, scenarios: dict = None):
         """
         :param tasks: Array of Tasks
         :param scenarios: Custom user scenarios.

@@ -2,6 +2,17 @@ Changelog
 ========
 
 
+8.1.0
+-----
+
+*Features*
+- Commands requiring `type` now set `Artillery` as default
+
+*Bug Fixes*
+- Removed redundant code
+- Fixed dist command which was failing due to `TypeError`
+
+
 8.0.2
 -----
 
