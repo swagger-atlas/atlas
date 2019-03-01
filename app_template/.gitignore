@@ -64,3 +64,7 @@ node_modules/
 
 # Artillery Reports
 report*.json*
+
+# Docker Data
+docker/grafana/data/*/
+docker/influxdb/data/*/

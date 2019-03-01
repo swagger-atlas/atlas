@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  influxdb:
+    image: influxdb:1.5-alpine
+    environment:
+      INFLUXDB_DB: atlas
+    ports:
+      - "9086:8086"
+    volumes:
+      - ./influxdb/data:/var/lib/influxdb
+  grafana:
+    image: grafana/grafana:6.0.0
+    ports:
+      - "4000:3000"
+    volumes:
+#      [We do not need persistent storage right now. If we need it, see this:
+#       http://docs.grafana.org/installation/docker/#grafana-container-with-persistent-storage-recommended
+#      ]
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/lib/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - influxdb

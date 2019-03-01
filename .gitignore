@@ -56,11 +56,6 @@ ENV/
 env.bak/
 venv.bak/
 
-# Files with sensitive/local data
-project/*/
-settings/local.py
-js_libs/
-
 # PyCharm
 .idea/
 

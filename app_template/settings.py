@@ -24,10 +24,14 @@ class Settings:
     ONLY_TAG_API = False
 
     # INFLUX DB Setting. Required.
+    # Default settings are ones used by Docker.
+    # If you change them, you would need to update docker-compose to work
+    # Database name is used by Grafana as data source.
+    # So, any update in name would require you to manually update grafana dashboard
     INFLUX = {
-        "database": "",
-        "host": "",
-        "port": "",
-        "username": "",
-        "password": ""
+        "database": "atlas",
+        "host": "localhost",
+        "port": "9086",
+        "username": "admin",
+        "password": "admin"
     }
