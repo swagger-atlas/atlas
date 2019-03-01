@@ -39,8 +39,15 @@ class StartProjectCommand(BaseCommand):
 
         target = os.path.join(os.getcwd(), project_name)
         if os.path.exists(target):
-            raise CommandError(f"{project_name} directory already exists! Aborting")
+            overwrite = input(f"{project_name} directory already exists! Overwrite (y/N) ")
+            if overwrite.lower() == "y":
+                print(f"Removing existing {project_name}")
+                shutil.rmtree(target)
+            else:
+                print("Aborting!")
+                return
 
+        print(f"Creating {project_name}...")
         shutil.copytree(os.path.join(settings.BASE_DIR, settings.APP_TEMPLATE_DIRECTORY), target)
 
         print("\nProject successfully created\n")
@@ -61,10 +68,7 @@ class StartProjectCommand(BaseCommand):
         subprocess.run(["npm", "install", "-g", "artillery"])
         subprocess.run(["npm", "install"])
 
-        print(
-            f"You should now switch to {project_name} (cd {project_name})."
-            f" In the `conf` directory, add your swagger file and profiles configuration"
-        )
+        print(success_message)
 
     @staticmethod
     def validate_name(name):
@@ -73,3 +77,13 @@ class StartProjectCommand(BaseCommand):
             raise CommandError(
                 f"{name} is not a valid project name. Please make sure the name is a valid identifier."
             )
+
+
+success_message = """
+Congratulation, your project is successfully created! Follow these steps to configure your load test:
+1. Switch to project directory
+2. Run docker compose to install influxdb and grafana - `docker-compose -f docker/docker-compose.yml up`
+3. In the conf/ folder, configure conf.py, swagger.yaml, and profiles.yaml file
+4. Change settings.py as necessary
+5. Run `atlas dist`
+"""

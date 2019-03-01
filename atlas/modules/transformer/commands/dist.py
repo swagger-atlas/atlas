@@ -69,5 +69,5 @@ class Dist(TransformerBaseCommand):
         self.artillery_dist()
 
         print("Successfully finished. \n\n"
-              f"You can start the test on local by `{artillery_dist_file}`\n"
+              f"You can start the test on local by running `atlas run`\n"
               f"If needed, you can adjust duration and user-spawn rate in {artillery_dist_file} - in config/phases\n")
