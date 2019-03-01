@@ -12,7 +12,8 @@ setup(
         "psycopg2==2.7.5",
         "requests==2.20.0",
         "inflection==0.3.1",
-        "pysed==0.7.8"
+        "pysed==0.7.8",
+        "docker-compose>=1.23, <2.0"
     ],
     entry_points={
         'console_scripts': [

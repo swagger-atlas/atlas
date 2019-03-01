@@ -11,10 +11,12 @@ Changelog
 Docs have been updated to reflect this change
 - Added a wrapper for Artillery Load Test. Can simply run test by using `atlas run`
 - During `atlas newproject` command, automate the installation of required npm packages
+- Added a docker to automate setup of InfluxDB and Grafana
 
 *Bug Fixes*
 - Removed redundant code
 - Fixed dist command which was failing due to `TypeError`
+- Fixed Grafana dashboard provisioning
 
 
 8.0.2
