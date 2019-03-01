@@ -44,7 +44,7 @@ class LoadTestCommand(BaseCommand):
         file_path = os.path.join(settings.DIST_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_YAML)
 
         # Print Grafana message at start of load test
-        print(grafana_message)
+        print(load_test_start_message)
 
         command = f"artillery run {file_path}"
 
@@ -54,12 +54,18 @@ class LoadTestCommand(BaseCommand):
         subprocess.run(command.split())
 
         # Print Grafana message once test has been completed
-        print(grafana_message)
+        print(load_test_end_message)
 
 
 grafana_message = """
-Running Artillery Load Test. You can see results in real time in Grafana dashboard
 Grafana dashboard is available at http://localhost:4000/dashboards (if you followed docker setup)
 Default Credentials are: admin/admin
-You should see `Artillery Graphs` dashboard.
+You should be able to see `Artillery Graphs` dashboard, where you can see the results
 """
+
+
+load_test_start_message = """
+Running Artillery Load Test. You can see results in real time in Grafana dashboard""" + grafana_message
+
+load_test_end_message = """
+Artillery Load test has finished. You can find results in Grafana dashboard""" + grafana_message

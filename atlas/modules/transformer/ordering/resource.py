@@ -163,6 +163,8 @@ class ResourceGraph(DAG):
                 if resource_node:
                     getattr(resource_node, ref_op_map.get(ref_op))(op_id)
 
+        self.remove_dependent_producers()
+
     def parse_request_parameters(self, operation, ref_graph):
         """
         Parse Request Parameters for a single operation and mark References w.r.t to Operation
@@ -198,6 +200,42 @@ class ResourceGraph(DAG):
             operation.method == constants.DELETE and
             parameter.get(constants.PARAMETER_NAME) == operation.url_end_parameter()
         )
+
+    def remove_dependent_producers(self):
+        """
+        Consider a definition:
+        A:
+            id
+            B:
+                id
+                name
+            name
+
+        here, we say that A is dependent on B, since any resource which consumes A, must first know about B.
+
+        In this case, any consumer of A should NOT count as producer of B.
+        This function finds such connections, and remove these attributes
+        """
+
+        visited = {_node: self.WHITE for _node in self}
+
+        for node in visited.keys():
+            if visited[node] == self.WHITE:
+                self.remove_dependent_producers_helper(node, visited)
+
+    def remove_dependent_producers_helper(self, resource, visited):
+
+        child_consumers = set()
+
+        for adj_resource in resource.get_connections():
+            child_consumers.update(self.remove_dependent_producers_helper(adj_resource, visited))
+
+        # Remove all producers which consume Children
+        resource.producers -= child_consumers
+
+        visited[resource] = self.BLACK
+
+        return child_consumers | resource.consumers
 
 
 class SwaggerResourceValidator:
