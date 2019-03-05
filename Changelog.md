@@ -2,6 +2,12 @@ Changelog
 ========
 
 
+8.1.1
+-----
+
+- Updated petstore example
+
+
 8.1.0
 -----
 
