@@ -1,0 +1,10 @@
+apiVersion: 1
+
+providers:
+- name: 'atlas'
+  folder: ''
+  type: file
+  disableDeletion: false
+  updateIntervalSeconds: 10000  #how often Grafana will scan for changed dashboards
+  options:
+    path: /var/lib/grafana/dashboards

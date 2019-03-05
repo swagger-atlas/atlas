@@ -16,10 +16,18 @@ This is based on NodeJS implementation (slightly modified) of [Swagger Codegen](
 Running Load Test
 =================
 
+
+Add InfluxDB and Grafana
+------------------------
+
+- Run `docker-compose -f docker/docker-compose.yml`
+
+
 With Artillery
 --------------
 
 (Make sure you have ATLAS installed in your virtualenv)
+(Also, make sure you are running InfluxDB and Grafana)
 
 - Run `atlas dist`
 - `atlas run`
