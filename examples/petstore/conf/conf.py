@@ -37,3 +37,10 @@ class Configuration:
 
     # Custom Scenarios for Load Test. See: https://code.jtg.tools/jtg/atlas/tree/master/docs/profile.md for more details
     LOAD_TEST_SCENARIOS = {}
+
+    # #### Load Test Settings
+
+    SPAWN_RATE = 1  # Rate at which VUs will spawn
+    DURATION = 1  # Duration for which VUs will spawn and run
+
+    # #### Load Test Settings

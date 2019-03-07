@@ -2,6 +2,12 @@ Changelog
 ========
 
 
+8.2.0
+-----
+
+Added the option to allow load test configuration from command line or `conf.py`
+
+
 8.1.1
 -----
 

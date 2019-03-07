@@ -22,16 +22,28 @@ class LoadTestCommand(BaseCommand):
             help=f"Valid load test runners are: {self.VALID_RUNNERS}"
         )
 
+        parser.add_argument(
+            "--rate",
+            nargs="?",
+            help="Rate at which users are added to system. Will over-ride conf settings"
+        )
+
+        parser.add_argument(
+            "--duration",
+            nargs="?",
+            help="Duration for which this load test should run. Will over-ride conf settings"
+        )
+
     def handle(self, **options):
         runner = options.pop("runner_type")
 
         if runner == "artillery":
-            self.artillery_runner()
+            self.artillery_runner(**options)
         else:
             raise CommandError(f"Invalid Load Test Runner. Valid runners are: {self.VALID_RUNNERS}")
 
     @staticmethod
-    def artillery_runner():
+    def artillery_runner(**options):
         """
         Wrapper for Artillery Load Test run
 
@@ -46,7 +58,18 @@ class LoadTestCommand(BaseCommand):
         # Print Grafana message at start of load test
         print(load_test_start_message)
 
-        command = f"artillery run {file_path}"
+        # Construct Options for Load
+        rate = options.get("rate")
+        duration = options.get("duration")
+
+        if rate or duration:
+            # Do not add spaces for formatting, as we split by space later in the command
+            config = '{{"config":{{"phases":[{{"duration":{duration},"arrivalRate":{rate}}}]}}}}'.format(
+                duration=duration or settings.DURATION, rate=rate or settings.SPAWN_RATE
+            )
+            command = f"artillery run --overrides {config} {file_path}"
+        else:
+            command = f"artillery run {file_path}"
 
         # https://docs.python.org/3/library/os.html#os.system
         # subprocess is preferred over os.system
