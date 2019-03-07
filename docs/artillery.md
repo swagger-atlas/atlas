@@ -82,6 +82,15 @@ We provide a utility command `atlas generate_routes` which collects all Swagger 
 This is generated in Python file, so they could be imported and used if required in python settings
 
 
+Running Artillery
+=================
+
+Artillery could be run via `atlas run`
+In this you can provide following options
+- `rate`: VU Spawn rate
+- `duration`: Duration for which Artillery should spawn VUs
+
+
 FAQ
 =====
 

@@ -61,8 +61,8 @@ class ArtilleryFileConfig(mixins.YAMLReadWriteMixin, transformer.FileConfig):
                 "processor": f"./{self.OUT_FILE}",
                 "phases": [
                     {
-                        "duration": 1,
-                        "arrivalRate": 1
+                        "duration": settings.DURATION or 1,
+                        "arrivalRate": settings.SPAWN_RATE or 1
                     }
                 ]
             },
