@@ -22,9 +22,6 @@ class Settings:
     DIST_FOLDER = "dist"
     DUMMY_FILES_FOLDER = "sample-files"
 
-    LOCUST_FILE = "locust.py"
-    LOCUST_HOOK_FILE = "hooks.py"
-
     # Generated Output files for Artillery
     # Do not change these names, as they are imported as it is in JS
     ARTILLERY_LIB_FOLDER = "libs"

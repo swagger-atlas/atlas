@@ -7,7 +7,6 @@ from atlas.modules.transformer.artillery import (
     transformer as artillery_transformer,
     yaml_to_js
 )
-from atlas.modules.transformer.locust import models as locust_models, transformer as locust_transformer
 from atlas.modules.transformer import open_api_models
 from atlas.modules.transformer.ordering import ordering
 
@@ -21,11 +20,6 @@ CONVERTER_MAP = {
         TASK: artillery_models.Task,
         TASK_SET: artillery_models.TaskSet,
         FILE_CONFIG: artillery_transformer.ArtilleryFileConfig
-    },
-    "locust": {
-        TASK: locust_models.Task,
-        TASK_SET: locust_models.TaskSet,
-        FILE_CONFIG: locust_transformer.LocustFileConfig
     }
 }
 
