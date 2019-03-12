@@ -148,9 +148,10 @@ class ProfileResourceDataGenerator(mixins.ProfileMixin):
     @staticmethod
     def get_function_from_mapping_file(func_name):
         map_hook_file = f"{settings.INPUT_FOLDER}.{settings.RES_MAPPING_HOOKS_FILE}"[:-len(".py")]
-        func = getattr(importlib.import_module(map_hook_file), func_name)
 
-        if not func:
+        try:
+            func = getattr(importlib.import_module(map_hook_file), func_name)
+        except AttributeError:
             raise exceptions.ResourcesException(f"Function {func_name} not defined in Map Hooks File")
 
         return func
@@ -181,6 +182,6 @@ class ProfileResourceDataGenerator(mixins.ProfileMixin):
 
         if self.profiles:
             profile_to_read = set(self.profiles)
-            profiles = {key: val for key, val in profiles if key in profile_to_read}
+            profiles = {key: val for key, val in profiles.items() if key in profile_to_read}
 
         return profiles
