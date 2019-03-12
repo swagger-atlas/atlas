@@ -97,3 +97,6 @@ class Settings:
     }
 
     # ######## End user defined settings
+
+    SPAWN_RATE = 1  # Rate at which VUs will spawn
+    DURATION = 1  # Duration for which VUs will spawn and run
