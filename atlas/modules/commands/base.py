@@ -11,7 +11,7 @@ class CommandError(Exception):
 
     @classmethod
     def print_to_err(cls, err, err_writer=sys.stderr):
-        err_writer.write("{}: {}\n".format(cls.__name__, err))
+        err_writer.write(f"{cls.__name__}: {err}\n")
         sys.exit(1)
 
 

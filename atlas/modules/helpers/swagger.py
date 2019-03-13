@@ -108,6 +108,7 @@ class Swagger:
                 if method in constants.VALID_METHODS:
                     _op = Operation(url, method, method_config)
                     _op.validate()
+                    self.validate_parameters(_op.get_params(), url, method)
                 elif method == constants.PARAMETERS:
                     self.validate_parameters(method_config, url)
 
@@ -132,6 +133,7 @@ class Operation:
                 f"Responses not defined for {self.url}: {self.method}",
                 "Please update swagger or define it in settings"
             )
+            return
 
         valid_status_codes = False
         for code, config in responses.items():
@@ -146,6 +148,9 @@ class Operation:
 
         if not valid_status_codes:
             self.writer.error(f"At least one success code must be defined for {self.url}: {self.method}")
+
+    def get_params(self):
+        return self.config.get(constants.PARAMETERS, [])
 
 
 class Parameter:

@@ -3,6 +3,8 @@ host: "localhost:8080"
 basePath: "/v2"
 schemes:
 - "http"
+consumes:
+- "application/json"
 paths:
   /pet:
     post:
