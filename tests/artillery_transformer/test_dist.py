@@ -134,3 +134,27 @@ class TestDist:
 
         patched_shell.rmtree.assert_not_called()
         patched_shell.copytree.assert_called()
+
+    @mock.patch('atlas.modules.transformer.artillery.dist.os.makedirs')
+    @mock.patch('atlas.modules.transformer.artillery.dist.os.path.exists')
+    def test_create_folder_path_exists(self, patch_os_path_exists, patched_makedir):
+        patch_os_path_exists.return_value = True
+
+        instance = ArtilleryDist()
+        instance.path = ""
+
+        instance.create_folder('folder')
+
+        patched_makedir.assert_not_called()
+
+    @mock.patch('atlas.modules.transformer.artillery.dist.os.makedirs')
+    @mock.patch('atlas.modules.transformer.artillery.dist.os.path.exists')
+    def test_create_folder_path_not_exists(self, patch_os_path_exists, patched_makedir):
+        patch_os_path_exists.return_value = False
+
+        instance = ArtilleryDist()
+        instance.path = ""
+
+        instance.create_folder('folder')
+
+        patched_makedir.assert_called()

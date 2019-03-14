@@ -21,7 +21,7 @@ class TestGenerateRoutes:
 
     def test_get_routes_valid_routes(self):
         gen_route = GenerateRoutes(self.spec)
-        routes = ["OP_ID = 'POST api'", "API_LIST = 'GET api'"]
+        routes = ["API_CREATE = 'POST api'", "API_LIST = 'GET api'"]
         assert gen_route.get_routes() == "\n".join(routes)
 
     def test_get_routes_no_route(self):

@@ -27,12 +27,11 @@ class GenerateRoutes:
 
         paths = self.spec.get(constants.PATHS, {})
         for path, config in paths.items():
-            for method, method_config in config.items():
+            for method in config.keys():
                 if method in constants.VALID_METHODS:
                     # Ignore Exclude URLs
                     op_key = f"{method.upper()} {path}"
-                    identifier = method_config.get(constants.OPERATION, utils.operation_id_name(path, method))
-                    identifier = re.sub(r'[.-]', '_', identifier)
+                    identifier = re.sub(r'[.-]', '_', utils.operation_id_name(path, method))
                     routes.append(f"{identifier.upper()} = '{op_key}'")
 
         return "\n".join(routes)
