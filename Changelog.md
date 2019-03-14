@@ -2,6 +2,13 @@ Changelog
 ========
 
 
+8.2.1
+-----
+
+- Update Integration documentation
+- Add the `atlas build` command which sets up integration project
+
+
 8.2.0
 -----
 

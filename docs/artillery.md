@@ -62,7 +62,7 @@ Once you have setup artillery, you want ATLAS to build the Swagger into artiller
 This generally occurs in following steps:
 - Identification of resources. Run `atlas detect_resources` for same. Unless, you are updating Swagger, this should be only run once.
 - Run `atlas fetch_data` so we can extract all relevant values. One time operation unless you want to re-fetch all values again
-- Run `atlas build` which transforms your YAML Swagger to artillery YAML File (with lots of other awesome stuff besides)
+- Run `atlas transform` which transforms your YAML Swagger to artillery YAML File (with lots of other awesome stuff besides)
 
 
 Distributing Your Setup

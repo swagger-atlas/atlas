@@ -142,14 +142,15 @@ class Converter:
         profile_data = []
 
         indent_width = 2
+        indent = ' ' * 4 * indent_width
 
         for profile in self.profiles:
             _file = os.path.join(_dir, profile+".yaml")
             with open(_file) as yaml_file:
                 data = yaml.safe_load(yaml_file)
-            profile_data.append(self.update_statements(profile, data, indent_width))
+            profile_data.append(self.update_statements(profile, data, indent))
 
-        profile_str = "\n".join(profile_data)
+        profile_str = f"\n{indent}".join(profile_data)
         out_data = TEMPLATE.format(initial_resources=profile_str)
 
         out_file = os.path.join(
@@ -161,12 +162,11 @@ class Converter:
             js_file.write(out_data)
 
     @staticmethod
-    def update_statements(profile, data, indent_width):
+    def update_statements(profile, data, indent):
         """
         Convert the resources into Update Statements
         Assumption being that Resources are a single level dict, with each value being set
         """
-        indent = ' ' * 4 * indent_width
         out_data = [
             f"this.updateResource('{profile}', '{key}', new Set({list(value)}));" for key, value in data.items()
             if value

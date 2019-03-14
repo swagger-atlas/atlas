@@ -1,9 +1,9 @@
 from importlib import import_module
 import os
 import shutil
-import subprocess
 
 from atlas.modules.commands.base import BaseCommand, CommandError
+from atlas.modules.commands.utils import setup_artillery
 from atlas.conf import settings
 
 
@@ -53,20 +53,7 @@ class StartProjectCommand(BaseCommand):
         print("\nProject successfully created\n")
 
         if options.get("auto_setup", "") == "artillery":
-            self.setup_artillery(target, project_name)
-
-    @staticmethod
-    def setup_artillery(target, project_name):
-        """
-        Setup packages for artillery
-        """
-
-        os.chdir(target)
-
-        print("Setting up packages for Artillery\n")
-
-        subprocess.run(["npm", "install", "-g", "artillery"])
-        subprocess.run(["npm", "install"])
+            setup_artillery(target)
 
         print(success_message)
 
