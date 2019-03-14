@@ -4,7 +4,7 @@ import json
 import re
 
 from atlas.conf import settings
-from atlas.modules import constants, exceptions, mixins, utils
+from atlas.modules import constants, exceptions, mixins
 from atlas.modules.transformer import profile_constants
 from atlas.modules.transformer.base import models
 from atlas.modules.transformer.artillery import templates
@@ -118,8 +118,8 @@ class Task(models.Task):
             body.append("let urlConfig = [];")
 
             # If one if present, we need to append both
-            body.append("const queryConfig = {q};".format_map(utils.StringDict(q=query_str)))
-            body.append("const pathConfig = {p};".format_map(utils.StringDict(p=path_str)))
+            body.append(f"const queryConfig = {query_str};")
+            body.append(f"const pathConfig = {path_str};")
 
             # Also get Path Parameters
             body.extend(self.error_template_list(
