@@ -39,11 +39,13 @@ class Response:
 
         return config
 
-    def add_definition_ref(self, config, name):
+    @staticmethod
+    def get_definition_ref(config):
         # Check for ref first
         ref = config.get(swagger_constants.REF)
         if ref:
-            self.definitions[name][DEF].add(utils.get_ref_name(ref).lower())
+            ref = utils.get_ref_name(ref).lower()
+        return ref
 
     def resolve_definitions(self):
         definitions = self.specs.get(swagger_constants.DEFINITIONS, {})
@@ -57,20 +59,46 @@ class Response:
         for name, config in definitions.items():
             name = name.lower()
             self.definitions[name] = defaultdict(set)
-            config = self.get_properties(config)
-
-            self.add_definition_ref(config, name)
-
             self.definitions[name][REFERENCES].add(name)
 
+            # Adding config as default all_of reduces number of conditionals required
+            # It should NOT be interpreted as that config is actually part of all_of
+            all_of_config = config.get(swagger_constants.ALL_OF, [config])
+            for element in all_of_config:
+                self.parse_field_config(name, element)
+
+    def parse_definition_config(self, name, config):
+
+        ref = self.get_definition_ref(config)
+        if ref:
+            self.definitions[name][DEF].add(ref)
+            return
+
+        # Get Properties from config only after we check for ref
+        config = self.get_properties(config)
+
+        _type = config.get(swagger_constants.TYPE)
+
+        if _type == swagger_constants.OBJECT:
             for field_config in config.values():
-                field_config = self.get_properties(field_config)
+                self.parse_field_config(name, field_config)
+        elif _type == swagger_constants.ARRAY:
+            for field_config in config:
+                self.parse_field_config(name, field_config)
+        else:
+            self.parse_field_config(name, config)
 
-                resource = field_config.get(swagger_constants.RESOURCE)
-                if resource:
-                    self.definitions[name][RESOURCES].add(resource)
+    def parse_field_config(self, name, field_config):
 
-                self.add_definition_ref(field_config, name)
+        field_config = self.get_properties(field_config)
+
+        resource = field_config.get(swagger_constants.RESOURCE)
+        if resource:
+            self.definitions[name][RESOURCES].add(resource)
+
+        ref = self.get_definition_ref(field_config)
+        if ref:
+            self.definitions[name][DEF].add(ref)
 
     def resolve_nested_definition(self, definition):
 
