@@ -84,7 +84,8 @@ class Swagger:
 
             name = parameter.get(constants.PARAMETER_NAME)
             in_ = parameter.get(constants.IN_)
-            type_ = parameter.get(constants.TYPE)
+            # For body parameters, type is usually skipped and schema is given
+            type_ = parameter.get(constants.TYPE, constants.OBJECT)
             required = parameter.get(constants.REQUIRED, False)
 
             if not (name and in_ and type_):
