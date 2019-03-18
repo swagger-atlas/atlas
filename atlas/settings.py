@@ -22,9 +22,6 @@ class Settings:
     DIST_FOLDER = "dist"
     DUMMY_FILES_FOLDER = "sample-files"
 
-    LOCUST_FILE = "locust.py"
-    LOCUST_HOOK_FILE = "hooks.py"
-
     # Generated Output files for Artillery
     # Do not change these names, as they are imported as it is in JS
     ARTILLERY_LIB_FOLDER = "libs"
@@ -64,3 +61,39 @@ class Settings:
     # #### End Resource Auto-detection constant settings
 
     LOAD_TEST_SCENARIOS = {}
+
+    # ###### User defined settings
+
+    DATABASE = {
+        "engine": "",  # Allowed values are "postgres", "mysql", "sqlite"
+        "name": "",
+        "user": "",
+        "password": "",
+        "host": "",
+        "port": ""
+    }
+
+    # Page Query Parameters
+    # These parameters are esp. handled, since they must be positive
+    PAGE_SIZE_PARAM = 'page_size'
+    PAGE_PARAM = 'page'
+    POSITIVE_INTEGER_PARAMS = {PAGE_PARAM, PAGE_SIZE_PARAM}
+
+    # This instructs Swagger whether to hit only required parameters or try optional combinations also
+    HIT_ALL_QUERY_PARAMS = False
+
+    # Only hit APIs which match Tags
+    ONLY_TAG_API = True
+
+    INFLUX = {
+        "database": "",
+        "host": "",
+        "port": "",
+        "username": "",
+        "password": ""
+    }
+
+    # ######## End user defined settings
+
+    SPAWN_RATE = 1  # Rate at which VUs will spawn
+    DURATION = 1  # Duration for which VUs will spawn and run

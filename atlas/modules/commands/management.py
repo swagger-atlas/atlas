@@ -10,7 +10,8 @@ from atlas.modules.commands.base import CommandError, handle_default_options
 COMMANDS = {
     "newproject": 'atlas.modules.commands.new_project.StartProjectCommand',
     "example": 'atlas.modules.commands.example.ExampleProjectCommand',
-    "build": "atlas.modules.transformer.commands.converter.Converter",
+    "build": 'atlas.modules.commands.build.BuildProjectCommand',
+    "transform": "atlas.modules.transformer.commands.converter.Converter",
     "validate": "atlas.modules.helpers.commands.validate.Validate",
     "generate_routes": "atlas.modules.helpers.commands.generate_routes.Generator",
     "detect_resources": "atlas.modules.resource_creator.commands.generate.Generate",

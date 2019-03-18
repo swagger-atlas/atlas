@@ -93,15 +93,18 @@ class ProfileResourceDataGenerator(mixins.ProfileMixin):
         # Before fetching data for resources,
         # we would like to read the Resource mapping and resolve it as simply as we could
         self.resource_map_resolver.resolve_resources()
+        resource_sub_folder = os.path.join(settings.OUTPUT_FOLDER, settings.RESOURCES_FOLDER)
 
         for name, config in self.get_profiles().items():
             resources = {}
             self.active_profile_config = config
             self.read_for_profile(resources)
-            self.write_file(
-                self.get_profile_resource_name(name, config), resources,
-                os.path.join(settings.OUTPUT_FOLDER, settings.RESOURCES_FOLDER), False, force_write=True
-            )
+            resource_file_name = self.get_profile_resource_name(name, config)
+
+            existing_resources = self.read_file(resource_file_name, {}, resource_sub_folder)
+            resources = {**existing_resources, **resources}     # We want to over-write existing resource with resources
+
+            self.write_file(resource_file_name, resources, resource_sub_folder, False, force_write=True)
 
     @staticmethod
     def construct_fetch_query(table, column, filters):
@@ -148,9 +151,10 @@ class ProfileResourceDataGenerator(mixins.ProfileMixin):
     @staticmethod
     def get_function_from_mapping_file(func_name):
         map_hook_file = f"{settings.INPUT_FOLDER}.{settings.RES_MAPPING_HOOKS_FILE}"[:-len(".py")]
-        func = getattr(importlib.import_module(map_hook_file), func_name)
 
-        if not func:
+        try:
+            func = getattr(importlib.import_module(map_hook_file), func_name)
+        except AttributeError:
             raise exceptions.ResourcesException(f"Function {func_name} not defined in Map Hooks File")
 
         return func
@@ -181,6 +185,6 @@ class ProfileResourceDataGenerator(mixins.ProfileMixin):
 
         if self.profiles:
             profile_to_read = set(self.profiles)
-            profiles = {key: val for key, val in profiles if key in profile_to_read}
+            profiles = {key: val for key, val in profiles.items() if key in profile_to_read}
 
         return profiles

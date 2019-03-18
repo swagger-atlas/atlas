@@ -2,14 +2,14 @@ from collections import namedtuple
 import os
 import shutil
 
-from atlas.modules import utils, project_setup
+from atlas.modules import utils
 from atlas.conf import settings
 
 
 PySed = namedtuple('py_sed_tuple', ['pattern', 'replace_text'])
 
 
-class ArtilleryDist(project_setup.Setup):
+class ArtilleryDist:
     """
     Creates a package for artillery
 
@@ -17,6 +17,9 @@ class ArtilleryDist(project_setup.Setup):
     2. Copy files from BUILD folder to DIST folder
     3. Copy internal files to DIST folder
     """
+
+    def __init__(self):
+        self.path = None
 
     def start(self):
         self.path = utils.get_project_path()
@@ -77,3 +80,11 @@ class ArtilleryDist(project_setup.Setup):
         # Now copy all source folders to destination folders
         for _folder in folders:
             shutil.copytree(_folder.source_path, _folder.destination_path)
+
+    def create_folder(self, folder_name, path=None):
+
+        path = path or self.path
+        folder = os.path.join(path, folder_name)
+
+        if not os.path.exists(folder):
+            os.makedirs(folder)     # Create all folders and files in the path in nested fashion

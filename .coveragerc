@@ -1,0 +1,7 @@
+[run]
+branch = True
+omit =
+    */commands/*
+
+[report]
+show_missing = True

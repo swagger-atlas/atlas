@@ -12,6 +12,10 @@ Project Setup
      (Replace <variables> with your own versions). Python should be 3.6+
     - `source <path/to/virtualenvs/atlas>/bin/activate` to activate this
 
+1. Run `pip install -e git+git@code.jtg.tools:jtg/atlas.git#egg=atlas`
+
+1. Run `atlas build`
+
 1. Customize as per your needs
     - Fill `settings.py` file
     - Fill in `conf/conf.py` file

@@ -1,0 +1,20 @@
+$globals:
+  filters: active = True
+simple:
+  def: '# Add your definition here'
+sql:
+  sql: "some dummy sql"
+construct_sql:
+  table: t1
+  filters: abc = 1
+  column: name
+minimal_construct_sql:
+  table: t2
+inherit_override:
+  resource: minimal_construct_sql
+  table: t4
+inherit_simple:
+  resource: minimal_construct_sql
+data_from_func:
+  source: script
+  func: get_data

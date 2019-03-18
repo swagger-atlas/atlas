@@ -13,7 +13,8 @@ Please see contribution guidelines below for more details
 
 
 Project Setup
-=====
+=============
+
 
 1. Create a Virtual Environment
     - Run `virtualenv <path/to/virtualenvs/atlas> -p <python3.x>`
@@ -37,9 +38,16 @@ Project Setup
 
 
 Coding Guidelines
-======
+=================
+
 
 - Indentation Styles: Prefer Spaces (4) over Tab
 - Add your changes in Changelog.md
 - Your commits should not decrease pylint score of any existing file.
 - Prefer f-strings in Python and Template Strings in Javascript
+
+
+Testing
+=======
+
+For testing, run `py.test --cov=atlas/`

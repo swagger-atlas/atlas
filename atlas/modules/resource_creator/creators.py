@@ -134,6 +134,8 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
             elif param_type == swagger_constants.BODY_PARAM:
                 self.resolve_body_param(param)
 
+        return self.resource_params
+
     def resolve_body_param(self, body_config):
         schema = body_config.get(swagger_constants.SCHEMA, {})
         self.resolve_schema(schema)
@@ -154,7 +156,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
 
         _type = schema.get(swagger_constants.TYPE)
         if _type == swagger_constants.OBJECT:
-            self.parse_reference_properties(ref_name, schema.get(swagger_constants.PROPERTIES))
+            self.parse_reference_properties(ref_name, schema.get(swagger_constants.PROPERTIES, {}))
 
     def get_ref_name_and_config(self, ref):
 
@@ -207,8 +209,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
             common_resources = set()
 
             if parameters:
-                self.parse_params(parameters, url)
-                common_resources = self.resource_params
+                common_resources = self.parse_params(parameters, url)
 
             for method, method_config in path_config.items():
 
@@ -224,8 +225,7 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
                         method_config[swagger_constants.OPERATION] = utils.operation_id_name(url, method)
 
                     if parameters:
-                        self.parse_params(parameters, url)
-                        method_resources = self.resource_params
+                        method_resources = self.parse_params(parameters, url)
 
                     all_resources = common_resources.union(method_resources)
 

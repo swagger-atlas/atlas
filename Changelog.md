@@ -2,6 +2,20 @@ Changelog
 ========
 
 
+8.3.0
+-----
+
+*Features*
+- Base set-up of Python test cases, and coverage tools
+- Remove old code
+- Unit and System Test cases
+- Update Integration documentation
+- Add the `atlas build` command which sets up integration project
+
+*Bug fixes*
+- Add support for `ALL_OF` in OpenApi Models.
+
+
 8.2.0
 -----
 
