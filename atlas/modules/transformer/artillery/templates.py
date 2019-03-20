@@ -30,17 +30,20 @@ function setUp(context, event, done) {
     let profileMap = selectProfile(_profiles);
     const profileName = Object.keys(profileMap)[0];
     let profile = profileMap[profileName];
-    profile = hook.call("$profileSetup", profile);
 
     context.vars["provider"] = new Provider(profileName);
     context.vars["respDataParser"] = new ResponseDataParser(profileName);
-    context.vars["profile"] = profile;
     context.vars["stats"] = new StatsCollector();
-    defaultHeaders = profile.auth.headers;
 
     influx.writeMeasurement("virtualUsers", [{fields: {id: context._uid}}]);
 
-    return done();
+    hook.call("$profileSetup", profile).then(
+        (profile) => {
+            context.vars["profile"] = profile;
+            defaultHeaders = profile.auth.headers;
+            return done();
+        }
+    )
 }"""
 
 

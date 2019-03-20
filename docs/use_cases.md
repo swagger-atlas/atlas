@@ -28,7 +28,7 @@ It is possible to provide Authentication to APIs.
 
 ```js
 // hooks.js
-function addHeaders(profile) {
+async function addHeaders(profile) {
     profile.auth = {
         "headers": {'Authorization': 'Token ' + profile.token}
     };
@@ -39,6 +39,54 @@ function addHeaders(profile) {
 This header will now be added to all API Requests. We only support Header authentication for now
 
 > If some APIs failed due to Auth Error (401), ATLAS will give warning
+
+
+###### Advanced Use Case
+
+Enter the credentials for profile in `conf/credentials.yaml`
+
+Then, a sample hook definition may look like:
+
+```js
+// hooks.js
+
+function login(profile) {
+    return new Promise((resolve, reject) => {
+        request.post(
+            '<my-auth-api-url>', {
+                form: {
+                    username: profile.username,
+                    password: profile.password
+                }
+            }, function (err, httpResponse, body) {
+                if (err) {
+                    reject(err);
+                }
+                resolve(body);
+            }
+        );
+    });
+}
+
+async function addHeaders(profile) {
+
+    let authToken = "";
+
+    await login(profile).then(
+        (body) => {
+            body = JSON.parse(body);
+            authToken = body.token;
+        }
+    )
+
+    profile.auth = {
+        "headers": {'Authorization': 'Token ' + authToken}
+    };
+
+    return profile;
+}
+```
+
 
 Hitting Selective APIs
 ----------------------

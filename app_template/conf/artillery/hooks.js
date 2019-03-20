@@ -1,4 +1,4 @@
-function addHeaders(profile) {
+async function addHeaders(profile) {
     profile.auth = {
         "headers": {'Authorization': 'Token ' + profile.token}
     };
@@ -41,7 +41,7 @@ Profile Setup Hooks
 These are used to setup relevant data once the profile is selected.
 
 Example:
-function addHeaders(profile) {
+async function addHeaders(profile) {
     profile.auth = {
         "headers": {'Authorization': 'Token ' + profile.token}
     };
@@ -49,7 +49,7 @@ function addHeaders(profile) {
 }
 
 Things to note:
-    - It must take single profile object and return it
+    - It must take single profile object and returns profile (as part of promise contract)
     - Its hookRegister ID is "$profileSetup"
 
 
