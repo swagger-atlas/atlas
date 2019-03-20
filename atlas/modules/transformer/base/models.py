@@ -211,24 +211,6 @@ class Task:
 
         return return_response
 
-    def get_delete_resource(self) -> str:
-        """
-        Find the resource which needs to be deleted
-        We will assume that in URL, last path params represent the resource to be deleted
-
-        If needed, this can be later revisited and we can see how to handle cascading or multiple deletes
-        """
-
-        url_paths = self.open_api_op.url.split("/")
-        param = ""
-
-        for component in reversed(url_paths):
-            if component.startswith("{") and component.endswith("}"):
-                param = component[1:-1]     # Strip leading and trailing curly braces
-                break
-
-        return param
-
     def has_files(self):
         """
         Check if there is going to be file structure
