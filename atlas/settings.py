@@ -21,6 +21,7 @@ class Settings:
     RESOURCES_FOLDER = "resources"
     DIST_FOLDER = "dist"
     DUMMY_FILES_FOLDER = "sample-files"
+    CREDENTIALS_FILE = "credentials.yaml"
 
     # Generated Output files for Artillery
     # Do not change these names, as they are imported as it is in JS

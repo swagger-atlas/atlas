@@ -2,6 +2,16 @@ Changelog
 ========
 
 
+8.4.0
+-----
+
+*Features*
+- Add `credentials.yaml` file for storing sensitive profile information
+- Profile Setup hooks now return promise instead of profile directly.
+This allows users to write hooks with API request, and other advanced use cases.
+See [Use Cases](docs/use_cases.md) for more details
+
+
 8.3.0
 -----
 

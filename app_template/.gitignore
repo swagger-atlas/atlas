@@ -68,3 +68,6 @@ report*.json*
 # Docker Data
 docker/grafana/data/*/
 docker/influxdb/data/*/
+
+# Sensitive Data
+credentials.yaml

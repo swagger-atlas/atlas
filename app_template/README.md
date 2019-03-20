@@ -20,6 +20,7 @@ Project Setup
     - Fill `settings.py` file
     - Fill in `conf/conf.py` file
     - Update name in `package.json`
+    - Copy `conf/credentials.yaml.template` to `conf/credentials.yaml`
 
 1. In the conf folder:
     - Copy your swagger to swagger.yaml

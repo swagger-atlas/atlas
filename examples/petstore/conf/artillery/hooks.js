@@ -1,4 +1,4 @@
-function addHeaders(profile) {
+async function addHeaders(profile) {
     profile.auth = {
         "headers": {'Authorization': 'Token ' + profile.token}
     };
@@ -41,7 +41,7 @@ Profile Setup Hooks
 These are used to setup relevant data once the profile is selected.
 
 Example:
-function addHeaders(profile) {
+async function addHeaders(profile) {
     profile.auth = {
         "headers": {'Authorization': 'Token ' + profile.token}
     };
@@ -49,7 +49,7 @@ function addHeaders(profile) {
 }
 
 Things to note:
-    - It must take single profile object and return it
+    - It must take single profile object and returns profile (as part of promise contract)
     - Its hookRegister ID is "$profileSetup"
 
 
@@ -71,7 +71,7 @@ Things to note:
     - Number and order of arguments in return must not change
     - For requests which support body (eg: POST/PUT/PATCH), args are in order: URL, BODY, REQUEST PARAMS
     - For requests which do NOT support body (eg: GET), args are in order: URL, REQUEST PARAMS
-    - Relevant HookRegister ID is Swagger OPERATION ID for the request
+    - Relevant HookRegister ID is Swagger OP_KEY for the request. (Swagger OP_KEY is "METHOD url")
 
 
 Hook Registration
@@ -84,7 +84,7 @@ For example, for above examples,
 exports.hookRegister = [
     ["$profileSelection", filterByID],
     ["$profileSetup", addHeaders],
-    ["my_swagger_operation", removeUserField]
+    ["PUT /my/api/{id}", removeUserField]
 ];
 
 You can associate multiple hooks to a single operation.

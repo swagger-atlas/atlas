@@ -122,7 +122,18 @@ class Converter:
         with open(_file) as yaml_file:
             data = yaml.safe_load(yaml_file)
 
+        _credential_file = os.path.join(self.path, settings.INPUT_FOLDER, settings.CREDENTIALS_FILE)
+        try:
+            with open(_credential_file) as yaml_file:
+                cred_data = yaml.safe_load(yaml_file) or {}
+        except FileNotFoundError:
+            cred_data = {}
+
         self.profiles = data.keys()
+
+        for key, value in data.items():
+            value.update(cred_data.get(key, {}))
+
         out_data = "exports.profiles = {};\n".format(json.dumps(data, indent=4))
 
         out_file = os.path.join(
