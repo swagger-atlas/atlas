@@ -8,8 +8,16 @@ class Operation(Node):
     Representation for Operation Class
     """
 
+    def __eq__(self, other):
+        return self.key == other.key
+
+    def __hash__(self):
+        return hash(self.key)
+
 
 class OperationGraph(DAG):
+
+    node_class = Operation
 
     def __init__(self):
         super().__init__()
@@ -51,32 +59,47 @@ class OperationGraph(DAG):
             for child in child_keys:
                 self.add_edge(parent, child)
 
-    def transform_dfs(self, resource_key, parent_consumers, parent_producers, visited, resource_graph):
+    def transform_operation(self, resource, parent_consumers, parent_producers):
         """
-        Transform Reference Graph to Operation Graph.
-        Takes a resource key and perform a DFS Operation taking that node as root node.
+        Read Resource of Resource graph, and add edges in Operation Graph
         """
 
-        resource = resource_graph.get_node(resource_key)
+        resource_key = resource.get_id()
 
+        # Read all operations which are relevant to this Resource
         node_consumers = resource.consumers
         node_producers = resource.producers
         node_destructors = resource.destructors
 
+        # Create dummy operations if not found
         if not node_consumers:
-            dummy_key = "${}-CONSUMER".format(resource_key)
+            dummy_key = f"${resource_key}-CONSUMER"
             self.add_node(dummy_key)
             node_consumers = {dummy_key}
 
         if not node_producers:
-            dummy_key = "${}-PRODUCER".format(resource_key)
+            dummy_key = f"${resource_key}-PRODUCER"
             self.add_node(dummy_key)
             node_producers = {dummy_key}
 
+        # Now, add edges for Operation Graph based on operations based on this node alone
         self.add_cartesian_edges(node_producers, node_consumers)
+        self.add_cartesian_edges(node_consumers, node_destructors)
+
+        # Second kind of edges are those which follow the same relation as those of resource graph
         self.add_cartesian_edges(parent_producers, node_producers)
         self.add_cartesian_edges(parent_consumers, node_consumers)
-        self.add_cartesian_edges(node_consumers, node_destructors)
+
+        return node_consumers, node_producers
+
+    def transform_dfs(self, resource, parent_consumers, parent_producers, visited):
+        """
+        Recursive function to help perform DFS on resource graph
+        transform_operation examines each node of Resource Graph,
+            and add connections between edges of operation graph by checking the Operation relations for each resource
+        """
+
+        resource_key = resource.get_id()
 
         if visited[resource_key] == self.BLACK:
             return
@@ -87,10 +110,10 @@ class OperationGraph(DAG):
 
         visited[resource_key] = self.GREY
 
+        consumers, producers = self.transform_operation(resource, parent_consumers, parent_producers)
+
         for adj_resource in resource.get_connections():
-            adj_resource_key = adj_resource.get_id()
-            if visited[adj_resource_key] == self.WHITE:
-                self.transform_dfs(adj_resource_key, node_consumers, node_producers, visited, resource_graph)
+            self.transform_dfs(adj_resource, consumers, producers, visited)
 
         visited[resource_key] = self.BLACK
 
@@ -116,9 +139,9 @@ class OperationGraph(DAG):
 
         visited = {_node.get_id(): self.WHITE for _node in resource_graph}
 
-        for node in resource_graph.get_vertices():
-            if visited[node] == self.WHITE:
-                self.transform_dfs(node, set(), set(), visited, resource_graph)
+        for node_key in resource_graph.get_vertices():
+            if visited[node_key] == self.WHITE:
+                self.transform_dfs(resource_graph.get_node(node_key), set(), set(), visited)
         self.add_custom_ordering_dependencies()
 
     def topological_sort(self):
