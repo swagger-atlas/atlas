@@ -76,7 +76,6 @@ class Resource(Node):
         self.producers = set()
         self.consumers = set()
         self.destructors = set()
-        self.other_operations = set()
 
     def add_consumer(self, operation_id: str):
         self.consumers.add(operation_id)
@@ -127,8 +126,7 @@ class ResourceGraph(DAG):
             for ref in reference.connected_refs:
                 self.add_ref_edge(ref, resource_key)
             for resource in reference.associated_resources:
-                if resource:
-                    self.add_edge(resource, resource_key)
+                self.add_edge(resource, resource_key)
 
     @staticmethod
     def get_schema_refs(config):
