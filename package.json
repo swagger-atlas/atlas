@@ -1,0 +1,18 @@
+{
+  "name": "atlas",
+  "private": true,
+  "jest": {
+    "collectCoverageFrom": [
+      "atlas/**/*.js"
+    ],
+    "coverageDirectory": "js_tests_coverage"
+  },
+  "scripts": {
+    "test": "jest",
+    "coverage": "jest --coverage"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "jest": "^24.5.0"
+  }
+}
