@@ -2,6 +2,15 @@ Changelog
 ========
 
 
+8.4.1
+-----
+
+- Increased coverage for Python modules
+- Added setup for JS Testing framework
+- Major changes in Artillery Provider, but they should not impact any project integrations
+- Add basic JS Test cases
+
+
 8.4.0
 -----
 

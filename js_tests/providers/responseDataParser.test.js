@@ -1,6 +1,6 @@
-const rewire = require('rewire');
-
-const provider = rewire('../../atlas/modules/data_provider/artillery/providers');
+jest.mock('../../atlas/modules/data_provider/artillery/relationResources');
+const provider = require('../../atlas/modules/data_provider/artillery/providers');
+const relatedResources = require('../../atlas/modules/data_provider/artillery/relationResources').relationshipResource;
 
 const ResponseDataParser = provider.ResponseDataParser;
 const respDataParser = new ResponseDataParser("profile");
@@ -8,10 +8,7 @@ const respDataParser = new ResponseDataParser("profile");
 
 describe('unit test resolve', () => {
 
-    let relatedResources;
-
     beforeAll(() => {
-        relatedResources = provider.__get__('relatedResources');
         relatedResources.insert = jest.fn();
     });
 
@@ -49,4 +46,3 @@ describe('unit test resolve', () => {
     });
 
 });
-
