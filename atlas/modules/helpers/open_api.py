@@ -56,17 +56,15 @@ class Schema:
         Just resolve Schema at top levels to get all refs
         """
 
-        refs = []
-
-        _type = self.config.get(constants.TYPE)
         element = ElementConfig(self.config)
-
         if element.ref:
-            refs.append(element.ref)
-            return refs
+            return [element.ref]
 
         # Reference not found directly
         # It may be nested in Array and Object. Search there
+
+        refs = []
+        _type = self.config.get(constants.TYPE)
 
         props = {}
         if _type == constants.ARRAY:

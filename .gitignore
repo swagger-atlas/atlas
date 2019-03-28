@@ -60,3 +60,9 @@ venv.bak/
 .idea/
 
 dump.rdb
+
+# JS Dependencies
+node_modules/
+
+# JS Testing
+js_tests_coverage/

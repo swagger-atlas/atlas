@@ -283,3 +283,50 @@ class TestTaskParseParameters:
         instance.parse_parameters({"param_1": {"$ref": "abc"}})
 
         patched_ref.assert_called_once_with("ref", "abc")
+
+
+class TestTaskParseResponses:
+    """
+    Unit test cases for Task.parse_responses
+    """
+
+    @pytest.fixture(scope='class')
+    @mock.patch('atlas.modules.transformer.base.models.Task.normalize_function_name')
+    @mock.patch('atlas.modules.transformer.base.models.Task.parse_parameters')
+    def instance(self, patched_params, patched_normalize_func_name):
+        patched_normalize_func_name.return_value = "func_name"
+        patched_params.return_value = None
+
+        open_api = interface.OpenAPITaskInterface()
+
+        return Task(open_api)
+
+    def test_no_responses(self, instance):
+        assert instance.parse_responses({}) == {}
+
+    def test_default_code_with_response(self, instance):
+        instance.get_response_properties = mock.MagicMock(return_value={"a": 1})
+
+        assert instance.parse_responses({constants.DEFAULT: {"name": "n"}}) == {"a": 1}
+        instance.get_response_properties.assert_called_once_with({"name": "n"})
+
+    def test_default_code_with_no_response(self, instance):
+        instance.get_response_properties = mock.MagicMock(return_value=None)
+
+        assert instance.parse_responses({constants.DEFAULT: {"name": "n"}}) == {}
+        instance.get_response_properties.assert_called_once_with({"name": "n"})
+
+    def test_invalid_status_code(self, instance):
+        with pytest.raises(exceptions.ImproperSwaggerException):
+            instance.parse_responses({"status": {"name": "n"}})
+
+    def test_status_with_error_codes(self, instance):
+        assert instance.parse_responses({400: {"name": "n"}, "401": {"name": "n"}}) == {}
+
+    def test_status_with_valid_status_no_schema(self, instance):
+        instance.get_response_properties = mock.MagicMock(return_value={})
+        assert instance.parse_responses({200: {"name": "n"}}) == {}
+
+    def test_status_with_valid_status_with_schema(self, instance):
+        instance.get_response_properties = mock.MagicMock(return_value={"a": 1})
+        assert instance.parse_responses({200: {"name": "n"}}) == {"a": 1}

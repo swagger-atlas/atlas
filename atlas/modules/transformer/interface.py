@@ -48,7 +48,7 @@ class OpenAPITaskInterface:
     @method.setter
     def method(self, value):
         if value not in constants.VALID_METHODS:
-            raise exceptions.ImproperSwaggerException("Invalid method {} for {}".format(self.method, self.url))
+            raise exceptions.ImproperSwaggerException(f"Invalid method {self.method} for {self.url}")
         self._method = value
 
     @property

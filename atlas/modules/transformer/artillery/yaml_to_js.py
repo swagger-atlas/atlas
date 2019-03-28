@@ -1,6 +1,7 @@
 from io import open
 import json
 import os
+import re
 import yaml
 
 from atlas.conf import settings
@@ -11,91 +12,6 @@ BOOL_MAP = {
     False: "false",
     True: "true"
 }
-
-
-# resources.js template
-# Written here since this needs to be coupled with Converter Class
-TEMPLATE = """
-_ = require('lodash');
-settings = require('./settings');
-
-const singleton = Symbol();
-const singletonEnforcer = Symbol();
-
-
-exports.Resource = class Resource {{
-    // Resource class is singleton
-    // You have to use resource.instance to get resource, and not new Resource()
-
-    constructor(enforcer) {{
-        if(enforcer !== singletonEnforcer) {{
-            throw "Cannot construct Singleton";
-        }}
-
-        this.resources = {{}};
-
-        {initial_resources}
-    }}
-
-    static get instance() {{
-        if(!this[singleton]) {{
-            this[singleton] = new Resource(singletonEnforcer);
-        }}
-        return this[singleton];
-    }}
-
-    static getKey(profile, resourceKey) {{
-        return profile + ":" + resourceKey;
-    }}
-
-    getResource(profile, resourceKey, options) {{
-
-        let values = this.resources[Resource.getKey(profile, resourceKey)];
-        if (_.isEmpty(values)) {{
-            return new Set([]);
-        }}
-
-        values = [...values];
-
-        if (options.delete || options.items === 1) {{
-            let value = _.sample(values);
-
-            if (!_.isNil(value) && options.delete) {{
-                this.deleteResource(profile, resourceKey, value);
-            }}
-
-            values = _.isNil(value)  || value === "" ? [] : [value];
-        }}
-
-        return new Set(_.isEmpty(values) ? []: values);
-    }}
-
-    doesExist(profile, resourceKey, searchValue) {{
-        let values = this.resources[Resource.getKey(profile, resourceKey)];
-        return _.isEmpty(values) ? false: values.has(searchValue);
-    }}
-
-    updateResource(profile, resourceKey, resourceValues) {{
-        if (!_.isEmpty(resourceValues)) {{
-            const key = Resource.getKey(profile, resourceKey);
-
-            if (this.resources[key]) {{
-                this.resources[key] = new Set([...resourceValues, ...this.resources[key]]);
-            }} else {{
-                this.resources[key] = resourceValues;
-            }}
-        }}
-    }}
-
-    deleteResource(profile, resourceKey, resourceValue) {{
-        this.resources[Resource.getKey(profile, resourceKey)].delete(resourceValue);
-    }}
-
-    restoreResource(profile, resourceKey, resourceValue) {{
-        this.resources[Resource.getKey(profile, resourceKey)].add(resourceValue);
-    }}
-}};
-"""
 
 
 class Converter:
@@ -144,10 +60,11 @@ class Converter:
         with open(out_file, 'w') as js_file:
             js_file.write(out_data)
 
-    def convert_resources(self):
+    def get_resources(self):
         """
-        Write the code for resources.js and initialize the build-time resources
+        Generate JS Code Snippet for resources
         """
+
         _dir = os.path.join(self.path, settings.OUTPUT_FOLDER, settings.RESOURCES_FOLDER)
 
         profile_data = []
@@ -156,13 +73,26 @@ class Converter:
         indent = ' ' * 4 * indent_width
 
         for profile in self.profiles:
-            _file = os.path.join(_dir, profile+".yaml")
+            _file = os.path.join(_dir, profile + ".yaml")
             with open(_file) as yaml_file:
                 data = yaml.safe_load(yaml_file)
             profile_data.append(self.update_statements(profile, data, indent))
 
-        profile_str = f"\n{indent}".join(profile_data)
-        out_data = TEMPLATE.format(initial_resources=profile_str)
+        return f"\n{indent}".join(profile_data)
+
+    def convert_resources(self):
+        """
+        Write the code for resources.js and initialize the build-time resources
+        """
+
+        in_file = os.path.join(
+            settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery", settings.ARTILLERY_RESOURCES
+        )
+
+        with open(in_file) as in_data:
+            contents = in_data.read()
+
+        out_data = re.sub("let dynamicResources;", self.get_resources(), contents)
 
         out_file = os.path.join(
             self.path, settings.OUTPUT_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_LIB_FOLDER,

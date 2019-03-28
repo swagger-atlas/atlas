@@ -32,7 +32,14 @@ class ArtilleryDist:
     def copy_files(self):
 
         source_path = os.path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery")
-        source_files = [os.path.join(source_path, file) for file in os.listdir(source_path)]
+
+        # Some files are dynamically generated during build time,
+        #   and we would use them instead of static templates provided in the folder
+        # Rest of templates are copied over as it is
+        source_files = [
+            os.path.join(source_path, file) for file in os.listdir(source_path)
+            if file not in {"constants.js", "settings.js", settings.ARTILLERY_RESOURCES}
+        ]
         d_path = os.path.join(self.path, settings.DIST_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_LIB_FOLDER)
 
         for _file in source_files:
