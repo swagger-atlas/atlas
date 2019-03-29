@@ -13,5 +13,12 @@ expect.extend({
             pass: pass,
             message: () => `${key} is not in ${iterable}`
         }
+    },
+    isInstance(key, type) {
+        const pass = key instanceof type;
+        return {
+            pass: pass,
+            message: () => `${key} is not an instance of ${type}`
+        }
     }
 });
