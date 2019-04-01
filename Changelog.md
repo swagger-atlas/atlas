@@ -2,6 +2,12 @@ Changelog
 ========
 
 
+8.4.2
+-----
+
+- Added JS test cases, and fixed minor JS bugs
+
+
 8.4.1
 -----
 

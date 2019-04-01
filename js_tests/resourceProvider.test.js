@@ -77,7 +77,7 @@ describe('resource provider test cases', () => {
         test('options with explicit flat For Single', () => {
             expect(ResourceProvider.getOptions({flatForSingle: false})).toEqual({
                 items: 1,
-                flatForSingle: true,
+                flatForSingle: false,
                 "delete": false
             })
         });
