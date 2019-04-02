@@ -12,8 +12,8 @@ Currently, ATLAS fully supports Artillery, and we have plans to incorporate for 
 Creating a new Project
 ======================
 - Create a virtual environment. We only support Python 3.6+.
-- Install the Atlas Project by `pip install -e git@code.jtg.tools:jtg/atlas.git`
-- Run `atlas newproject <project-name>`
+- Install the Atlas Project by `pip install -e git+git@code.jtg.tools:jtg/atlas.git#atlas`
+- Run `atlas newproject <project_name>`
 - Switch to new directory
 - Follow the README of directory to customize and run your load test
 
@@ -53,7 +53,7 @@ With ATLAS, you can provide Header Authentication by:
 
 ```js
 // hooks.js
-function addHeaders(profile) {
+async function addHeaders(profile) {
     profile.auth = {
         "headers": {'Authorization': 'Token ' + profile.token}
     };
