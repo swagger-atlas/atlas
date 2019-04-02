@@ -32,7 +32,7 @@ exports.Resource = class Resource {
         return profile + ":" + resourceKey;
     }
 
-    getResource(profile, resourceKey, options) {
+    getResource(profile, resourceKey, options = {}) {
 
         let values = this.resources[Resource.getKey(profile, resourceKey)];
         if (_.isEmpty(values)) {
@@ -66,7 +66,7 @@ exports.Resource = class Resource {
             if (this.resources[key]) {
                 this.resources[key] = new Set([...resourceValues, ...this.resources[key]]);
             } else {
-                this.resources[key] = resourceValues;
+                this.resources[key] = new Set(resourceValues);
             }
         }
     }

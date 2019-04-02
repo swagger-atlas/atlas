@@ -82,7 +82,7 @@ class RelationshipResources {
         });
 
         // We do not want to deal with multiple resources having multiple values
-        if (_.filter(values, arr => arr.length > 1) > 1) {
+        if (_.filter(values, arr => arr.length > 1).length > 1) {
             return false;
         }
 

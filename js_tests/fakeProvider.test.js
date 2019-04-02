@@ -1,6 +1,11 @@
-const fakeProvider = require('../../atlas/modules/data_provider/artillery/fakeProvider');
-const exceptions = require('../../atlas/modules/data_provider/artillery/exceptions');
-const constants = require('../constants');
+const faker = require('faker');
+const path = require('path');
+const _ = require('lodash');
+
+const fakeProvider = require('../atlas/modules/data_provider/artillery/fakeProvider');
+const exceptions = require('../atlas/modules/data_provider/artillery/exceptions');
+const constants = require('./constants');
+const settings = require('./settings');
 
 
 const fakeData = fakeProvider.FakeData;
@@ -43,6 +48,13 @@ describe('getInteger Test cases', () => {
         })).inBetween(1, 3);
     });
 
+    test('raises error on invalid config', () => {
+        expect(() => fakeData.getInteger({
+            [constants.MAXIMUM]: 5,
+            [constants.MINIMUM]: 10
+        })).toThrow(InvalidDataOptionsError);
+    });
+
     test('return value within minimum and maximum', () => {
         expect(fakeData.getInteger({
             [constants.MAXIMUM]: 15,
@@ -52,6 +64,7 @@ describe('getInteger Test cases', () => {
 
     test('return value within minimum and maximum with min exclusive', () => {
         expect(fakeData.getInteger({
+            [constants.ENUM]: [],
             [constants.MAXIMUM]: 15,
             [constants.MINIMUM]: 10,
             [constants.MIN_EXCLUDE]: true
@@ -198,4 +211,190 @@ describe('getString test cases', () => {
         })).in(['abc', 'ac']);
     });
 
+});
+
+
+describe('getDate test cases', () => {
+
+    let originalRandomDateTime;
+
+    beforeAll(() => {
+        originalRandomDateTime = fakeData.getRandomDateTime;
+    });
+
+    afterAll(() => {
+        fakeData.getRandomDateTime = originalRandomDateTime;
+    });
+
+    test('getDate returns date in correct format', () => {
+        fakeData.getRandomDateTime = jest.fn(() => new Date('2000-01-01T01:00:00Z'));
+        expect(fakeData.getDate()).toBe("2000-01-01");
+    });
+
+    test('getDate returns date without pads', () => {
+        fakeData.getRandomDateTime = jest.fn(() => new Date('2000-10-10T01:00:00Z'));
+        expect(fakeData.getDate()).toBe("2000-10-10");
+    });
+});
+
+
+describe('getDateTime test cases', () => {
+
+    let originalRandomDateTime;
+
+    beforeAll(() => {
+        originalRandomDateTime = fakeData.getRandomDateTime;
+    });
+
+    afterAll(() => {
+        fakeData.getRandomDateTime = originalRandomDateTime;
+    });
+
+    test('getDateTime returns date-time in correct format', () => {
+        fakeData.getRandomDateTime = jest.fn(() => new Date('2000-01-01T01:00:00Z'));
+        expect(fakeData.getDateTime()).toBe("2000-01-01T01:00:00.000Z");
+    });
+});
+
+
+describe('getURI test cases', () => {
+
+    test('getURI returns avatar', () => {
+        faker.internet.avatar = jest.fn(() => "https://abcd.com");
+        expect(fakeData.getURI({})).toBe("https://abcd.com");
+        faker.internet.avatar.mockReset();
+    });
+});
+
+
+describe('getURL test cases', () => {
+
+    test('getURL returns url', () => {
+        faker.internet.protocol = jest.fn(() => "https");
+        faker.name.firstName = jest.fn(() => "google");
+        faker.internet.domainSuffix = jest.fn(() => "com");
+
+        expect(fakeData.getURL({})).toBe("https://googl.com");
+
+        faker.internet.protocol.mockReset();
+        faker.name.firstName.mockReset();
+        faker.internet.domainSuffix.mockReset();
+    });
+});
+
+
+describe('getSlug test cases', () => {
+
+    test('getSlug returns slug', () => {
+        faker.internet.userName = jest.fn(() => "abc xyz.com be$at");
+
+        expect(fakeData.getSlug({})).toBe("abc-xyz.com-beat");
+
+        faker.internet.userName.mockReset();
+    });
+});
+
+
+describe('getPassword test cases', () => {
+
+    test('for enum, return value from enum', () => {
+        expect(fakeData.getPassword({
+            [constants.ENUM]: ["abc", "xyz"],
+        })).in(["abc", "xyz"]);
+    });
+
+    test('generate password for normal config', () => {
+        faker.internet.password = jest.fn(() => "password");
+
+        expect(fakeData.getPassword({})).toBe("password");
+
+        faker.internet.userName.mockReset();
+    });
+});
+
+
+describe('getBase64 test cases', () => {
+
+    test('getBase64 returns base64 string', () => {
+        fakeData.getString = jest.fn(() => "a");
+
+        expect(fakeData.getBase64({})).toBe("YQ==");
+
+        fakeData.getString.mockReset();
+    });
+});
+
+
+describe('getEmail test cases', () => {
+
+    test('for enum, return value from enum', () => {
+        expect(fakeData.getEmail({
+            [constants.ENUM]: ["a@a.com", "a@b.com"],
+        })).in(["a@a.com", "a@b.com"]);
+    });
+
+    test('generate valid email', () => {
+        faker.internet.email = jest.fn(() => "a@a.com");
+
+        expect(fakeData.getEmail({})).toBe("a@a.com");
+
+        faker.internet.email.mockReset();
+    });
+});
+
+
+describe('getUUID test cases', () => {
+
+    test('getUUID returns uuid', () => {
+        faker.random.uuid = jest.fn(() => "abcd-efgh");
+
+        expect(fakeData.getUUID({})).toBe("abcd-efgh");
+
+        faker.random.uuid.mockReset();
+    });
+});
+
+
+describe('getBoolean test cases', () => {
+
+    test('getUUID returns uuid', () => {
+        expect(fakeData.getBoolean({})).in([true, false]);
+    });
+});
+
+
+describe('getRandomDateTime test cases', () => {
+
+    const MILLISECONDS_IN_YEAR = 86400 * 365.25 * 1000;
+
+    test('get date in the the range', () => {
+        const now = _.now();
+        _.now = jest.fn(() => now);
+
+        const date = fakeData.getRandomDateTime();
+
+        expect(date).isInstance(Date);
+        expect(date.getTime()).inBetween(now, now + MILLISECONDS_IN_YEAR);
+
+        _.now.mockReset();
+    })
+});
+
+
+describe('getFile test cases', () => {
+    test('getFile returns Stream', () => {
+        const fs = require('fs');
+
+        const origReadStream = fs.createReadStream;
+        fs.createReadStream = jest.fn();
+
+        fakeData.getFile();
+
+        expect(fs.createReadStream).toHaveBeenCalledWith(
+            path.join(settings.DIST_FOLDER, settings.DUMMY_FILES_FOLDER, 'dummy.txt')
+        );
+
+        fs.createReadStream = origReadStream;
+
+    });
 });

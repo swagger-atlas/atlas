@@ -15,7 +15,6 @@ exports.ResourceProvider = class ResourceProvider {
     Options Available are:
         - delete: Whether to delete this resource while fetching. Default: false
         - items: Number of items to fetch. default: 1. Is always 1 for delete: true
-        - first: If number of items are 1, return primitive instead of array. Default: true
     */
     static getOptions(options) {
 
@@ -57,9 +56,7 @@ exports.ResourceProvider = class ResourceProvider {
     }
 
     restoreResource(profile, resourceValue) {
-        // Function to restore Resource value in DB if delete OP was un-successful
-
+        // Function to restore Resource value in DB if delete Operation was un-successful
         this.dbResourceProviderInstance.restoreResource(profile, this.resourceName, resourceValue);
     }
-
 };
