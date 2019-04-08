@@ -20,6 +20,8 @@ expect.extend({
             message: () => `${num} is not between ${low} and ${high}`
         };
     },
+    // Be Aware, that it does not do deep equality check, as per
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/has
     in(key, iterable) {
         const set_iter = new Set(iterable);
         const pass = set_iter.has(key);

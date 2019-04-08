@@ -19,7 +19,7 @@ Resources are largely identified via an automated system.
 - Else, we try to reason for which entities' data could be faked, and which needs to be tagged as resource.
 
 You can run `atlas detect_resources` which would collate the explicit resources with generated resources.
-You can check the output in `build/resource_mapping.yaml`
+You can check the output in `conf/resource_mapping.yaml`
 - If we miss any resources in the automation, do let us know!
 
 
