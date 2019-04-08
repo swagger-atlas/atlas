@@ -1,5 +1,5 @@
 Profiles
-=====
+========
 
 Profiles are used in ATLAS to stimulate a role of an user who is running the application.
 Within each profile, you can store user-specific details.
@@ -71,22 +71,73 @@ Profiles can store authentication key-value pairs.
     token: abcd
 ```
 
+If it is a sensitive data which you do not want to commit, use `credentials.yaml`
+
+```yaml
+<profile_name>:
+    username: ""
+    password: ****
+```
+
+
 And then in `conf/artillery/hooks.js`
 ```js
-function selectProfile() {
-    const profileName = _.sample(Object.keys(profiles));
-    let profile = profiles[profileName];
-
-    // You can change the statements as needed
+async function addHeaders(profile) {
     profile.auth = {
         "headers": {'Authorization': 'Token ' + profile.token}
     };
-    return {[profileName]: profile};
+    return profile;
 }
 ```
 
-This header will now be added to all API Requests.
-Please note we only Header Authentication for now.
+Or a more complicated workflow sample which hits Server for actual Auth, and sets cookie
+
+```js
+
+function login(profile) {
+    return new Promise((resolve, reject) => {
+        request.post(
+            loginURL, {             // Replace with actual URL
+                body: JSON.stringify({
+                    username: profile.username,
+                    password: profile.password
+                })
+            }, function (err, httpResponse, body) {
+                if (err) {
+                    reject(err);
+                }
+                resolve(httpResponse);
+            }
+        );
+    });
+}
+
+
+async function addHeaders(profile) {
+
+    let authCookie = "";
+    let respCookies = "";
+
+    await login(profile)
+        .then(
+            (response) => {
+                const body = JSON.parse(response.body);
+                authCookie = body.Token;
+                respCookies = response.headers['set-cookie'][0];
+            }
+        );
+
+    profile.auth = {
+        headers: {
+            'Cookie': `user_auth_token=${authCookie}; ${respCookies}`
+        }
+    };
+
+    return profile;
+}
+```
+
+These headers will now be added to all API Requests.
 
 
 Using profiles for Resource Mapping Variables

@@ -83,7 +83,6 @@ class Provider {
         }
 
         return retValue;
-
     }
 
     getRelatedResources(resources) {
@@ -119,7 +118,7 @@ class Provider {
         if (_.get(config, constants.UNIQUE_ITEMS, false)) {
             items = new Set(items);
             // If due to de-duplication, our array count decreases and is less than what is required
-            while (items.length < minItems){
+            while (items.size < minItems){
                 items.add(self.itemResolution(itemConfig));
             }
             items = Array.from(items);
@@ -326,7 +325,6 @@ class ResponseDataParser {
         this.dbResourceInstance.deleteResource(this.profile, resourceKey, resourceValue);
         return true;
     }
-
 }
 
 

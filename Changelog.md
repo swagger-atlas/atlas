@@ -2,6 +2,14 @@ Changelog
 ========
 
 
+8.4.3
+-----
+
+- Documentation updates
+- Added even more JS Test cases
+- Fixed minor bugs in Data Providers
+
+
 8.4.2
 -----
 

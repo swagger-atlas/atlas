@@ -6,7 +6,7 @@ If you are looking for Resource Mapping Hooks, visit [Resources](docs/resources.
 
 Hooks basically let you inject custom code at various places during Load Testing.
 
-Three types of Hooks are:
+Different types of Hooks are:
 1. Profile Selection Hooks
 2. Profile Setup Hooks
 3. Request Body Hooks
@@ -23,13 +23,14 @@ Example of this type of hook:
 
 ```js
 function filterByID(profiles) {
-    return _.map(profiles, function (profile) { profile.id < 10; });
+    return _.filter(profiles, function (profile) { profile.id < 10; });
 }
 ```
 
 Things to note:
 - It must take profiles and return profiles array
 - Its hookRegister ID is "$profileSelection"
+- This is the first thing to be called by load test runner
 
 
 Profile Setup Hooks
@@ -38,7 +39,7 @@ These are used to setup relevant data once the profile is selected.
 
 Example:
 ```js
-function addHeaders(profile) {
+async function addHeaders(profile) {
     profile.auth = {
         "headers": {'Authorization': 'Token ' + profile.token}
     };
@@ -47,8 +48,11 @@ function addHeaders(profile) {
 ```
 
 Things to note:
-- It must take single profile object and return it
+- It must take single profile object and returns profile (as part of promise contract)
 - Its hookRegister ID is "$profileSetup"
+- There must be at least one profile setup hook present
+- This is the final stage of setup for load test runner.
+  Load test runner does not go ahead till this hook returns a valid promise
 
 
 Request Hooks
@@ -71,7 +75,12 @@ Things to note:
 - Number and order of arguments in return must not change
 - For requests which support body (eg: POST/PUT/PATCH), args are in order: URL, BODY, REQUEST PARAMS
 - For requests which do NOT support body (eg: GET), args are in order: URL, REQUEST PARAMS
-- Relevant HookRegister ID is Swagger OPERATION ID for the request. This can be found in Swagger file of request
+- Relevant HookRegister ID is Swagger OP_KEY for the request. (Swagger OP_KEY is "METHOD url")
+- This is called just before request is sent to Server.
+  This means that it is called _after_ ATLAS fills the request body, headers and other params by itself.
+  This has two implications:
+  - You have access to all data which is provided by ATLAS, so you only need to change only what you need.
+  - If there is an error during ATLAS trying to fill the data, that API request will fail before it reaches the hook
 
 
 #### File Hooks
@@ -90,11 +99,11 @@ function addCSVFile(...args) {
 ```
 
 You can use following File Methods:
-- getImageFile()
-- getCSVFile()
-- getExcelFile()
-- getTextFile()
-- getFileByPath(path) (In this, supply your own file by providing path)
+- `getImageFile()`
+- `getCSVFile()`
+- `getExcelFile()`
+- `getTextFile()`
+- `getFileByPath(path)` (In this, supply your own file by providing path)
 
 **CAVEAT** : Make sure that the file fields is marked as type `file` in Swagger.
 If not, it may result in unexpected behaviour.
@@ -102,7 +111,7 @@ When ATLAS finds `file` type fields, it automatically generates dummy text file 
 
 
 Hook Registration
------
+-----------------
 
 Once you define functions, you must register them via HookRegister.
 

@@ -18,7 +18,7 @@ FILTERS = "filters"
 
 DEFAULT_COLUMN = "id"
 
-DUMMY_DEF = "def"
+DUMMY_DEF = "dummy"
 
 LIMIT = 50
 

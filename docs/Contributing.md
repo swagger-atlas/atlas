@@ -40,14 +40,16 @@ Project Setup
 Coding Guidelines
 =================
 
-
 - Indentation Styles: Prefer Spaces (4) over Tab
 - Add your changes in Changelog.md
 - Your commits should not decrease pylint score of any existing file.
 - Prefer f-strings in Python and Template Strings in Javascript
+- Add Test cases for any change or new feature as required
 
 
 Testing
 =======
 
-For testing, run `py.test --cov=atlas/`
+For testing, run
+- `py.test --cov=atlas/` for python module (We use [pytest](https://pytest.readthedocs.io/en/4.3.0/))
+- `npm run coverage` for JS Modules (We use [jest](https://jestjs.io/docs/en/getting-started.html))

@@ -35,7 +35,8 @@ class Configuration:
 
     # #### End Resource Auto-detection constant settings
 
-    # Custom Scenarios for Load Test. See: https://code.jtg.tools/jtg/atlas/tree/master/docs/profile.md for more details
+    # Custom Scenarios for Load Test.
+    # See: https://code.jtg.tools/jtg/atlas/tree/master/docs/profiles.md for more details
     LOAD_TEST_SCENARIOS = {}
 
     # #### Load Test Settings

@@ -4,29 +4,32 @@ ATLAS Application
 This is an application build on ATLAS framework
 Please see [ATLAS Documentation](https://code.jtg.tools/jtg/atlas/README.md) for information about ATLAS.
 
+
 Project Setup
 =============
+
+> If you have created project from `atlas newproject` command, skip to Step 4
 
 1. Create a Virtual Environment, if not already created
     - Run `virtualenv <path/to/virtualenvs/atlas> -p <python3.x>`
      (Replace <variables> with your own versions). Python should be 3.6+
     - `source <path/to/virtualenvs/atlas>/bin/activate` to activate this
 
-1. Run `pip install -e git+git@code.jtg.tools:jtg/atlas.git#egg=atlas`
+2. Run `pip install -e git+git@code.jtg.tools:jtg/atlas.git#egg=atlas`
 
-1. Run `atlas build`
+3. Run `atlas build`
 
-1. Customize as per your needs
+4. Customize as per your needs
     - Fill `settings.py` file
-    - Fill in `conf/conf.py` file
     - Update name in `package.json`
-    - Copy `conf/credentials.yaml.template` to `conf/credentials.yaml`
 
-1. In the conf folder:
-    - Copy your swagger to swagger.yaml
-    - Write your resource hooks in resource_hooks.py
-    - Resource mapping in resource_mapping.yaml
-    - Task hooks as per task (For example, Artillery hooks are hooks.js)
+5. In the `conf` folder:
+    - Copy your swagger to `swagger.yaml`
+    - Fill in `conf.py` file
+    - Copy `credentials.yaml.template` to `credentials.yaml`
+    - Specify Resource mapping in `resource_mapping.yaml`
+    - Write your resource hooks in `resource_hooks.py`
+    - Task hooks as per task (For example, Artillery hooks are `artillery/hooks.js`)
 
     See: [Integration Use Cases](https://code.jtg.tools/jtg/atlas/docs/use_cases.md)
 
