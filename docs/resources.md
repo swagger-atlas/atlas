@@ -1,5 +1,5 @@
 Resources
-======
+=========
 
 ATLAS comes in with a battery of providers, which can fake data for almost any Swagger configuration.
 However, sometimes, a random fake data is not what we want.
@@ -132,7 +132,7 @@ def my_func_name(arg_1, arg_2, a):
 
 **Misc Options**
 - resource: Inherit the resource definition of another resource. You can then selectively over-write the keys or keep them exactly the same
-- def: Denotes dummy resource. No data is fetched for it.
+- dummy: Denotes dummy resource. No data is fetched for it.
 
 *Example - Resource Inheritance*
 ```yaml
@@ -152,7 +152,7 @@ cat:
 *Example - Dummy Resource*
 ```yaml
 forums:
-    def: <something>
+    dummy: <something>
     # This resource WILL not be parsed EVEN if other keys are found
     # These resources are generated at run-time during workflow itself, rather than being pre-compiled in a cache
 ```
@@ -186,7 +186,8 @@ Pre-compiled resources *do* update  during workflow also
 
 
 Workflow
-=======
+========
+
 Resource Mapping file need not contain the DB mapping for each and every resource, if we can extract and use the resource during run-time itself.
 For example, if you have exposed CREATE API for resource A, and then some other API use the resource A.
 Then ideally it should be possible for us to use the results of CREATE API and apply the results in other APIs as needed.
