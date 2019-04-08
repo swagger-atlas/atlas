@@ -4,7 +4,6 @@ const provider = require('../../atlas/modules/data_provider/artillery/providers'
 const relatedResources = require('../../atlas/modules/data_provider/artillery/relationResources').relationshipResource;
 const Resource = require('../../atlas/modules/data_provider/artillery/resources').Resource;
 const constants = require('../constants');
-const settings = require('../settings');
 
 jest.mock('../../atlas/modules/data_provider/artillery/relationResources');
 jest.mock('../../atlas/modules/data_provider/artillery/resources');
@@ -210,4 +209,174 @@ describe('addData test', () => {
         expect(respDataParser.addData("random_key", ["a"])).toEqual(resourceSet);
         expect(resourceInstanceMock.updateResource).not.toBeCalled();
     });
+});
+
+
+
+describe('formatResourceMapping test', () => {
+
+    test('normal flow', function () {
+        const resMap = {
+            y: new Set([1]),
+            z: new Set([1]),
+            $agg: [
+                {x: new Set([1])},
+                {x: new Set([2])},
+                {
+                    $agg: [
+                        {
+                            a: new Set([1]),
+                            b: new Set([1])
+                        },
+                        {
+                            a: new Set([1]),
+                            b: new Set([3])
+                        }
+                    ]
+                }
+            ]
+        };
+
+        const resp = respDataParser.formatResourceMap(resMap);
+
+        const expectedOutput = [
+            {x: new Set([1]), y: new Set([1]), z: new Set([1])},
+            {x: new Set([2]), y: new Set([1]), z: new Set([1])},
+            {a: new Set([1]), b: new Set([1]), y: new Set([1]), z: new Set([1])},
+            {a: new Set([1]), b: new Set([3]), y: new Set([1]), z: new Set([1])}
+        ];
+
+        expect(resp).toEqual(expectedOutput);
+    });
+
+    test('input as array', () => {
+        expect(respDataParser.formatResourceMap([])).toEqual([]);
+    });
+});
+
+
+describe('system test', () => {
+
+    test('test parsing a response and schema with all resources generates correct resourceMap', () => {
+
+        resourceInstanceMock.updateResource = jest.fn();
+
+        const response = {
+            some_key: [
+                {
+                    x: 1
+                },
+                {
+                    x: 2
+                }
+            ],
+            y: 1,
+            k: [3, 4],
+            outer: {
+                inner: [
+                    {a: 1, b: 1},
+                    {a: 1, b: 3}
+                ],
+                z: 2
+            }
+        };
+
+        const schema = {
+            some_key: {
+                type: constants.ARRAY,
+                items: {
+                    type: constants.OBJECT,
+                    properties: {
+                        x: {
+                            resource: "x",
+                        }
+                    }
+                }
+            },
+            y: {
+                resource: "y",
+            },
+            k:{
+                type: constants.ARRAY,
+                items: {
+                    resource: "k"
+                }
+            },
+            outer: {
+                type: constants.OBJECT,
+                properties: {
+                    inner: {
+                        type: constants.ARRAY,
+                        items: {
+                            type: constants.OBJECT,
+                            properties: {
+                                a: {
+                                    resource: "a",
+                                },
+                                b: {
+                                    resource: "b",
+                                }
+                            }
+                        }
+                    },
+                    z: {
+                        resource: "z"
+                    }
+                }
+            }
+        };
+
+        let resp = respDataParser.parser(schema, response);
+
+        const expectedResp = {
+            y: new Set([1]),
+            z: new Set([2]),
+            $agg: [
+                {
+                    a: new Set([1]),
+                    b: new Set([1])
+                },
+                {
+                    a: new Set([1]),
+                    b: new Set([3])
+                },
+                {x: new Set([1])},
+                {x: new Set([2])},
+                {k: new Set([3, 4])}
+            ]
+        };
+
+        expect(resp).toEqual(expectedResp);
+
+        resourceInstanceMock.updateResource.mockReset();
+    });
+
+    test('test parsing a response and schema with no resources generates correct resourceMap', () => {
+
+        resourceInstanceMock.updateResource = jest.fn();
+
+        const response = {
+            some_key: "abc",
+            k: "xyz",
+            z: []
+        };
+
+        const schema = {
+            some_key: "abc",
+            k: {
+                type: constants.STRING,
+            },
+            z: {
+                resource: "z"
+            },
+            extra: {}
+        };
+
+        let resp = respDataParser.parser(schema, response);
+
+        expect(resp).toEqual({$agg: []});
+
+        resourceInstanceMock.updateResource.mockReset();
+    });
+
 });

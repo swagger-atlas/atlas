@@ -225,6 +225,57 @@ class ResponseDataParser {
     }
 
     parseObject(schema, response) {
+        /*
+        Need to return an object which could be fed to formatResourceMap.
+        We need to make sure that we handle arbitrary nesting level of response and schema
+        Further, we want to make that when we combine values of different resources, it makes for sensible relation
+
+        Consider the somewhat contrived response
+        (and assume that schema declares all of them as resources with correct type checks):
+
+        {
+            some_key: [
+                {
+                    x: 1
+                },
+                {
+                    x: 2
+                }
+            ],
+            y: 1,
+            k: [3, 4],
+            outer: {
+                inner: [
+                    {a: 1, b: 1},
+                    {a: 1, b: 3}
+                ],
+                z: 2
+            }
+        }
+
+        Then we would want our reqMap to look like:
+
+        {
+            y: new Set([1]),
+            z: new Set([2]),
+            $agg: [
+                {
+                    a: new Set([1]),
+                    b: new Set([1])
+                },
+                {
+                    a: new Set([1]),
+                    b: new Set([3])
+                },
+                {x: new Set([1])},
+                {x: new Set([2])},
+                {k: new Set([3, 4])}
+            ]
+        }
+
+        Notice that all simple keys where there is no confusion for cross-product are merged at top level
+        All complicated aggregations are flattened as much as possible, and used.
+         */
 
         let reqMap = {};
 
@@ -285,6 +336,39 @@ class ResponseDataParser {
     }
 
     formatResourceMap(resourceMap) {
+        /*
+        Consider the resource map as:
+
+        {
+            $agg: [
+                {x: 1},
+                {x: 2},
+                {
+                    $agg: [
+                        {a: 1, b: 1},
+                        {a: 1, b: 3}
+                    ]
+                }
+            ],
+            y: 1,
+            z: 1
+        }
+
+        We can not make assumptions how inner and outer aggregate resource result would be valid relationship
+
+        Thus our final output should be:
+
+        [
+            {x: 1, y: 1, z: 1},
+            {x: 2, y: 1, z: 1},
+            {a: 1, b: 1, y: 1, z: 1},
+            {a: 1, b: 3, y: 1, z: 1}
+        ]
+
+        To see how resourceMap is constructed and why we take assumptions stated above,
+        see parseObject function (with parseArray and parser as its helpers)
+         */
+
         let out = [];
         let element = _.isArray(resourceMap) ? {} : _.omit(resourceMap, '$agg');
 
