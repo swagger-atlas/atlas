@@ -393,13 +393,156 @@ describe('resolveArray test cases', () => {
 
 describe('resolveObject test cases', function () {
 
-    test('type is array');
+    let origItemResolution;
 
-    test('object config is present at top level');
+    beforeAll(() => {
+        origItemResolution = providerInstance.itemResolution;
+        providerInstance.itemResolution = jest.fn((config) => config.key);
+    });
 
-    test('object has properties');
+    afterEach(() => {
+        providerInstance.itemResolution.mockClear();
+    });
 
-    test('object has additionalProperties with specified minimum properties');
+    afterAll(() => {
+        providerInstance.itemResolution = origItemResolution;
+    });
 
-    test('object has additionalProperties with no specified minimum properties');
+
+    test('type is array', () => {
+        const origResolveArray = providerInstance.resolveArray;
+        providerInstance.resolveArray = jest.fn(() => [1, 2]);
+
+        const config = {
+            [constants.TYPE]: constants.ARRAY
+        };
+
+        expect(providerInstance.resolveObject(config)).toEqual([1, 2]);
+        expect(providerInstance.resolveArray).toBeCalledWith(config);
+        providerInstance.resolveArray = origResolveArray;
+    });
+
+    test('object config is present at top level', function () {
+        const config = {
+            key_1: {
+                key: "val_1"
+            },
+            key_2: {
+                key: "val_2"
+            },
+            dummy: "str",
+            key_3: {
+                dummy: "xyz"
+            },
+            key_4: {
+                key: false
+            }
+        };
+
+        expect(providerInstance.resolveObject(config)).toEqual({key_1: "val_1", key_2: "val_2", key_4: false});
+    });
+
+    test('object has properties', function () {
+        const config = {
+            [constants.PROPERTIES]: {
+                key_1: {
+                    key: "val_1"
+                },
+                key_2: {
+                    key: "val_2"
+                },
+                dummy: "str",
+                key_3: {
+                    dummy: "xyz"
+                },
+                key_4: {
+                    key: false
+                }
+            },
+            outer_key: {
+                key: "not_included"
+            },
+            outer_str_key: "some_val"
+        };
+
+        expect(providerInstance.resolveObject(config)).toEqual({key_1: "val_1", key_2: "val_2", key_4: false});
+    });
+
+    test('object has additionalProperties with specified minimum properties', () => {
+        const config = {
+            [constants.ADDITIONAL_PROPERTIES]: {
+                key: "add_prop_val",
+                [constants.MIN_PROPERTIES]: 2
+            },
+            outer_key: {
+                key: "not_included"
+            },
+            outer_str_key: "some_val"
+        };
+
+        expect(providerInstance.resolveObject(config)).toEqual(
+            {artillery_load_test_0: "add_prop_val", artillery_load_test_1: "add_prop_val"}
+        );
+    });
+
+    test('object has additionalProperties with no specified minimum properties', () => {
+        const config = {
+            [constants.ADDITIONAL_PROPERTIES]: {
+                key: "add_prop_val",
+            },
+            outer_key: {
+                key: "not_included"
+            },
+            outer_str_key: "some_val"
+        };
+
+        expect(providerInstance.resolveObject(config)).toEqual({});
+    });
+
+    test('object has additionalProperties which do not resolve', () => {
+        const config = {
+            [constants.ADDITIONAL_PROPERTIES]: {
+                incorrect_key: "add_prop_val",
+                [constants.MIN_PROPERTIES]: 2
+            },
+            outer_key: {
+                key: "not_included"
+            },
+            outer_str_key: "some_val"
+        };
+
+        expect(providerInstance.resolveObject(config)).toEqual({});
+    });
+
+    test('object with both additional properties and properties', () => {
+        const config = {
+            [constants.PROPERTIES]: {
+                key_1: {
+                    key: "val_1"
+                },
+                key_2: {
+                    key: "val_2"
+                },
+                dummy: "str",
+                key_3: {
+                    dummy: "xyz"
+                },
+                key_4: {
+                    key: false
+                }
+            },
+            [constants.ADDITIONAL_PROPERTIES]: {
+                key: "add_prop_val",
+                [constants.MIN_PROPERTIES]: 1
+            },
+            outer_key: {
+                key: "not_included"
+            },
+            outer_str_key: "some_val"
+        };
+
+        expect(providerInstance.resolveObject(config)).toEqual(
+            {key_1: "val_1", key_2: "val_2", key_4: false, artillery_load_test_0: "add_prop_val"}
+        );
+    });
 });
