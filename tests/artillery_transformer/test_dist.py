@@ -35,7 +35,8 @@ class TestDist:
         instance.copy_files()
 
         source_path = path.join(settings.BASE_DIR, "atlas", "modules", "data_provider", "artillery")
-        source_files = [path.join(source_path, file) for file in os.listdir(source_path)]
+        source_files = [path.join(source_path, file) for file in os.listdir(source_path)
+                        if file not in {"constants.js", "settings.js", settings.ARTILLERY_RESOURCES}]
         d_path = path.join(settings.DIST_FOLDER, settings.ARTILLERY_FOLDER, settings.ARTILLERY_LIB_FOLDER)
 
         expected_sources = [((_file, d_path),) for _file in source_files]
