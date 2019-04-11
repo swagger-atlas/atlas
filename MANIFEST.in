@@ -1,7 +1,12 @@
 recursive-include atlas/app_template *
 recursive-include atlas/examples *
+recursive-include atlas/modules *
+
 include LICENSE
 include MANIFEST.in
 include package.json
 include requirements.txt
+
 prune atlas/examples/**/node_modules
+
+global-exclude *.py[cod]

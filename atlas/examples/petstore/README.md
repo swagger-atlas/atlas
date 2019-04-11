@@ -20,7 +20,7 @@ Running Load Test
 Add InfluxDB and Grafana
 ------------------------
 
-- Run `docker-compose -f docker/docker-compose.yml`
+- Run `docker-compose -f docker/docker-compose.yml up`
 
 
 With Artillery

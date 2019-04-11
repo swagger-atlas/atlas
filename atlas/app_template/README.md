@@ -43,7 +43,7 @@ Grafana is then used as visualization.
 
 Docker Setup (Recommended)
 --------------------------
-You can easily setup both by running `docker-compose -f docker/docker-compose.yml`
+You can easily setup both by running `docker-compose -f docker/docker-compose.yml up`
 
 
 Manual Setup
