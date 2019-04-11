@@ -1,5 +1,9 @@
-Changelog
-========
+Changelog - Alpha/Beta
+======================
+
+NOTE:
+This changelog is only valid for Alpha and beta releases.
+Find updated changelog [here](CHANGELOG.md)
 
 
 8.4.3

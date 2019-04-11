@@ -1,8 +1,11 @@
 from setuptools import setup
 
 setup(
-    name="atlas",
-    version="8.4.3",
+    name="swagger-atlas",
+    version="1.0.0",
+    description="Transforms your swagger docs to load testing config and run them",
+    url="https://github.com/swagger-atlas/atlas",
+    author_email="atlas@joshtechnologygroup.com",
     packages=["atlas"],
     install_requires=[
         "six==1.11.0",
@@ -19,5 +22,9 @@ setup(
         'console_scripts': [
             'atlas = atlas.modules.commands.management:execute_from_command_line'
         ]
-    }
+    },
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: Apache Software License"
+    ],
 )

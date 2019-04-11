@@ -15,7 +15,7 @@ Project Setup
      (Replace <variables> with your own versions). Python should be 3.6+
     - `source <path/to/virtualenvs/atlas>/bin/activate` to activate this
 
-2. Run `pip install -e git+git@code.jtg.tools:jtg/atlas.git#egg=atlas`
+2. Run `pip install swagger-atlas`
 
 3. Run `atlas build`
 
