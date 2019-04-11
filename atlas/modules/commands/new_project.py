@@ -48,7 +48,7 @@ class StartProjectCommand(BaseCommand):
                 return
 
         print(f"Creating {project_name}...")
-        shutil.copytree(os.path.join(settings.BASE_DIR, settings.APP_TEMPLATE_DIRECTORY), target)
+        shutil.copytree(os.path.join(settings.BASE_DIR, "atlas", settings.APP_TEMPLATE_DIRECTORY), target)
 
         print("\nProject successfully created\n")
 

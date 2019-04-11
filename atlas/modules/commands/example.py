@@ -30,7 +30,7 @@ class ExampleProjectCommand(BaseCommand):
         if os.path.exists(target):
             raise CommandError("{} directory already exists! Please select another location".format(project_name))
 
-        shutil.copytree(os.path.join(settings.BASE_DIR, settings.EXAMPLE_DIRECTORY, project_name), target)
+        shutil.copytree(os.path.join(settings.BASE_DIR, "atlas", settings.EXAMPLE_DIRECTORY, project_name), target)
 
     @staticmethod
     def validate_name(name):
