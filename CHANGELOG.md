@@ -2,6 +2,11 @@ Changelog
 =========
 
 
+##### 0.1.2
+
+Fix the issues with README syntax on PyPI
+
+
 ##### 0.1.1
 
 Fix the test cases

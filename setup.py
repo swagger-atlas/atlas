@@ -7,13 +7,14 @@ with open("README.md", "r") as fh:
 
 setup(
     name="swagger-atlas",
-    version="0.1.1",
+    version="0.1.7",
     description="Transforms your swagger docs to load testing config and run them",
     long_description=long_description,
+    long_description_content_type="text/markdown",
     url="https://github.com/swagger-atlas/atlas",
     author="JTG",
     author_email="atlas@joshtechnologygroup.com",
-    packages=find_packages(include=['atlas.*']),
+    packages=find_packages(include=['atlas', 'atlas.*']),
     include_package_data=True,
     install_requires=[
         "six==1.11.0",
