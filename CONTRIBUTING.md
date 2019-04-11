@@ -13,8 +13,6 @@ Our workflow is pretty simple.
 - Make your changes, and submit us a PR
 - In the Commits as well as PR, do mention the issue id(s)
 - Make sure you update CHANGELOG.md in "UPCOMING RELEASE" section with changes you mentioned in the format:
-`<commit-id> #<pull-request-id> brief explanation (@<handle>)`
-An example would be: `a0e34567 #45 fix typo in docs on resources (@someone)`
 
 
 Project Setup

@@ -1,15 +1,23 @@
-from setuptools import setup
+from setuptools import setup, find_packages
+
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 
 setup(
     name="swagger-atlas",
-    version="1.0.0",
+    version="0.1.1",
     description="Transforms your swagger docs to load testing config and run them",
+    long_description=long_description,
     url="https://github.com/swagger-atlas/atlas",
+    author="JTG",
     author_email="atlas@joshtechnologygroup.com",
-    packages=["atlas"],
+    packages=find_packages(include=['atlas.*']),
+    include_package_data=True,
     install_requires=[
         "six==1.11.0",
-        "PyYAML==3.13",
+        "PyYAML==5.1",
         "peewee==3.6.4",
         "pymysql==0.9.2",
         "psycopg2==2.7.5",

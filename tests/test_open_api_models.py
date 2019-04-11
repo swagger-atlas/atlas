@@ -5,7 +5,6 @@ import pytest
 from atlas.modules.transformer.open_api_models import Response, swagger_constants as constants, RESOURCES, DEF
 
 
-@pytest.mark.wip
 class TestResponse:
 
     @pytest.fixture
