@@ -29,7 +29,8 @@ With Artillery
 (Make sure you have ATLAS installed in your virtualenv)
 (Also, make sure you are running InfluxDB and Grafana)
 
-- Run `atlas dist`
+- `npm install`
+- `atlas dist`
 - `atlas run`
 
 

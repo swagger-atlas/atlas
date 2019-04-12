@@ -4,7 +4,7 @@ ATLAS
 ATLAS takes your Swagger, and smartly generates the code which could be used as input to various load testing tools.
 Currently, ATLAS fully supports [Artillery Load Runner](https://artillery.io/)
 
-ATLAS Stands for Automated Tool for Load Analysis and Simulation
+ATLAS stands for Automation Tool for Load Analysis and Simulation
 
 
 Creating a new Project
@@ -32,6 +32,9 @@ Features
 - Generate beautiful graphics and statistics
 
 Do Read [Use Cases](docs/use_cases.md) for use cases and best swagger practices to get the most out of ATLAS Automation systems.
+
+One of the many graphs which would be auto-generated:
+![Grafana Dashboard Sample](static/images/petstore-sample.png)
 
 ---
 

@@ -1,4 +1,4 @@
-// Refer to https://code.jtg.tools/jtg/atlas/tree/master/docs/hooks.md for details on how to write and use the hooks
+// Refer to https://github.com/swagger-atlas/atlas/blob/master/docs/hooks.md for details on how to write and use the hooks
 
 async function addHeaders(profile) {
     profile.auth = {

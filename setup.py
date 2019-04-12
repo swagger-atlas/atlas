@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="swagger-atlas",
-    version="1.0.0",
+    version="1.0.1",
     description="Transforms your swagger docs to load testing config and run them",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -18,7 +18,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "six==1.11.0",
-        "PyYAML==5.1",
+        "PyYAML==4.2b1",
         "peewee==3.6.4",
         "pymysql==0.9.2",
         "psycopg2==2.7.5",

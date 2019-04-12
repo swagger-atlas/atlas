@@ -118,7 +118,7 @@ function statsEndResponse(context, event, done) {
 
     if (statusCodeCounter["401"]) {
         console.log("HINT: Some APIs were not authenticated (401). You can authenticate your APIs through Profiles." +
-            "See https://code.jtg.tools/jtg/atlas/docs/use_cases.md for Authentication guide");
+            "See https://github.com/swagger-atlas/atlas/blob/master/docs/use_cases.md for Authentication guide");
     }
 
     done();

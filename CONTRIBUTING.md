@@ -7,7 +7,7 @@ There are many ways you can contribute to ATLAS:
 - Improve the documentation
 - Add feature requests or enhancements at [Tracker]
 
-[Tracker]: https://jira.jtg.tools/secure/RapidBoard.jspa?projectKey=LT
+[Tracker]: https://github.com/swagger-atlas/atlas/issues
 
 Our workflow is pretty simple.
 - Make your changes, and submit us a PR

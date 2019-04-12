@@ -1,6 +1,6 @@
 # This file contains all the resources either auto-detected by ATLAS or manually added by user
 # This contains the mapping of Resources to their DB, so we can have a cache
 
-# See https://code.jtg.tools/jtg/atlas/docs/resources.md on how to edit this file
+# See https: https://github.com/swagger-atlas/atlas/blob/master/docs/resources.md on how to edit this file
 # Also see ./hooks.py on writing the hooks for this file
 #

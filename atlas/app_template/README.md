@@ -2,7 +2,7 @@ ATLAS Application
 =================
 
 This is an application build on ATLAS framework
-Please see [ATLAS Documentation](https://code.jtg.tools/jtg/atlas/README.md) for information about ATLAS.
+Please see [ATLAS Documentation](https://github.com/swagger-atlas/atlas) for information about ATLAS.
 
 
 Project Setup
@@ -31,7 +31,7 @@ Project Setup
     - Write your resource hooks in `resource_hooks.py`
     - Task hooks as per task (For example, Artillery hooks are `artillery/hooks.js`)
 
-    See: [Integration Use Cases](https://code.jtg.tools/jtg/atlas/docs/use_cases.md)
+    See: [Integration Use Cases](https://github.com/swagger-atlas/atlas/blob/master/docs/use_cases.md)
 
 
 Setup InfluxDB and Grafana
@@ -66,4 +66,4 @@ Build and Run Artillery:
     - `atlas dist`  (This converts your Swagger to Artillery Load Test)
     - `atlas run`   (This runs load test for your project)
 
-You should see [Artillery Guide](https://code.jtg.tools/jtg/atlas/docs/artillery.md) for details.
+You should see [Artillery Guide](https://github.com/swagger-atlas/atlas/blob/master/docs/artillery.md) for details.

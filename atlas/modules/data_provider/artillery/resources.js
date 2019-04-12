@@ -76,6 +76,6 @@ exports.Resource = class Resource {
     }
 
     restoreResource(profile, resourceKey, resourceValue) {
-        this.resources[Resource.getKey(profile, resourceKey)].add(resourceValue);
+        this.updateResource(profile, resourceKey, [resourceValue]);
     }
 };

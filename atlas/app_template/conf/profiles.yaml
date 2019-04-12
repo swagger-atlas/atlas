@@ -1,4 +1,4 @@
-# See https://code.jtg.tools/jtg/atlas/tree/master/docs/profiles.md for more details on how to construct and use profiles
+# See https://github.com/swagger-atlas/atlas/blob/master/docs/profiles.md for more details on how to construct and use profiles
 default:
   token: dummy
   tags:

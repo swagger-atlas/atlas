@@ -2,7 +2,7 @@ class Settings:
 
     # APP DB Settings.
     # Required if you add any DB Mapping in conf/resource_mapping.yaml
-    # Reference: https://code.jtg.tools/jtg/atlas/blob/master/docs/resources.md
+    # Reference: https://github.com/swagger-atlas/atlas/blob/master/docs/resources.md
     DATABASE = {
         "engine": "",  # Allowed values are "postgres", "mysql", "sqlite"
         "name": "",
