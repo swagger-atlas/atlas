@@ -31,10 +31,10 @@ Features
     - This works with arbitrarily with any complex relationships between APIs as long it is not cyclic
 - Generate beautiful graphics and statistics
 
-Do Read [Use Cases](docs/use_cases.md) for use cases and best swagger practices to get the most out of ATLAS Automation systems.
+Do Read [Use Cases](https://github.com/swagger-atlas/atlas/blob/master/docs/use_cases.md) for use cases and best swagger practices to get the most out of ATLAS Automation systems.
 
 One of the many graphs which would be auto-generated:
-![Grafana Dashboard Sample](static/images/petstore-sample.png)
+![Grafana Dashboard Sample](https://github.com/swagger-atlas/atlas/raw/master/static/images/petstore-sample.png)
 
 ---
 
@@ -81,14 +81,14 @@ ATLAS has an inbuilt AI which can generate fake data for most of requests.
 ATLAS can also extract data from one API and use it in another.
 
 You can supply your own data for some of the resources.
-See **Mapping Resources to Database** section in [Resources](docs/resources.md) for details
+See **Mapping Resources to Database** section in [Resources](https://github.com/swagger-atlas/atlas/blob/master/docs/resources.md) for details
 
 ---
 
 #### Selective API Hits
 You may want to load test a subset of APIs only. There are several quick ways to do that
 - Exclude URLs: In settings, you can give a list of OP_KEYS for excluding URLs
-- Tag Specific: (tags are the same as those given in swagger). See [Profiles](docs/profiles.md) for tagging example
+- Tag Specific: (tags are the same as those given in swagger). See [Profiles](https://github.com/swagger-atlas/atlas/blob/master/docs/profiles.md) for tagging example
     - In settings, mark ONLY_TAG_API as True
     - In `conf/profiles.yaml`, in the `tags` section, mark the tags you want to test with
 - You can generate your own scenarios. More details in Scenarios section.
@@ -101,7 +101,7 @@ ATLAS allows you to manipulate request to API. You may want to do this to:
 - Change URL being hit (eg: changing Query Params in it)
 - Change Other Parameters (eg: Headers)
 
-See [Hooks](docs/hooks.md) for details on how to do this, and various examples for same
+See [Hooks](https://github.com/swagger-atlas/atlas/blob/master/docs/hooks.md) for details on how to do this, and various examples for same
 
 ---
 
@@ -126,7 +126,7 @@ ATLAS Provides such ability
 - Profiles can have multiple scenarios associated with them
 - If needed, can over-write default scenario
 
-See `Creating Custom Scenario` section in [Use cases](docs/uses_cases.md) for more details
+See `Creating Custom Scenario` section in [Use cases](https://github.com/swagger-atlas/atlas/blob/master/docs/uses_cases.md) for more details
 
 
 Example Project
