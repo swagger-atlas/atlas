@@ -7,6 +7,7 @@ from atlas.modules import (
     mixins,
     utils
 )
+from atlas.modules.resource_data_generator import constants as resource_constants
 from atlas.modules.helpers import resource_map
 
 
@@ -241,7 +242,9 @@ class AutoGenerator(mixins.YAMLReadWriteMixin):
         self.write_file_to_output(self.swagger_file, self.specs, append_mode=False)
 
         # Update Resource Mapping File
-        auto_resource = {resource: {"def": "# Add your definition here"} for resource in self.new_resources}
+        auto_resource = {
+            resource: {resource_constants.DUMMY_DEF: "# Add your definition here"} for resource in self.new_resources
+        }
         self.write_file_to_input(
             settings.MAPPING_FILE, {**self.resource_map_resolver.resource_map, **auto_resource}, append_mode=False
         )

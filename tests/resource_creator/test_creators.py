@@ -195,7 +195,7 @@ class TestAutoGeneratorUnit:
     def test_update(self, instance):
         instance.write_file_to_output = mock.MagicMock()
         instance.write_file_to_input = mock.MagicMock()
-        res_map = {resource: {"def": "# Add your definition here"} for resource in instance.new_resources}
+        res_map = {resource: {"dummy": "# Add your definition here"} for resource in instance.new_resources}
 
         instance.update()
 

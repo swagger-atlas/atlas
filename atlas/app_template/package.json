@@ -2,7 +2,7 @@
   "name": "",
   "private": true,
   "dependencies": {
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.15",
     "influx": "^5.0.7",
     "faker": "git+https://github.com/JoshLabs/faker.js.git#master",
     "randexp": "^0.5.3"

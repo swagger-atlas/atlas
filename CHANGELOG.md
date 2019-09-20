@@ -1,6 +1,14 @@
 Changelog
 =========
 
+##### 1.1.0
+
+Bugfixes:
+
+- Update versions of libraries with reported CVE issues
+- Use constants to deal with dummy resources. This fixes the issue with spurious dummy resource detection
+
+
 ##### 1.0.2
 
 Previous release did not have some of the commits needed.

@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="swagger-atlas",
-    version="1.0.3",
+    version="1.1.0",
     description="Transforms your swagger docs to load testing config and run them",
     long_description=long_description,
     long_description_content_type="text/markdown",
