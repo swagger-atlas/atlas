@@ -1,0 +1,22 @@
+config:
+  phases:
+  - arrivalRate: 1
+    duration: 1
+  processor: ./processor.js
+  target: http://localhost:8080/v2
+scenarios:
+- flow:
+  - function: defaultSetProfiles
+  - function: setUp
+  - post:
+      afterResponse: apiCreatePostRes
+      beforeRequest: apiCreatePreReq
+      ifTrue: apiCreateCondition
+      url: /pet
+  - get:
+      afterResponse: apiReadPostRes
+      beforeRequest: apiReadPreReq
+      ifTrue: apiReadCondition
+      url: /pet/{petId}
+  - function: endResponse
+  name: default

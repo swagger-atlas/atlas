@@ -7,6 +7,7 @@ Bugfixes:
 
 - Update versions of libraries with reported CVE issues
 - Use constants to deal with dummy resources. This fixes the issue with spurious dummy resource detection
+- Test cases have missing BUILD folder due to sweeping gitignore. Fixed that issue
 
 
 ##### 1.0.2
