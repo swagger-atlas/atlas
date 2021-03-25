@@ -3,7 +3,7 @@
 # Locust Requirements
 locustio==0.8.1
 
-PyYAML==4.2b1
+PyYAML==5.4
 
 faker==0.8.17
 

@@ -18,7 +18,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "six==1.11.0",
-        "PyYAML==4.2b1",
+        "PyYAML==5.4",
         "peewee==3.6.4",
         "pymysql==0.9.2",
         "psycopg2==2.7.5",
